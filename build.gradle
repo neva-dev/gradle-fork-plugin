@@ -1,0 +1,71 @@
+plugins {
+    id 'java-gradle-plugin'
+    id 'maven-publish'
+    id "org.jetbrains.kotlin.jvm" version "1.1.51"
+    id "com.jfrog.bintray" version "1.7.3"
+}
+
+group 'com.neva.gradle'
+version '1.0.0-SNAPSHOT'
+description = 'Gradle Fork Plugin'
+defaultTasks = ['clean', 'publishToMavenLocal']
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile gradleApi()
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:1.1.51"
+
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+sourceCompatibility = 1.8
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
+gradlePlugin {
+    plugins {
+        fork {
+            id = "com.neva.fork"
+            implementationClass = "com.neva.gradle.fork.ForkPlugin"
+        }
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+}
+
+test.dependsOn publishToMavenLocal
+check.dependsOn publishToMavenLocal
+
+bintray {
+    user = project.properties.get('bintrayUser') ?: System.getenv('BINTRAY_USER')
+    key = project.properties.get('bintrayKey') ?: System.getenv('BINTRAY_KEY')
+    publications = ['mavenJava']
+    pkg {
+        repo = 'maven-public'
+        name = 'gradle-fork-plugin'
+        userOrg = 'neva-dev'
+        licenses = ['Apache-2.0']
+        vcsUrl = 'https://github.com/neva-dev/gradle-fork-plugin.git'
+        labels = ['gradle', 'archetype', 'template']
+        version {
+            name = project.version
+            desc = "${project.description} ${project.version}"
+            vcsTag = project.version
+        }
+    }
+    publish = true
+}
