@@ -6,13 +6,22 @@ import com.neva.gradle.fork.config.FileRule
 import org.gradle.api.Project
 import org.gradle.util.GFileUtils
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.*
 import javax.inject.Inject
 
 class Process @Inject constructor(
-  private val project: Project, private val config: Config
+  private val project: Project,
+  private val config: Config
 ) : Runnable {
 
-  val logger = project.logger
+  private val logger = project.logger
+
+  private val logFile: File by lazy {
+    val name = SimpleDateFormat("yyyy-MM-dd_hh-mm-ss'.log'").format(Date())
+
+    File(project.buildDir, "fork/$name")
+  }
 
   override fun run() {
     logger.info("Scanning files basing on $config")
@@ -28,7 +37,7 @@ class Process @Inject constructor(
     logger.info("Applying content rules (${config.contentRules.size})")
     applyRules(handlers, config.contentRules)
 
-    logger.info("Dumping log to file...")
+    logger.info("Dumping file changes to log file $logFile")
     dumpChanges(handlers)
   }
 
@@ -37,11 +46,13 @@ class Process @Inject constructor(
   }
 
   private fun dumpChanges(handlers: List<FileHandler>) {
-    val logFile = File(project.buildDir, "fork/${config.path}")
     GFileUtils.parentMkdirs(logFile)
-    val logEntries = handlers.flatMap { it.changes }.joinToString("\n")
 
-    logFile.printWriter().use { it.print(logEntries) }
+    val logLines = mutableListOf(config.toString())
+    logLines += handlers.flatMap { it.changes }
+    val logContent = logLines.joinToString("\n")
+
+    logFile.printWriter().use { it.print(logContent) }
   }
 
 }

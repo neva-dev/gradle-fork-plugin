@@ -5,8 +5,8 @@ import org.gradle.api.Project
 
 class ForkPlugin : Plugin<Project> {
 
-    override fun apply(project: Project) {
-        project.tasks.create(ForkTask.NAME, ForkTask::class.java)
-    }
+  override fun apply(project: Project) {
+    project.tasks.create(ForkTask.NAME, ForkTask::class.java)
+  }
 
 }

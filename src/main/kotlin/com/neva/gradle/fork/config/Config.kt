@@ -5,9 +5,7 @@ import org.apache.commons.io.FileUtils
 import org.apache.commons.io.filefilter.TrueFileFilter
 import java.io.File
 
-class Config(val path: String) {
-
-  val root = File(path)
+class Config(val root: File) {
 
   val contentRules = mutableListOf<FileRule>()
 
@@ -35,7 +33,7 @@ class Config(val path: String) {
   }
 
   override fun toString(): String {
-    return "Config(path='$path', gitIgnores=$gitIgnores)"
+    return "Config(root='$root', gitIgnores=$gitIgnores)"
   }
 
 }
