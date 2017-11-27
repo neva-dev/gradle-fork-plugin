@@ -1,39 +1,38 @@
 package com.neva.gradle.fork.config
 
-import com.neva.gradle.fork.ForkException
-import org.apache.commons.io.FileUtils
-import org.apache.commons.io.filefilter.TrueFileFilter
-import java.io.File
+import com.neva.gradle.fork.config.rule.CopyFileRule
+import groovy.lang.Closure
+import org.gradle.api.Project
+import org.gradle.api.file.ConfigurableFileTree
+import org.gradle.util.ConfigureUtil
 
-class Config(val root: File) {
+class Config(val project: Project, val tree: ConfigurableFileTree) {
 
-  val contentRules = mutableListOf<FileRule>()
+  val root = tree.dir
 
-  val pathRules = mutableListOf<FileRule>()
+  val rules = mutableListOf<Rule>()
 
-  var gitIgnores = true
-
-  fun scan(): List<FileHandler> {
-    if (!root.exists()) {
-      throw ForkException("Config root does not exist: $root")
-    }
-
-    var files = FileUtils.listFilesAndDirs(root, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE)
-    if (gitIgnores) {
-      files = filterGitIgnores(files)
-    }
-
-    return files.map { FileHandler(it) }
-  }
-
-  private fun filterGitIgnores(files: Collection<File>): List<File> {
-    val ignoreFiles = listOf<File>() // TODO read .gitignore files under root and calculate file filter
-
-    return files.filter { true }
-  }
+  val ruleCount : Int
+    get() = rules.size
 
   override fun toString(): String {
-    return "Config(root='$root', gitIgnores=$gitIgnores)"
+    return "Config(root='$root',ruleCount=$ruleCount"
+  }
+
+  fun copyFile(closure: Closure<*>) {
+    val rule = CopyFileRule( this)
+    ConfigureUtil.configure(closure, rule)
+    rules += rule
+  }
+
+  // TODO respect template variables in 'replacePath' arg and prompt for them if unspecified
+  fun moveFile(searchPath: String, replacePath: String) {
+
+  }
+
+  // TODO respect template variables in 'replace' arg and prompt for them if unspecified
+  fun amendContent(search: String, replace: String) {
+
   }
 
 }

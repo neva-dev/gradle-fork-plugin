@@ -29,6 +29,12 @@ open class ForkTask @Inject constructor(
       throw ForkException("No fork configurations defined")
     }
 
+    processConfigs()
+  }
+
+  private fun processConfigs() {
+
+
     for (config in configs) {
       workerExecutor.submit(Process::class.java) { c ->
         c.isolationMode = IsolationMode.AUTO
@@ -46,7 +52,9 @@ open class ForkTask @Inject constructor(
   }
 
   fun config(root: File, closure: Closure<*>) {
-    ConfigureUtil.configure(closure, configs.getOrPut(root, { Config(root) }))
+    ConfigureUtil.configure(closure, configs.getOrPut(root, {
+      Config(project, project.fileTree(root))
+    }))
   }
 
   companion object {
