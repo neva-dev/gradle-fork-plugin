@@ -1,63 +1,57 @@
 package com.neva.gradle.fork
 
 import com.neva.gradle.fork.config.Config
-import com.neva.gradle.fork.process.Process
 import groovy.lang.Closure
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 import org.gradle.util.ConfigureUtil
-import org.gradle.workers.IsolationMode
-import org.gradle.workers.WorkerExecutor
-import java.io.File
-import javax.inject.Inject
 
-open class ForkTask @Inject constructor(
-  private val workerExecutor: WorkerExecutor
-) : DefaultTask() {
+open class ForkTask : DefaultTask() {
 
   init {
     outputs.upToDateWhen { false }
   }
 
   @Input
-  private val configs = mutableMapOf<File, Config>()
+  private val configs = mutableListOf<Config>()
 
   @TaskAction
   fun fork() {
     if (configs.isEmpty()) {
-      throw ForkException("No fork configurations defined")
+      throw ForkException("No fork configurations defined.")
     }
 
-    processConfigs()
-  }
-
-  private fun processConfigs() {
-
-
-    for (config in configs) {
-      workerExecutor.submit(Process::class.java) { c ->
-        c.isolationMode = IsolationMode.AUTO
-        c.params(config)
-      }
+    val config = if (configName.isNullOrBlank()) {
+      configs.firstOrNull { it.name == Config.NAME_DEFAULT } ?: configs.first()
+    } else {
+      configs.firstOrNull { it.name == configName } ?: throw ForkException("Fork configuration named '$configName' not found.")
     }
+
+    config.rules.forEach { it.apply() }
   }
 
-  fun config(closure: Closure<*>) {
-    config(project.rootDir, closure)
+  val configName: String?
+    get() = project.properties[CONFIG_PROP] as String?
+
+  fun config(configurer: Closure<*>) {
+    config(Config(project, CONFIG_DEFAULT), configurer)
   }
 
-  fun config(path: String, closure: Closure<*>) {
-    config(project.file(path), closure)
+  fun config(name: String, configurer: Closure<*>) {
+    config(Config(project, name), configurer)
   }
 
-  fun config(root: File, closure: Closure<*>) {
-    ConfigureUtil.configure(closure, configs.getOrPut(root, {
-      Config(project, project.fileTree(root))
-    }))
+  private fun config(config: Config, configurer: Closure<*>) {
+    ConfigureUtil.configure(configurer, config)
+    configs += config
   }
 
   companion object {
     val NAME = "fork"
+
+    val CONFIG_PROP = "fork.config"
+
+    val CONFIG_DEFAULT = "default"
   }
 }

@@ -1,7 +1,7 @@
-package com.neva.gradle.fork.process
+package com.neva.gradle.fork.config
 
+import org.apache.commons.io.FileUtils
 import org.gradle.api.Project
-import org.gradle.internal.impldep.org.apache.commons.io.FileUtils
 import org.gradle.util.GFileUtils
 import java.io.File
 
