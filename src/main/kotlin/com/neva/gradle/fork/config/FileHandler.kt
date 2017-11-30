@@ -33,4 +33,8 @@ class FileHandler(project: Project, val file: File) {
     logger.info("Amending file $file using new content")
   }
 
+  fun <T> lines(block: (Sequence<String>) -> T) {
+    file.bufferedReader().useLines(block)
+  }
+
 }

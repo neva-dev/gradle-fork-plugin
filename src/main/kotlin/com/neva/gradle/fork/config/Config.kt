@@ -28,13 +28,15 @@ class Config(val project: Project, val name: String) {
     project.projectDir.absolutePath
   }))
 
-  val sourceTree: FileTree by lazy { project.fileTree(sourceDir) }
+  val sourceTree: FileTree
+    get() = project.fileTree(sourceDir)
 
   val targetDir: String by lazy(promptProp("fork.targetDir", {
     File(project.rootDir.parentFile, "${project.rootDir.name}-fork").absolutePath
   }))
 
-  val targetTree: FileTree by lazy { project.fileTree(targetDir) }
+  val targetTree: FileTree
+    get() = project.fileTree(targetDir)
 
   fun promptProp(prop: String): () -> String {
     return promptProp(prop, {
