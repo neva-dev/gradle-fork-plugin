@@ -3,6 +3,8 @@ package com.neva.gradle.fork.config.rule
 import com.neva.gradle.fork.config.AbstractRule
 import com.neva.gradle.fork.config.Config
 import com.neva.gradle.fork.config.FileHandler
+import com.neva.gradle.fork.file.filter.GitIgnoreFile
+import com.neva.gradle.fork.file.visitAll
 import groovy.lang.Closure
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.util.PatternSet
@@ -12,67 +14,76 @@ import java.io.File
 class CopyFileRule(config: Config) : AbstractRule(config) {
 
   companion object {
-    val GIT_IGNORE_FILE_NAME = ".gitignore"
+    val GIT_IGNORE_FILE = ".gitignore"
 
-    val GIT_IGNORE_COMMENT_CHAR = "#"
+    val GIT_IGNORE_COMMENT = "#"
 
-    val GIT_IGNORE_NEGATION_CHAR = "!"
+    val GIT_IGNORE_NEGATION = "!"
   }
+
+  var defaultFilters = true
 
   var gitIgnores = true
 
-  val filter = {
-    val result = PatternSet()
-    result.exclude(listOf(
-      "**/.gradle/*",
-      "**/.git/*",
-      "**/node_modules/*"
-    ))
-  }()
+  private val gitIgnoreFiles = mutableListOf<GitIgnoreFile>()
 
-  val tree: FileTree
+  private val filter = PatternSet()
+
+  private val filteredTree: FileTree
     get() = config.sourceTree.matching(filter)
 
   override fun apply() {
+    if (defaultFilters) {
+      configureDefaultFilters()
+    }
     if (gitIgnores) {
-      configureFilterGitIgnores()
+      parseGitIgnoreFiles()
     }
 
     copyFiles()
   }
 
-  // TODO support multiple nested .gitignore files
-  // TODO implement gitignore like filtering (patternfilterable probably does not work in that way)
-  private fun configureFilterGitIgnores() {
-    val file = File(config.sourceDir, GIT_IGNORE_FILE_NAME)
-    if (!file.exists()) {
-      return
-    }
+  private fun configureDefaultFilters() {
+    filter.exclude(listOf(
+      "**/build",
+      "**/build/*",
+      "**/.gradle",
+      "**/.gradle/*",
+      "**/.git",
+      "**/.git/*"
+    ))
+  }
 
-    FileHandler(project, file).lines {
-      it.forEach { line ->
-        val pattern = line.trim()
-        //val path = f.relativePath
+  // TODO respect relative locations of .gitignore files
+  private fun parseGitIgnoreFiles() {
+    logger.info("Searching for $GIT_IGNORE_FILE file(s)")
 
-        if (pattern.isNotBlank() && !line.startsWith(GIT_IGNORE_COMMENT_CHAR)) {
-          if (line.startsWith(GIT_IGNORE_NEGATION_CHAR)) {
-            //filter.include(pattern.substring(1))
-          } else {
-            filter.exclude(pattern)
-          }
-        }
+    filteredTree.visitAll { f ->
+      if (f.name == GIT_IGNORE_FILE) {
+        logger.info("Respecting filters included in file: ${f.file}")
+        gitIgnoreFiles += GitIgnoreFile(f.file)
       }
     }
   }
 
   private fun copyFiles() {
-    tree.visit { f ->
-      val source = f.file
-      val target = File(config.targetDir, f.relativePath.pathString)
+    logger.info("Copying files from ${config.sourceDir} to ${config.targetDir}")
 
-      if (!f.isDirectory) {
-        FileHandler(project, source).copy(target)
+    filteredTree.visitAll { fileDetail ->
+      if (fileDetail.isDirectory) {
+        return@visitAll
       }
+
+      val source = fileDetail.file
+
+      if (gitIgnores && gitIgnoreFiles.none { it.isValid(source) }) {
+        logger.info("Skipping file ignored by Git: $source")
+        return@visitAll
+      }
+
+      val target = File(config.targetDir, fileDetail.relativePath.pathString)
+
+      FileHandler(project, source).copy(target)
     }
   }
 

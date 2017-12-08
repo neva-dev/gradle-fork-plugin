@@ -1,7 +1,7 @@
 plugins {
     id 'java-gradle-plugin'
     id 'maven-publish'
-    id "org.jetbrains.kotlin.jvm" version "1.1.51"
+    id "org.jetbrains.kotlin.jvm" version "1.2.0"
     id "com.jfrog.bintray" version "1.7.3"
 }
 
@@ -16,7 +16,7 @@ repositories {
 
 dependencies {
     compile gradleApi()
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:1.1.51"
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.2.0"
     compile 'org.apache.commons:commons-lang3:3.4'
     compile 'commons-io:commons-io:2.4'
     compile 'commons-httpclient:commons-httpclient:3.1'
