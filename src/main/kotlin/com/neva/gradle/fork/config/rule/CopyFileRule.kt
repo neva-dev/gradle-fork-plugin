@@ -58,9 +58,9 @@ class CopyFileRule(config: Config) : AbstractRule(config) {
         return@visitAll
       }
 
-      val target = File(config.targetDir, fileDetail.relativePath.pathString)
+      val target = toTargetFile(fileDetail)
 
-      FileHandler(project, source).copy(target)
+      FileHandler(config, source).copy(target)
     }
   }
 

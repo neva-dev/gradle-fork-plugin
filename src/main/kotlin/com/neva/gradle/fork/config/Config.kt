@@ -10,6 +10,8 @@ import org.gradle.api.Project
 import org.gradle.api.file.FileTree
 import org.gradle.util.ConfigureUtil
 import java.io.File
+import java.io.FileInputStream
+import java.util.*
 import java.util.regex.Pattern
 
 class Config(val project: Project, val name: String) {
@@ -81,7 +83,11 @@ class Config(val project: Project, val name: String) {
 
   private fun promptFill(): Map<String, String> {
     return prompts.mapValues({ (prop, defaultValue) ->
-      project.properties.getOrDefault(prop, defaultValue) as String
+      val props = Properties()
+      props.load(FileInputStream(project.file("fork.properties")))
+
+      val value = props.getOrElse(prop, defaultValue)
+      value as String
     })
   }
 

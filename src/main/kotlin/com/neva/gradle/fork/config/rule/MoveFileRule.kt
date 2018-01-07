@@ -2,11 +2,27 @@ package com.neva.gradle.fork.config.rule
 
 import com.neva.gradle.fork.config.AbstractRule
 import com.neva.gradle.fork.config.Config
+import com.neva.gradle.fork.config.FileHandler
+import com.neva.gradle.fork.file.visitAll
+import java.io.File
 
-class MoveFileRule(config: Config, searchPath: String, replacePath: () -> String) : AbstractRule(config) {
+class MoveFileRule(config: Config, val searchPath: String, val replacePath: () -> String) : AbstractRule(config) {
 
   override fun apply() {
-    // TODO("not implemented")
+    val actions = mutableListOf<() -> Unit>()
+
+    config.targetTree.visitAll { fileDetails ->
+      val source = fileDetails.file
+      val sourcePath = fileDetails.relativePath.pathString
+      val targetPath = sourcePath.replace(searchPath, replacePath())
+      val target = File(config.targetDir, targetPath)
+
+      if (sourcePath != targetPath) {
+        actions += { FileHandler(config, source).move(target) }
+      }
+    }
+
+    actions.forEach { it.invoke() }
   }
 
 }
