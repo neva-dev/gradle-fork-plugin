@@ -2,6 +2,7 @@ package com.neva.gradle.fork.config
 
 import com.neva.gradle.fork.ForkException
 import com.neva.gradle.fork.config.rule.AmendContentRule
+import com.neva.gradle.fork.config.rule.CleanRule
 import com.neva.gradle.fork.config.rule.CopyFileRule
 import com.neva.gradle.fork.config.rule.MoveFileRule
 import groovy.lang.Closure
@@ -26,19 +27,25 @@ class Config(val project: Project, val name: String) {
 
   val rules = mutableListOf<Rule>()
 
-  val sourceDir: String by lazy(promptProp("fork.sourceDir", {
+  val sourcePath: String by lazy(promptProp("sourcePath", {
     project.projectDir.absolutePath
   }))
 
-  val sourceTree: FileTree
-    get() = project.fileTree(sourceDir)
+  val sourceDir: File
+    get() = File(sourcePath)
 
-  val targetDir: String by lazy(promptProp("fork.targetDir", {
+  val sourceTree: FileTree
+    get() = project.fileTree(sourcePath)
+
+  val targetPath: String by lazy(promptProp("targetPath", {
     File(project.rootDir.parentFile, "${project.rootDir.name}-fork").absolutePath
   }))
 
+  val targetDir: File
+    get() = File(targetPath)
+
   val targetTree: FileTree
-    get() = project.fileTree(targetDir)
+    get() = project.fileTree(targetPath)
 
   fun promptProp(prop: String): () -> String {
     return promptProp(prop, {
@@ -49,7 +56,7 @@ class Config(val project: Project, val name: String) {
   fun promptProp(prop: String, defaultProvider: () -> String): () -> String {
     prompts[prop] = defaultProvider
 
-    return { prompts[prop]!!() }
+    return { props[prop] ?: throw ForkException("Fork prompt property '$prop' has no value provided.") }
   }
 
   fun promptTemplate(template: String): () -> String {
@@ -82,10 +89,10 @@ class Config(val project: Project, val name: String) {
   }
 
   private fun promptFill(): Map<String, String> {
-    return prompts.mapValues({ (prop, defaultValue) ->
-      val props = Properties()
-      props.load(FileInputStream(project.file("fork.properties")))
+    val props = Properties()
+    props.load(FileInputStream(project.file("fork.properties")))
 
+    return prompts.mapValues({ (prop, defaultValue) ->
       val value = props.getOrElse(prop, defaultValue)
       value as String
     })
@@ -110,6 +117,10 @@ class Config(val project: Project, val name: String) {
 
   fun amendContent(search: String, replace: String) {
     rule(AmendContentRule(this, search, promptTemplate(replace)))
+  }
+
+  fun clean() {
+    rule(CleanRule(this))
   }
 
   override fun toString(): String {

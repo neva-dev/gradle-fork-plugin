@@ -8,20 +8,16 @@ import java.io.File
 class MoveFileRule(config: Config, val searchPath: String, val replacePath: () -> String) : AbstractRule(config) {
 
   override fun apply() {
-    val actions = mutableListOf<() -> Unit>()
-
-    visitTree(config.targetTree, { fileDetails ->
+    visitFiles(config.targetTree, { fileDetails, actions ->
       val source = fileDetails.file
       val sourcePath = fileDetails.relativePath.pathString
       val targetPath = sourcePath.replace(searchPath, replacePath())
-      val target = File(config.targetDir, targetPath)
+      val target = File(config.targetPath, targetPath)
 
       if (sourcePath != targetPath) {
         actions += { FileHandler(config, source).move(target) }
       }
     })
-
-    actions.forEach { it.invoke() }
   }
 
 }

@@ -15,12 +15,22 @@ abstract class AbstractRule(val config: Config) : Rule {
     return File(config.targetDir, fileDetail.relativePath.pathString)
   }
 
-  fun visitTree(tree: FileTree, callback: (FileVisitDetails) -> Unit) {
+  fun visitTree(tree: FileTree, condition: (FileVisitDetails) -> Boolean, callback: (FileVisitDetails, MutableList<() -> Unit>) -> Unit) {
+    val actions = mutableListOf<() -> Unit>()
     tree.visitAll { fileDetail ->
-      if (!fileDetail.isDirectory) {
-        callback(fileDetail)
+      if (condition(fileDetail)) {
+        callback(fileDetail, actions)
       }
     }
+    actions.forEach { it.invoke() }
+  }
+
+  fun visitDirs(tree: FileTree, callback: (FileVisitDetails, MutableList<() -> Unit>) -> Unit) {
+    visitTree(tree, { it.isDirectory }, callback)
+  }
+
+  fun visitFiles(tree: FileTree, callback: (FileVisitDetails, MutableList<() -> Unit>) -> Unit) {
+    visitTree(tree, { !it.isDirectory }, callback)
   }
 
 }

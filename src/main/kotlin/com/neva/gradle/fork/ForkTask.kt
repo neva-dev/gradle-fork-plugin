@@ -28,6 +28,10 @@ open class ForkTask : DefaultTask() {
       configs.firstOrNull { it.name == configName } ?: throw ForkException("Fork configuration named '$configName' not found.")
     }
 
+    if (config.targetDir.exists()) {
+      throw ForkException("Fork target directory already exists: ${config.targetDir.canonicalPath}")
+    }
+
     config.rules.forEach { it.apply() }
   }
 

@@ -8,7 +8,6 @@ import groovy.lang.Closure
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.util.ConfigureUtil
-import java.io.File
 
 class CopyFileRule(config: Config) : AbstractRule(config) {
 
@@ -16,7 +15,7 @@ class CopyFileRule(config: Config) : AbstractRule(config) {
 
   var gitIgnores = true
 
-  private val gitIgnore by lazy { GitIgnore(File(config.sourceDir)) }
+  private val gitIgnore by lazy { GitIgnore(config.sourceDir) }
 
   private val filter = PatternSet()
 
@@ -45,12 +44,12 @@ class CopyFileRule(config: Config) : AbstractRule(config) {
   private fun copyFiles() {
     logger.info("Copying files from ${config.sourceDir} to ${config.targetDir}")
 
-    visitTree(sourceTree, { fileDetail ->
+    visitFiles(sourceTree, { fileDetail, _ ->
       val source = fileDetail.file
 
       if (gitIgnores && gitIgnore.isExcluded(source)) {
         logger.debug("Skipping file ignored by Git: $source")
-        return@visitTree
+        return@visitFiles
       }
 
       val target = toTargetFile(fileDetail)
