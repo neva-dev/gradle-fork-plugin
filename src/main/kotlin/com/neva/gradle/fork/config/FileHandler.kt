@@ -25,11 +25,7 @@ class FileHandler(config : Config, val file: File) {
     }
 
     GFileUtils.parentMkdirs(target)
-    if (file.isDirectory) {
-      FileUtils.moveDirectory(file, target)
-    } else {
-      FileUtils.moveFile(file, target)
-    }
+    FileUtils.moveFile(file, target)
 
     logger.info("Moving file from $file to $target")
   }
