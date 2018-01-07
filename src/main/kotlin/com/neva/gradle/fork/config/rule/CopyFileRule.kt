@@ -1,9 +1,9 @@
 package com.neva.gradle.fork.config.rule
 
+import com.neva.commons.gitignore.GitIgnore
 import com.neva.gradle.fork.config.AbstractRule
 import com.neva.gradle.fork.config.Config
 import com.neva.gradle.fork.config.FileHandler
-import com.neva.gradle.fork.file.filter.GitIgnoreFile
 import com.neva.gradle.fork.file.visitAll
 import groovy.lang.Closure
 import org.gradle.api.file.FileTree
@@ -13,19 +13,11 @@ import java.io.File
 
 class CopyFileRule(config: Config) : AbstractRule(config) {
 
-  companion object {
-    val GIT_IGNORE_FILE = ".gitignore"
-
-    val GIT_IGNORE_COMMENT = "#"
-
-    val GIT_IGNORE_NEGATION = "!"
-  }
-
   var defaultFilters = true
 
   var gitIgnores = true
 
-  private val gitIgnoreFiles = mutableListOf<GitIgnoreFile>()
+  private val gitIgnore by lazy { GitIgnore(File(config.sourceDir)) }
 
   private val filter = PatternSet()
 
@@ -35,9 +27,6 @@ class CopyFileRule(config: Config) : AbstractRule(config) {
   override fun apply() {
     if (defaultFilters) {
       configureDefaultFilters()
-    }
-    if (gitIgnores) {
-      parseGitIgnoreFiles()
     }
 
     copyFiles()
@@ -54,18 +43,6 @@ class CopyFileRule(config: Config) : AbstractRule(config) {
     ))
   }
 
-  // TODO respect relative locations of .gitignore files
-  private fun parseGitIgnoreFiles() {
-    logger.info("Searching for $GIT_IGNORE_FILE file(s)")
-
-    filteredTree.visitAll { f ->
-      if (f.name == GIT_IGNORE_FILE) {
-        logger.info("Respecting filters included in file: ${f.file}")
-        gitIgnoreFiles += GitIgnoreFile(f.file)
-      }
-    }
-  }
-
   private fun copyFiles() {
     logger.info("Copying files from ${config.sourceDir} to ${config.targetDir}")
 
@@ -76,8 +53,8 @@ class CopyFileRule(config: Config) : AbstractRule(config) {
 
       val source = fileDetail.file
 
-      if (gitIgnores && gitIgnoreFiles.none { it.isValid(source) }) {
-        logger.info("Skipping file ignored by Git: $source")
+      if (gitIgnores && gitIgnore.isExcluded(source)) {
+        logger.debug("Skipping file ignored by Git: $source")
         return@visitAll
       }
 

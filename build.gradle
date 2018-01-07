@@ -11,7 +11,8 @@ description = 'Gradle Fork Plugin'
 defaultTasks = ['clean', 'publishToMavenLocal']
 
 repositories {
-    mavenCentral()
+    mavenLocal()
+    jcenter()
 }
 
 dependencies {
@@ -21,6 +22,7 @@ dependencies {
     compile 'commons-io:commons-io:2.4'
     compile 'commons-httpclient:commons-httpclient:3.1'
     compile 'commons-validator:commons-validator:1.6'
+    compile 'com.neva.commons:gitignore-file-filter:1.0.0-SNAPSHOT'
 
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }

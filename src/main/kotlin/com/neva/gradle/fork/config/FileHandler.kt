@@ -14,7 +14,7 @@ class FileHandler(project: Project, val file: File) {
 
     FileUtils.copyFile(file, target)
 
-    logger.info("Copying file from $file to $target")
+    logger.debug("Copying file from $file to $target")
   }
 
   fun move(target: File) {
@@ -22,7 +22,7 @@ class FileHandler(project: Project, val file: File) {
 
     FileUtils.moveFile(file, target)
 
-    logger.info("Moving file from $file to $target")
+    logger.debug("Moving file from $file to $target")
   }
 
   val content: String
@@ -30,7 +30,7 @@ class FileHandler(project: Project, val file: File) {
 
   fun amend(content: String) {
     file.printWriter().use { it.print(content) }
-    logger.info("Amending file $file using new content")
+    logger.debug("Amending file $file using new content")
   }
 
   fun <T> lines(block: (Sequence<String>) -> T) {
