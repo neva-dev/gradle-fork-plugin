@@ -3,7 +3,6 @@ package com.neva.gradle.fork.config
 import com.neva.gradle.fork.file.visitAll
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitDetails
-import java.io.File
 
 abstract class AbstractRule(val config: Config) : Rule {
 
@@ -11,25 +10,27 @@ abstract class AbstractRule(val config: Config) : Rule {
 
   val logger = project.logger
 
-  fun toTargetFile(fileDetail: FileVisitDetails): File {
-    return File(config.targetDir, fileDetail.relativePath.pathString)
-  }
-
-  fun visitTree(tree: FileTree, condition: (FileVisitDetails) -> Boolean, callback: (FileVisitDetails, MutableList<() -> Unit>) -> Unit) {
+  fun visitTree(tree: FileTree, condition: (FileVisitDetails) -> Boolean, callback: (FileHandler) -> Unit) {
     val actions = mutableListOf<() -> Unit>()
     tree.visitAll { fileDetail ->
       if (condition(fileDetail)) {
-        callback(fileDetail, actions)
+        val fileHandler = FileHandler(config, fileDetail)
+        callback(fileHandler)
+        actions += fileHandler.actions
       }
     }
     actions.forEach { it.invoke() }
   }
 
-  fun visitDirs(tree: FileTree, callback: (FileVisitDetails, MutableList<() -> Unit>) -> Unit) {
+  fun visitAll(tree: FileTree, callback: (FileHandler) -> Unit) {
+    visitTree(tree, { true }, callback)
+  }
+
+  fun visitDirs(tree: FileTree, callback: (FileHandler) -> Unit) {
     visitTree(tree, { it.isDirectory }, callback)
   }
 
-  fun visitFiles(tree: FileTree, callback: (FileVisitDetails, MutableList<() -> Unit>) -> Unit) {
+  fun visitFiles(tree: FileTree, callback: (FileHandler) -> Unit) {
     visitTree(tree, { !it.isDirectory }, callback)
   }
 

@@ -3,11 +3,11 @@ package com.neva.gradle.fork.config.rule
 import com.neva.commons.gitignore.GitIgnore
 import com.neva.gradle.fork.config.AbstractRule
 import com.neva.gradle.fork.config.Config
-import com.neva.gradle.fork.config.FileHandler
 import groovy.lang.Closure
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.util.ConfigureUtil
+import java.io.File
 
 class CopyFileRule(config: Config) : AbstractRule(config) {
 
@@ -44,17 +44,15 @@ class CopyFileRule(config: Config) : AbstractRule(config) {
   private fun copyFiles() {
     logger.info("Copying files from ${config.sourceDir} to ${config.targetDir}")
 
-    visitFiles(sourceTree, { fileDetail, _ ->
-      val source = fileDetail.file
-
-      if (gitIgnores && gitIgnore.isExcluded(source)) {
-        logger.debug("Skipping file ignored by Git: $source")
+    visitFiles(sourceTree, { handler ->
+      if (gitIgnores && gitIgnore.isExcluded(handler.file)) {
+        logger.debug("Skipping file ignored by Git: ${handler.file}")
         return@visitFiles
       }
 
-      val target = toTargetFile(fileDetail)
+      val target = File(config.targetDir, handler.filePath)
 
-      FileHandler(config, source).copy(target)
+      handler.copy(target)
     })
   }
 

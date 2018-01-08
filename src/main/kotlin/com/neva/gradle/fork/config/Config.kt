@@ -1,10 +1,7 @@
 package com.neva.gradle.fork.config
 
 import com.neva.gradle.fork.ForkException
-import com.neva.gradle.fork.config.rule.CleanRule
-import com.neva.gradle.fork.config.rule.CopyFileRule
-import com.neva.gradle.fork.config.rule.MoveFileRule
-import com.neva.gradle.fork.config.rule.ReplaceContentRule
+import com.neva.gradle.fork.config.rule.*
 import groovy.lang.Closure
 import org.apache.commons.lang3.text.StrSubstitutor
 import org.gradle.api.Project
@@ -112,6 +109,10 @@ class Config(val project: Project, val name: String) {
     rules += rule
   }
 
+  fun copyFile() {
+    rule(CopyFileRule(this))
+  }
+
   fun copyFile(configurer: Closure<*>) {
     rule(CopyFileRule(this), configurer)
   }
@@ -140,6 +141,10 @@ class Config(val project: Project, val name: String) {
 
   fun clean() {
     rule(CleanRule(this))
+  }
+
+  fun action(closure: Closure<*>) {
+    rule(ActionRule(this, closure))
   }
 
   override fun toString(): String {

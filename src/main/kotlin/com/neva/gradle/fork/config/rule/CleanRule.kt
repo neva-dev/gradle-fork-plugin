@@ -7,14 +7,12 @@ import com.neva.gradle.fork.file.FileOperations
 class CleanRule(config: Config) : AbstractRule(config) {
 
   override fun apply() {
-    visitDirs(config.targetTree, { fileDetails, actions ->
-      actions += {
-        var dir = fileDetails.file
+    visitDirs(config.targetTree, { handler ->
+      var dir = handler.file
 
-        while (dir != config.targetDir && FileOperations.isDirEmpty(dir)) {
-          dir.delete()
-          dir = dir.parentFile
-        }
+      while (dir != config.targetDir && FileOperations.isDirEmpty(dir)) {
+        dir.delete()
+        dir = dir.parentFile
       }
     })
   }
