@@ -1,5 +1,6 @@
 package com.neva.gradle.fork.config
 
+import com.neva.gradle.fork.file.FileOperations
 import org.apache.commons.io.FileUtils
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.util.GFileUtils
@@ -13,7 +14,7 @@ class FileHandler(config: Config, val details: FileVisitDetails) {
 
   val filePath = details.relativePath.pathString
 
-  val actions = mutableListOf<() ->Unit>()
+  val actions = mutableListOf<() -> Unit>()
 
   fun copy(target: File) {
     actions += {
@@ -42,22 +43,30 @@ class FileHandler(config: Config, val details: FileVisitDetails) {
   }
 
   fun read(): String {
-    return file.inputStream().bufferedReader().use { it.readText() }
+    return FileOperations.read(file)
   }
 
   fun write(content: String) {
-    file.printWriter().use { it.print(content) }
+    actions += {
+      FileOperations.write(file, content)
+    }
+  }
+
+  fun amend(amender: (String) -> String) {
+    logger.info("Amending file $file")
+
+    actions += {
+      FileOperations.amend(file, amender)
+    }
   }
 
   fun replace(search: String, replace: String) {
     val content = read()
     if (content.contains(search)) {
-      actions += {
-        logger.info("Replacing '$search' with '$replace' in file $file")
+      logger.info("Replacing '$search' with '$replace' in file $file")
 
-        val updatedContent = content.replace(search, replace)
-        write(updatedContent)
-      }
+      val updatedContent = content.replace(search, replace)
+      write(updatedContent)
     }
   }
 

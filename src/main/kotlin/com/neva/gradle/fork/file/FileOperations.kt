@@ -18,6 +18,19 @@ object FileOperations {
     Files.newDirectoryStream(dir).use({ dirStream -> return !dirStream.iterator().hasNext() })
   }
 
+  fun read(file: File): String {
+    return file.inputStream().bufferedReader().use { it.readText() }
+  }
+
+  fun write(file: File, content: String) {
+    file.printWriter().use { it.print(content) }
+  }
+
+  fun amend(file: File, amender: (String) -> String) {
+    val source = amender(read(file))
+    write(file, source)
+  }
+
 }
 
 /**
