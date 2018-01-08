@@ -53,9 +53,8 @@ class FileHandler(config: Config, val details: FileVisitDetails) {
   }
 
   fun amend(amender: (String) -> String) {
-    logger.info("Amending file $file")
-
     actions += {
+      logger.info("Amending file $file")
       FileOperations.amend(file, amender)
     }
   }
