@@ -1,8 +1,8 @@
 package com.neva.gradle.fork
 
-import com.neva.gradle.fork.file.filter.GitIgnore
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.junit.Assert.*
 
 class GitIgnoreTest {
 

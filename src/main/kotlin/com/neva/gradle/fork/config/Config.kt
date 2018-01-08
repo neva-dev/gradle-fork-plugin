@@ -1,10 +1,10 @@
 package com.neva.gradle.fork.config
 
 import com.neva.gradle.fork.ForkException
-import com.neva.gradle.fork.config.rule.AmendContentRule
 import com.neva.gradle.fork.config.rule.CleanRule
 import com.neva.gradle.fork.config.rule.CopyFileRule
 import com.neva.gradle.fork.config.rule.MoveFileRule
+import com.neva.gradle.fork.config.rule.ReplaceContentRule
 import groovy.lang.Closure
 import org.apache.commons.lang3.text.StrSubstitutor
 import org.gradle.api.Project
@@ -46,6 +46,11 @@ class Config(val project: Project, val name: String) {
 
   val targetTree: FileTree
     get() = project.fileTree(targetPath)
+
+  var textFiles = mutableListOf(
+    "**/*.gradle", "**/*.xml", "**/*.properties", "**/*.js", "**/*.json", "**/*.css", "**/*.scss",
+    "**/*.java", "**/*.kt", "**/*.groovy", "**/*.html", "**/*.jsp"
+  )
 
   fun promptProp(prop: String): () -> String {
     return promptProp(prop, {
@@ -111,12 +116,26 @@ class Config(val project: Project, val name: String) {
     rule(CopyFileRule(this), configurer)
   }
 
-  fun moveFile(searchPath: String, replacePath: String) {
-    rule(MoveFileRule(this, searchPath, promptTemplate(replacePath)))
+  fun moveFile(movements: Map<String, String>) {
+    rule(MoveFileRule(this, movements.mapValues { promptTemplate(it.value) }))
   }
 
-  fun amendContent(search: String, replace: String) {
-    rule(AmendContentRule(this, search, promptTemplate(replace)))
+  fun replaceContent(replacements: Map<String, String>, configurer: Closure<*>) {
+    rule(ReplaceContentRule(this, replacements.mapValues { promptTemplate(it.value) }), configurer)
+  }
+
+  fun replaceContent(replacements: Map<String, String>, filterInclude: String) {
+    replaceContent(replacements, listOf(filterInclude))
+  }
+
+  fun replaceContent(replacements: Map<String, String>) {
+    replaceContent(replacements, textFiles)
+  }
+
+  fun replaceContent(replacements: Map<String, String>, filterIncludes: Iterable<String>) {
+    val rule = ReplaceContentRule(this, replacements.mapValues { promptTemplate(it.value) })
+    rule.filter.include(filterIncludes)
+    rule(rule)
   }
 
   fun clean() {
