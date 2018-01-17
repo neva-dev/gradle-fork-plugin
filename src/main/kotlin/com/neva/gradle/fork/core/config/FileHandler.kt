@@ -1,6 +1,6 @@
-package com.neva.gradle.fork.config
+package com.neva.gradle.fork.core.config
 
-import com.neva.gradle.fork.file.FileOperations
+import com.neva.gradle.fork.core.file.FileOperations
 import org.apache.commons.io.FileUtils
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.util.GFileUtils

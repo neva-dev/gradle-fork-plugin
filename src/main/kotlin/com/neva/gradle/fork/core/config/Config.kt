@@ -1,7 +1,8 @@
-package com.neva.gradle.fork.config
+package com.neva.gradle.fork.core.config
 
-import com.neva.gradle.fork.ForkException
-import com.neva.gradle.fork.config.rule.*
+import com.neva.gradle.fork.core.ForkException
+import com.neva.gradle.fork.core.config.rule.*
+import com.neva.gradle.fork.gui.PropertiesDialog
 import groovy.lang.Closure
 import org.apache.commons.lang3.text.StrSubstitutor
 import org.gradle.api.Project
@@ -92,7 +93,15 @@ class Config(val project: Project, val name: String) {
 
   private fun promptFill(): Map<String, String> {
     val props = Properties()
-    props.load(FileInputStream(project.file("fork.properties")))
+
+    val propsFile = project.file(project.properties.getOrElse("fork.properties", { "fork.properties" }) as String)
+    val interactive = (project.properties.getOrElse("fork.interactive", { propsFile.exists().toString() }) as String).toBoolean()
+
+    if (interactive) {
+      props.putAll(PropertiesDialog().prompt())
+    } else {
+      props.load(FileInputStream(propsFile))
+    }
 
     return prompts.mapValues({ (prop, defaultValue) ->
       val value = props.getOrElse(prop, defaultValue)

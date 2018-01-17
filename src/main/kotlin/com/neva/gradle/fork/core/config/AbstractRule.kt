@@ -1,6 +1,6 @@
-package com.neva.gradle.fork.config
+package com.neva.gradle.fork.core.config
 
-import com.neva.gradle.fork.file.visitAll
+import com.neva.gradle.fork.core.file.visitAll
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitDetails
 

@@ -1,8 +1,9 @@
 plugins {
     id 'java-gradle-plugin'
-    id 'maven-publish'
     id "org.jetbrains.kotlin.jvm" version "1.2.0"
+    id "groovy"
     id "com.jfrog.bintray" version "1.7.3"
+    id 'maven-publish'
 }
 
 group 'com.neva.gradle'
@@ -17,6 +18,7 @@ repositories {
 
 dependencies {
     compile gradleApi()
+    compile 'org.codehaus.groovy:groovy-swing:2.4.13'
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.2.0"
     compile 'org.apache.commons:commons-lang3:3.4'
     compile 'commons-io:commons-io:2.4'
@@ -38,7 +40,7 @@ gradlePlugin {
     plugins {
         fork {
             id = "com.neva.fork"
-            implementationClass = "com.neva.gradle.fork.ForkPlugin"
+            implementationClass = "com.neva.gradle.fork.core.ForkPlugin"
         }
     }
 }
@@ -70,3 +72,9 @@ bintray {
     }
     publish = true
 }
+
+
+compileGroovy.dependsOn = compileGroovy.taskDependencies.values - 'compileJava'
+compileKotlin.dependsOn compileGroovy
+compileKotlin.classpath += files(compileGroovy.destinationDir)
+classes.dependsOn compileKotlin

@@ -1,7 +1,7 @@
-package com.neva.gradle.fork.config.rule
+package com.neva.gradle.fork.core.config.rule
 
-import com.neva.gradle.fork.config.AbstractRule
-import com.neva.gradle.fork.config.Config
+import com.neva.gradle.fork.core.config.AbstractRule
+import com.neva.gradle.fork.core.config.Config
 import groovy.lang.Closure
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.util.PatternSet

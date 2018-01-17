@@ -1,6 +1,6 @@
-package com.neva.gradle.fork
+package com.neva.gradle.fork.core
 
-import com.neva.gradle.fork.config.Config
+import com.neva.gradle.fork.core.config.Config
 import groovy.lang.Closure
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input

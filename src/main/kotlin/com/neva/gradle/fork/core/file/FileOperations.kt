@@ -1,4 +1,4 @@
-package com.neva.gradle.fork.file
+package com.neva.gradle.fork.core.file
 
 import org.apache.tools.ant.DirectoryScanner
 import org.gradle.api.file.FileTree
