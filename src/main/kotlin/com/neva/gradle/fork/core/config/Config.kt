@@ -2,7 +2,7 @@ package com.neva.gradle.fork.core.config
 
 import com.neva.gradle.fork.core.ForkException
 import com.neva.gradle.fork.core.config.rule.*
-import com.neva.gradle.fork.gui.PropertiesDialog
+import com.neva.gradle.fork.gui.PropsDialog
 import groovy.lang.Closure
 import org.apache.commons.lang3.text.StrSubstitutor
 import org.gradle.api.Project
@@ -91,6 +91,7 @@ class Config(val project: Project, val name: String) {
     return StrSubstitutor(props, "{{", "}}").replace(template)
   }
 
+  // TODO allow to fill from properties file if specified, rest amended by gui
   private fun promptFill(): Map<String, String> {
     val props = Properties()
 
@@ -98,9 +99,29 @@ class Config(val project: Project, val name: String) {
     val interactive = (project.properties.getOrElse("fork.interactive", { propsFile.exists().toString() }) as String).toBoolean()
 
     if (interactive) {
-      props.putAll(PropertiesDialog().prompt())
+      val propDefaults = prompts.mapValues { (prop, defaultValue) ->
+        try {
+          defaultValue()
+        } catch (e: ForkException) { // TODO introduce special exception PropertyException
+          ""
+        }
+      }
+
+      // TODO make all fields required in GUI
+      val propsGui = PropsDialog().prompt(propDefaults)
+      prompts.forEach { prop, defaultValue ->
+        props[prop] = if (!propsGui[prop].isNullOrBlank()) {
+          propsGui[prop]
+        } else {
+          defaultValue()
+        }
+      }
     } else {
-      props.load(FileInputStream(propsFile))
+      if (propsFile.exists()) {
+        props.load(FileInputStream(propsFile))
+      } else {
+        throw ForkException("Non-interactive mode requires existing properties file at path: $propsFile")
+      }
     }
 
     return prompts.mapValues({ (prop, defaultValue) ->
