@@ -50,22 +50,22 @@ class Config(val project: Project, val name: String) {
     "**/*.java", "**/*.kt", "**/*.groovy", "**/*.html", "**/*.jsp"
   )
 
-  fun promptProp(prop: String): () -> String {
-    return promptProp(prop, {
-      throw ForkException("Fork property named '$prop' has no value provided.")
-    })
-  }
-
   fun promptProp(prop: String, defaultProvider: () -> String): () -> String {
     prompts[prop] = defaultProvider
 
-    return { props[prop] ?: throw ForkException("Fork prompt property '$prop' has no value provided.") }
+    return { props[prop] ?: throw ForkException("Fork prompt property '$prop' not bound.") }
+  }
+
+  fun promptProp(prop: String): () -> String {
+    return promptProp(prop, {
+      throw PropertyException("Fork prompt property '$prop' has no value provided.")
+    })
   }
 
   fun promptTemplate(template: String): () -> String {
     parseTemplate(template).forEach { prop ->
       prompts[prop] = {
-        throw ForkException("Fork template property '$prop' has no value provided.")
+        throw PropertyException("Fork template property '$prop' has no value provided.")
       }
     }
 
@@ -91,42 +91,48 @@ class Config(val project: Project, val name: String) {
     return StrSubstitutor(props, "{{", "}}").replace(template)
   }
 
-  // TODO allow to fill from properties file if specified, rest if missing amended by gui
   private fun promptFill(): Map<String, String> {
-    val props = Properties()
+    val result = mutableMapOf<String, String>()
 
-    val propsFile = project.file(project.properties.getOrElse("fork.properties", { "fork.properties" }) as String)
-    val interactive = (project.properties.getOrElse("fork.interactive", { propsFile.exists().toString() }) as String).toBoolean()
-
-    if (interactive) {
-      val propDefaults = prompts.mapValues { (prop, defaultValue) ->
-        try {
-          defaultValue()
-        } catch (e: ForkException) { // TODO introduce special exception PropertyException
-          ""
-        }
-      }
-
-      val propsGui = PropsDialog(propDefaults).prompt()
-      prompts.forEach { prop, defaultValue ->
-        props[prop] = if (!propsGui[prop].isNullOrBlank()) {
-          propsGui[prop]
-        } else {
-          defaultValue()
-        }
-      }
-    } else {
-      if (propsFile.exists()) {
-        props.load(FileInputStream(propsFile))
-      } else {
-        throw ForkException("Non-interactive mode requires existing properties file at path: $propsFile")
+    // Evaluate defaults
+    prompts.forEach { (prop, defaultValue) ->
+      try {
+        result[prop] = defaultValue()
+      } catch (e: PropertyException) {
+        result[prop] = ""
       }
     }
 
-    return prompts.mapValues({ (prop, defaultValue) ->
-      val value = props.getOrElse(prop, defaultValue)
-      value as String
-    })
+    // Fill from properties file
+    val propsFileSpecified = project.properties.containsKey("fork.properties")
+    val propsFile = project.file(project.properties.getOrElse("fork.properties", { "fork.properties" }) as String)
+
+    if (propsFile.exists()) {
+      val fileProps = Properties()
+      fileProps.load(FileInputStream(propsFile))
+      fileProps.forEach { k, v -> result[k.toString()] = v.toString() }
+    } else if (propsFileSpecified) {
+      throw ForkException("Fork properties file does not exist: $propsFile")
+    }
+
+    // Fill missing by GUI
+    var missingProps = result.filter { it.value.isBlank() }
+    val interactiveForced = (project.properties["fork.interactive"] as String?)?.toBoolean() ?: false
+    val interactiveSpecified = project.properties.containsKey("fork.interactive")
+
+    if (interactiveForced || (!interactiveSpecified && missingProps.isNotEmpty())) {
+      result.putAll(PropsDialog(result).prompt())
+    }
+
+    // Validate missing again
+    missingProps = result.filter { it.value.isBlank() }
+
+    if (missingProps.isNotEmpty()) {
+      throw ForkException("Fork cannot be performed, because of missing properties: ${missingProps.keys}."
+        + " Specify them via properties file $propsFile or interactive mode.")
+    }
+
+    return result
   }
 
   private fun rule(rule: Rule, configurer: Closure<*>) {

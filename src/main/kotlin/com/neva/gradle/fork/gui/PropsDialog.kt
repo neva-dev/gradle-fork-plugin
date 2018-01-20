@@ -32,7 +32,7 @@ class PropsDialog(defaults: Map<String, String>) {
 
       defaults.forEach { prop, defaultValue ->
         val field = JTextField(defaultValue)
-        field.addActionListener { close.isEnabled = valid }
+        field.addActionListener { this@PropsDialog.validate() }
         fields[prop] = field
 
         add(JLabel(prop), "align label")
@@ -58,12 +58,17 @@ class PropsDialog(defaults: Map<String, String>) {
       })
 
       pack()
+      validate()
     }
   }
 
   fun prompt(): Map<String, String> {
     dialog.isVisible = true
     return fields.mapValues { it.value.text }
+  }
+
+  fun validate() {
+    close.isEnabled = valid
   }
 
   val valid: Boolean
