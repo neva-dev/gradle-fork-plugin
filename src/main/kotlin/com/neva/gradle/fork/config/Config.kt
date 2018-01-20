@@ -1,7 +1,7 @@
-package com.neva.gradle.fork.core.config
+package com.neva.gradle.fork.config
 
-import com.neva.gradle.fork.core.ForkException
-import com.neva.gradle.fork.core.config.rule.*
+import com.neva.gradle.fork.ForkException
+import com.neva.gradle.fork.config.rule.*
 import com.neva.gradle.fork.gui.PropsDialog
 import groovy.lang.Closure
 import org.apache.commons.lang3.text.StrSubstitutor
@@ -91,7 +91,7 @@ class Config(val project: Project, val name: String) {
     return StrSubstitutor(props, "{{", "}}").replace(template)
   }
 
-  // TODO allow to fill from properties file if specified, rest amended by gui
+  // TODO allow to fill from properties file if specified, rest if missing amended by gui
   private fun promptFill(): Map<String, String> {
     val props = Properties()
 
@@ -107,8 +107,7 @@ class Config(val project: Project, val name: String) {
         }
       }
 
-      // TODO make all fields required in GUI
-      val propsGui = PropsDialog().prompt(propDefaults)
+      val propsGui = PropsDialog(propDefaults).prompt()
       prompts.forEach { prop, defaultValue ->
         props[prop] = if (!propsGui[prop].isNullOrBlank()) {
           propsGui[prop]

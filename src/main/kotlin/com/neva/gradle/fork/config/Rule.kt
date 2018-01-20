@@ -1,4 +1,4 @@
-package com.neva.gradle.fork.core.config
+package com.neva.gradle.fork.config
 
 interface Rule {
 

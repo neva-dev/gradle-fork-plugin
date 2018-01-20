@@ -1,4 +1,4 @@
-package com.neva.gradle.fork.core
+package com.neva.gradle.fork
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
