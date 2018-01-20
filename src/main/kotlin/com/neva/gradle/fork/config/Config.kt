@@ -1,7 +1,10 @@
 package com.neva.gradle.fork.config
 
 import com.neva.gradle.fork.ForkException
-import com.neva.gradle.fork.config.rule.*
+import com.neva.gradle.fork.config.rule.ActionRule
+import com.neva.gradle.fork.config.rule.CopyFileRule
+import com.neva.gradle.fork.config.rule.MoveFileRule
+import com.neva.gradle.fork.config.rule.ReplaceContentRule
 import com.neva.gradle.fork.gui.PropsDialog
 import groovy.lang.Closure
 import org.apache.commons.lang3.text.StrSubstitutor
@@ -121,7 +124,7 @@ class Config(val project: Project, val name: String) {
     val interactiveSpecified = project.properties.containsKey("fork.interactive")
 
     if (interactiveForced || (!interactiveSpecified && missingProps.isNotEmpty())) {
-      result.putAll(PropsDialog(result).prompt())
+      result.putAll(PropsDialog.prompt(result))
     }
 
     // Validate missing again
@@ -172,10 +175,6 @@ class Config(val project: Project, val name: String) {
     val rule = ReplaceContentRule(this, replacements.mapValues { promptTemplate(it.value) })
     rule.filter.include(filterIncludes)
     rule(rule)
-  }
-
-  fun clean() {
-    rule(CleanRule(this))
   }
 
   fun action(closure: Closure<*>) {
