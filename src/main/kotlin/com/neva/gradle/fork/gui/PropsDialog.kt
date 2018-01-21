@@ -1,6 +1,7 @@
 package com.neva.gradle.fork.gui
 
 import com.neva.gradle.fork.ForkException
+import com.neva.gradle.fork.config.Config
 import net.miginfocom.swing.MigLayout
 import java.awt.Toolkit
 import java.awt.event.WindowAdapter
@@ -8,7 +9,7 @@ import java.awt.event.WindowEvent
 import javax.swing.*
 
 
-class PropsDialog(defaults: Map<String, String>) {
+class PropsDialog(val config : Config, defaults: Map<String, String>) {
 
   private val fields = mutableMapOf<String, JTextField>()
 
@@ -20,7 +21,7 @@ class PropsDialog(defaults: Map<String, String>) {
 
   init {
     dialog.apply {
-      title = "Fork properties"
+      title = "Fork properties for config '${config.name}'"
       layout = MigLayout(
         "insets 10 10 10 10",
         "[fill,grow][fill,grow]",
@@ -88,10 +89,10 @@ class PropsDialog(defaults: Map<String, String>) {
 
   companion object {
 
-    fun prompt(defaults: Map<String, String>): Map<String, String> {
+    fun prompt(config: Config, defaults: Map<String, String>): Map<String, String> {
       val laf = UIManager.getLookAndFeel()
       UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
-      val result = PropsDialog(defaults).prompt()
+      val result = PropsDialog(config, defaults).prompt()
       UIManager.setLookAndFeel(laf)
 
       return result

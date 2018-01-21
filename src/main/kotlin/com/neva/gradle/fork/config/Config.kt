@@ -124,7 +124,7 @@ class Config(val project: Project, val name: String) {
     val interactiveSpecified = project.properties.containsKey("fork.interactive")
 
     if (interactiveForced || (!interactiveSpecified && missingProps.isNotEmpty())) {
-      result.putAll(PropsDialog.prompt(result))
+      result.putAll(PropsDialog.prompt(this, result))
     }
 
     // Validate missing again

@@ -47,9 +47,7 @@ class FileHandler(config: Config, val details: FileVisitDetails) {
   }
 
   fun write(content: String) {
-    actions += {
-      FileOperations.write(file, content)
-    }
+    FileOperations.write(file, content)
   }
 
   fun amend(amender: (String) -> String) {
