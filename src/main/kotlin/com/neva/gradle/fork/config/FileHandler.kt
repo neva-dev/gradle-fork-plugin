@@ -2,17 +2,12 @@ package com.neva.gradle.fork.config
 
 import com.neva.gradle.fork.file.FileOperations
 import org.apache.commons.io.FileUtils
-import org.gradle.api.file.FileVisitDetails
 import org.gradle.util.GFileUtils
 import java.io.File
 
-class FileHandler(config: Config, val details: FileVisitDetails) {
+class FileHandler(val config: Config, val file: File) {
 
   private val logger = config.project.logger
-
-  val file = details.file
-
-  val filePath = details.relativePath.pathString
 
   val actions = mutableListOf<() -> Unit>()
 
@@ -70,6 +65,17 @@ class FileHandler(config: Config, val details: FileVisitDetails) {
   fun invoke() {
     actions.forEach { it.invoke() }
     actions.clear()
+  }
+
+  fun expand() {
+    val content = read()
+    val updatedContent = config.renderTemplate(content)
+
+    if (content != updatedContent) {
+      logger.info("Expanding properties in file $file")
+
+      write(updatedContent)
+    }
   }
 
   override fun toString(): String {

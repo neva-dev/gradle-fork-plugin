@@ -9,15 +9,15 @@ import org.gradle.api.tasks.util.PatternSet
 import org.gradle.util.ConfigureUtil
 import java.io.File
 
-class CopyFileRule(config: Config) : AbstractRule(config) {
+class CloneFilesRule(config: Config) : AbstractRule(config) {
 
   var defaultFilters = true
 
   var gitIgnores = true
 
-  private val gitIgnore by lazy { GitIgnore(config.sourceDir) }
+  val filter = PatternSet()
 
-  private val filter = PatternSet()
+  private val gitIgnore by lazy { GitIgnore(config.sourceDir) }
 
   private val sourceTree: FileTree
     get() = config.sourceTree.matching(filter)
@@ -27,7 +27,7 @@ class CopyFileRule(config: Config) : AbstractRule(config) {
       configureDefaultFilters()
     }
 
-    copyFiles()
+    cloneFiles()
   }
 
   private fun configureDefaultFilters() {
@@ -41,16 +41,16 @@ class CopyFileRule(config: Config) : AbstractRule(config) {
     ))
   }
 
-  private fun copyFiles() {
-    logger.info("Copying files from ${config.sourceDir} to ${config.targetDir}")
+  private fun cloneFiles() {
+    logger.info("Cloning files from ${config.sourceDir} to ${config.targetDir}")
 
-    visitFiles(sourceTree, { handler ->
+    visitFiles(sourceTree, { handler, details ->
       if (gitIgnores && gitIgnore.isExcluded(handler.file)) {
         logger.debug("Skipping file ignored by Git: ${handler.file}")
         return@visitFiles
       }
 
-      val target = File(config.targetDir, handler.filePath)
+      val target = File(config.targetDir, details.relativePath.pathString)
 
       handler.copy(target)
     })

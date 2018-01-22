@@ -6,31 +6,31 @@ import org.gradle.api.file.FileVisitDetails
 
 abstract class AbstractRule(val config: Config) : Rule {
 
-  val project = config.project
+  protected val project = config.project
 
-  val logger = project.logger
+  protected val logger = project.logger
 
-  fun visitTree(tree: FileTree, condition: (FileVisitDetails) -> Boolean, callback: (FileHandler) -> Unit) {
+  fun visitTree(tree: FileTree, condition: (FileVisitDetails) -> Boolean, callback: (FileHandler, FileVisitDetails) -> Unit) {
     val actions = mutableListOf<() -> Unit>()
     tree.visitAll { fileDetail ->
       if (condition(fileDetail)) {
-        val fileHandler = FileHandler(config, fileDetail)
-        callback(fileHandler)
+        val fileHandler = FileHandler(config, fileDetail.file)
+        callback(fileHandler, fileDetail)
         actions += fileHandler.actions
       }
     }
     actions.forEach { it.invoke() }
   }
 
-  fun visitAll(tree: FileTree, callback: (FileHandler) -> Unit) {
+  fun visitAll(tree: FileTree, callback: (FileHandler, FileVisitDetails) -> Unit) {
     visitTree(tree, { true }, callback)
   }
 
-  fun visitDirs(tree: FileTree, callback: (FileHandler) -> Unit) {
+  fun visitDirs(tree: FileTree, callback: (FileHandler, FileVisitDetails) -> Unit) {
     visitTree(tree, { it.isDirectory }, callback)
   }
 
-  fun visitFiles(tree: FileTree, callback: (FileHandler) -> Unit) {
+  fun visitFiles(tree: FileTree, callback: (FileHandler, FileVisitDetails) -> Unit) {
     visitTree(tree, { !it.isDirectory }, callback)
   }
 

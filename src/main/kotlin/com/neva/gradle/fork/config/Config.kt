@@ -1,10 +1,7 @@
 package com.neva.gradle.fork.config
 
 import com.neva.gradle.fork.ForkException
-import com.neva.gradle.fork.config.rule.ActionRule
-import com.neva.gradle.fork.config.rule.CopyFileRule
-import com.neva.gradle.fork.config.rule.MoveFileRule
-import com.neva.gradle.fork.config.rule.ReplaceContentRule
+import com.neva.gradle.fork.config.rule.*
 import com.neva.gradle.fork.gui.PropsDialog
 import groovy.lang.Closure
 import org.apache.commons.lang3.text.StrSubstitutor
@@ -19,7 +16,7 @@ import java.util.regex.Pattern
 class Config(val project: Project, val name: String) {
 
   companion object {
-    val NAME_DEFAULT = "default"
+    const val NAME_DEFAULT = "default"
   }
 
   val prompts = mutableMapOf<String, () -> String>()
@@ -53,6 +50,8 @@ class Config(val project: Project, val name: String) {
     "**/*.java", "**/*.kt", "**/*.groovy", "**/*.html", "**/*.jsp"
   )
 
+  var templateDir: File = project.file("gradle/fork")
+
   fun promptProp(prop: String, defaultProvider: () -> String): () -> String {
     prompts[prop] = defaultProvider
 
@@ -80,17 +79,14 @@ class Config(val project: Project, val name: String) {
     val m = p.matcher(template)
 
     val result = mutableListOf<String>()
-
-    var i = 1
     while (m.find()) {
-      result += m.group(i)
-      i++
+      result += m.group(1)
     }
 
     return result
   }
 
-  private fun renderTemplate(template: String): String {
+  fun renderTemplate(template: String): String {
     return StrSubstitutor(props, "{{", "}}").replace(template)
   }
 
@@ -147,34 +143,54 @@ class Config(val project: Project, val name: String) {
     rules += rule
   }
 
-  fun copyFile() {
-    rule(CopyFileRule(this))
+  fun cloneFiles() {
+    rule(CloneFilesRule(this))
   }
 
-  fun copyFile(configurer: Closure<*>) {
-    rule(CopyFileRule(this), configurer)
+  fun cloneFiles(configurer: Closure<*>) {
+    rule(CloneFilesRule(this), configurer)
   }
 
-  fun moveFile(movements: Map<String, String>) {
-    rule(MoveFileRule(this, movements.mapValues { promptTemplate(it.value) }))
+  fun moveFile(from: String, to: String) {
+    moveFiles(mapOf(from to to))
   }
 
-  fun replaceContent(replacements: Map<String, String>, configurer: Closure<*>) {
-    rule(ReplaceContentRule(this, replacements.mapValues { promptTemplate(it.value) }), configurer)
+  fun moveFiles(movements: Map<String, String>) {
+    rule(MoveFilesRule(this, movements.mapValues { promptTemplate(it.value) }))
   }
 
-  fun replaceContent(replacements: Map<String, String>, filterInclude: String) {
-    replaceContent(replacements, listOf(filterInclude))
+  fun replaceContents(replacements: Map<String, String>, configurer: Closure<*>) {
+    rule(ReplaceContentsRule(this, replacements.mapValues { promptTemplate(it.value) }), configurer)
   }
 
-  fun replaceContent(replacements: Map<String, String>) {
-    replaceContent(replacements, textFiles)
+  fun replaceContents(replacements: Map<String, String>, filterInclude: String) {
+    replaceContents(replacements, listOf(filterInclude))
   }
 
-  fun replaceContent(replacements: Map<String, String>, filterIncludes: Iterable<String>) {
-    val rule = ReplaceContentRule(this, replacements.mapValues { promptTemplate(it.value) })
+  fun replaceContent(search: String, replace: String) {
+    replaceContents(mapOf(search to replace))
+  }
+
+  fun replaceContents(replacements: Map<String, String>) {
+    replaceContents(replacements, textFiles)
+  }
+
+  fun replaceContents(replacements: Map<String, String>, filterIncludes: Iterable<String>) {
+    val rule = ReplaceContentsRule(this, replacements.mapValues { promptTemplate(it.value) })
     rule.filter.include(filterIncludes)
     rule(rule)
+  }
+
+  fun copyTemplateFile(templateName: String) {
+    copyTemplateFile(templateName, templateName)
+  }
+
+  fun copyTemplateFile(templateName: String, targetName: String) {
+    copyTemplateFiles(mapOf(templateName to targetName))
+  }
+
+  fun copyTemplateFiles(files : Map<String, String>) {
+    rule(CopyTemplateFilesRule(this, files))
   }
 
   fun action(closure: Closure<*>) {

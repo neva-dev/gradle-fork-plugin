@@ -5,7 +5,7 @@ import com.neva.gradle.fork.config.Config
 import com.neva.gradle.fork.file.FileOperations
 import java.io.File
 
-class MoveFileRule(config: Config, val movements: Map<String, () -> String>) : AbstractRule(config) {
+class MoveFilesRule(config: Config, val movements: Map<String, () -> String>) : AbstractRule(config) {
 
   override fun apply() {
     moveFiles()
@@ -13,12 +13,13 @@ class MoveFileRule(config: Config, val movements: Map<String, () -> String>) : A
   }
 
   private fun moveFiles() {
-    visitFiles(config.targetTree, { handler ->
+    visitFiles(config.targetTree, { handler, details ->
       movements.forEach { searchPath, replacePath ->
-        val targetPath = handler.filePath.replace(searchPath, replacePath())
+        val sourcePath = details.relativePath.pathString
+        val targetPath = sourcePath.replace(searchPath, replacePath())
         val target = File(config.targetPath, targetPath)
 
-        if (handler.filePath != targetPath) {
+        if (sourcePath != targetPath) {
           handler.move(target)
         }
       }
@@ -28,7 +29,7 @@ class MoveFileRule(config: Config, val movements: Map<String, () -> String>) : A
   private fun removeEmptyDirs() {
     val emptyDirs = mutableListOf<File>()
 
-    visitDirs(config.targetTree, { handler ->
+    visitDirs(config.targetTree, { handler, _ ->
       val dir = handler.file
       if (FileOperations.isDirEmpty(dir)) {
         emptyDirs += dir
