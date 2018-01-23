@@ -11,4 +11,8 @@ class ActionRule(config: Config, val closure: Closure<*>) : AbstractRule(config)
     ConfigureUtil.configure(closure, this)
   }
 
+  override fun toString(): String {
+    return "ActionRule()"
+  }
+
 }

@@ -5,7 +5,9 @@ import com.neva.gradle.fork.config.Config
 import com.neva.gradle.fork.file.FileOperations
 import java.io.File
 
-class MoveFilesRule(config: Config, val movements: Map<String, () -> String>) : AbstractRule(config) {
+class MoveFilesRule(config: Config, movements: Map<String, () -> String>) : AbstractRule(config) {
+
+  private val movements by lazy { movements.mapValues { it.value() } }
 
   override fun apply() {
     moveFiles()
@@ -16,7 +18,7 @@ class MoveFilesRule(config: Config, val movements: Map<String, () -> String>) : 
     visitFiles(config.targetTree, { handler, details ->
       movements.forEach { searchPath, replacePath ->
         val sourcePath = details.relativePath.pathString
-        val targetPath = sourcePath.replace(searchPath, replacePath())
+        val targetPath = sourcePath.replace(searchPath, replacePath)
         val target = File(config.targetPath, targetPath)
 
         if (sourcePath != targetPath) {
@@ -50,6 +52,10 @@ class MoveFilesRule(config: Config, val movements: Map<String, () -> String>) : 
         }
       }
     }
+  }
+
+  override fun toString(): String {
+    return "MoveFilesRule(movements=$movements)"
   }
 
 }

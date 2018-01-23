@@ -60,4 +60,8 @@ class CloneFilesRule(config: Config) : AbstractRule(config) {
     ConfigureUtil.configure(closure, filter)
   }
 
+  override fun toString(): String {
+    return "CloneFilesRule(gitIgnores=$gitIgnores)"
+  }
+
 }

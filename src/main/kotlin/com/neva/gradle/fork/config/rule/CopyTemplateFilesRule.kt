@@ -39,4 +39,8 @@ class CopyTemplateFilesRule(config: Config, private val files: Map<String, Strin
     }
   }
 
+  override fun toString(): String {
+    return "CopyTemplateFilesRule(files=$files)"
+  }
+
 }

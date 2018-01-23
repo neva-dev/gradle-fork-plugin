@@ -4,6 +4,4 @@ interface Rule {
 
   fun apply()
 
-  // val name : String
-
 }

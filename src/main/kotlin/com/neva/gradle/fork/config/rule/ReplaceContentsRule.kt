@@ -7,7 +7,9 @@ import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.util.ConfigureUtil
 
-class ReplaceContentsRule(config: Config, val replacements: Map<String, () -> String>) : AbstractRule(config) {
+class ReplaceContentsRule(config: Config, replacements: Map<String, () -> String>) : AbstractRule(config) {
+
+  private val replacements by lazy { replacements.mapValues { it.value() } }
 
   val filter = PatternSet()
 
@@ -16,12 +18,16 @@ class ReplaceContentsRule(config: Config, val replacements: Map<String, () -> St
 
   override fun apply() {
     visitFiles(targetTree, { fileHandler, _ ->
-      replacements.forEach({ search, replace -> fileHandler.replace(search, replace()) })
+      replacements.forEach({ search, replace -> fileHandler.replace(search, replace) })
     })
   }
 
   fun filter(closure: Closure<*>) {
     ConfigureUtil.configure(closure, filter)
+  }
+
+  override fun toString(): String {
+    return "ReplaceContentsRule(replacements=$replacements)"
   }
 
 }

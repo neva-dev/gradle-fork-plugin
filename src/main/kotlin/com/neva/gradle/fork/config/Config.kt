@@ -108,6 +108,14 @@ class Config(val project: Project, val name: String) {
   }
 
   private fun promptFill(): Map<String, String> {
+    // Fill from command line
+    prompts.keys.forEach { prop ->
+      val value = project.properties[prop]
+      if (value is String) {
+        prompts[prop]!!.value = value
+      }
+    }
+
     // Fill from properties file
     val propsFileSpecified = project.properties.containsKey("fork.properties")
     val propsFile = project.file(project.properties.getOrElse("fork.properties", { "fork.properties" }) as String)
@@ -125,7 +133,7 @@ class Config(val project: Project, val name: String) {
       ?: false
     val interactiveSpecified = project.properties.containsKey("fork.interactive")
 
-    if (interactiveForced || (!interactiveSpecified && !prompts.values.any { it.valid })) {
+    if (interactiveForced || (!interactiveSpecified && prompts.values.any { !it.valid })) {
       val guiProps = PropertyDialog.prompt(this, prompts.values.toList())
       guiProps.forEach { p, v -> prompts[p]!!.value = v }
     }
@@ -204,7 +212,7 @@ class Config(val project: Project, val name: String) {
   }
 
   override fun toString(): String {
-    return "Config(name=$name,ruleCount=${rules.size})"
+    return "Config(name=$name,ruleCount=$rules)"
   }
 
   companion object {
@@ -224,9 +232,10 @@ class Config(val project: Project, val name: String) {
       .autoEscaping(false)
       .cacheActive(false)
       .strictVariables(true)
-      .newLineTrimming(false) // TODO pebble is trimming new line in gradle.properties if no value specified
+      .newLineTrimming(false)
       .loader(StringLoader())
       .syntax(Syntax.Builder()
+        .setEnableNewLineTrimming(false)
         .setPrintOpenDelimiter(TEMPLATE_VAR_PREFIX)
         .setPrintCloseDelimiter(TEMPLATE_VAR_SUFFIX)
         .build()
