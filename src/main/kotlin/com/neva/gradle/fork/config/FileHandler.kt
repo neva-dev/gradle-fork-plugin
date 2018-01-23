@@ -11,22 +11,24 @@ class FileHandler(val config: Config, val file: File) {
 
   val actions = mutableListOf<() -> Unit>()
 
-  fun copy(target: File) {
+  fun copy(target: File): FileHandler {
     actions += {
       logger.info("Copying file from $file to $target")
 
       GFileUtils.parentMkdirs(target)
       FileUtils.copyFile(file, target)
     }
+
+    return this
   }
 
-  fun move(targetPath: String) {
-    move(File(targetPath))
+  fun move(targetPath: String): FileHandler {
+    return move(File(targetPath))
   }
 
-  fun move(target: File) {
+  fun move(target: File): FileHandler {
     if (target.exists()) {
-      return
+      return this
     }
 
     actions += {
@@ -35,6 +37,8 @@ class FileHandler(val config: Config, val file: File) {
       GFileUtils.parentMkdirs(target)
       FileUtils.moveFile(file, target)
     }
+
+    return this
   }
 
   fun read(): String {
@@ -45,14 +49,16 @@ class FileHandler(val config: Config, val file: File) {
     FileOperations.write(file, content)
   }
 
-  fun amend(amender: (String) -> String) {
+  fun amend(amender: (String) -> String): FileHandler {
     actions += {
       logger.info("Amending file $file")
       FileOperations.amend(file, amender)
     }
+
+    return this
   }
 
-  fun replace(search: String, replace: String) {
+  fun replace(search: String, replace: String): FileHandler {
     val content = read()
     if (content.contains(search)) {
       logger.info("Replacing '$search' with '$replace' in file $file")
@@ -60,14 +66,18 @@ class FileHandler(val config: Config, val file: File) {
       val updatedContent = content.replace(search, replace)
       write(updatedContent)
     }
+
+    return this
   }
 
-  fun invoke() {
+  fun perform(): FileHandler {
     actions.forEach { it.invoke() }
     actions.clear()
+
+    return this
   }
 
-  fun expand() {
+  fun expand(): FileHandler {
     val content = read()
     val updatedContent = config.renderTemplate(content)
 
@@ -76,9 +86,12 @@ class FileHandler(val config: Config, val file: File) {
 
       write(updatedContent)
     }
+
+    return this
   }
 
   override fun toString(): String {
     return file.toString()
   }
+
 }

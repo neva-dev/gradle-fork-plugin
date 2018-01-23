@@ -24,6 +24,7 @@ dependencies {
     compile 'commons-validator:commons-validator:1.6'
     compile 'com.neva.commons:gitignore-file-filter:1.0.0'
     compile group: 'com.miglayout', name: 'miglayout', version: '3.7.4'
+    compile group: 'com.mitchellbosecke', name: 'pebble', version: '2.4.0'
 
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }

@@ -1,8 +1,11 @@
 package com.neva.gradle.fork.config
 
+import com.mitchellbosecke.pebble.PebbleEngine
+import com.mitchellbosecke.pebble.lexer.Syntax
+import com.mitchellbosecke.pebble.loader.StringLoader
 import com.neva.gradle.fork.ForkException
 import com.neva.gradle.fork.config.rule.*
-import com.neva.gradle.fork.gui.PropsDialog
+import com.neva.gradle.fork.gui.PropertyDialog
 import groovy.lang.Closure
 import org.apache.commons.lang3.text.StrSubstitutor
 import org.gradle.api.Project
@@ -10,16 +13,13 @@ import org.gradle.api.file.FileTree
 import org.gradle.util.ConfigureUtil
 import java.io.File
 import java.io.FileInputStream
+import java.io.StringWriter
 import java.util.*
 import java.util.regex.Pattern
 
 class Config(val project: Project, val name: String) {
 
-  companion object {
-    const val NAME_DEFAULT = "default"
-  }
-
-  val prompts = mutableMapOf<String, () -> String>()
+  val prompts = mutableMapOf<String, PropertyPrompt>()
 
   val props by lazy { promptFill() }
 
@@ -52,56 +52,62 @@ class Config(val project: Project, val name: String) {
 
   var templateDir: File = project.file("gradle/fork")
 
-  fun promptProp(prop: String, defaultProvider: () -> String): () -> String {
-    prompts[prop] = defaultProvider
+  fun promptProp(prop: String, defaultProvider: () -> String?): () -> String {
+    prompts[prop] = PropertyPrompt(prop, defaultProvider)
 
     return { props[prop] ?: throw ForkException("Fork prompt property '$prop' not bound.") }
   }
 
   fun promptProp(prop: String): () -> String {
-    return promptProp(prop, {
-      throw PropertyException("Fork prompt property '$prop' has no value provided.")
-    })
+    return promptProp(prop, { null })
   }
 
   fun promptTemplate(template: String): () -> String {
-    parseTemplate(template).forEach { prop ->
-      prompts[prop] = {
-        throw PropertyException("Fork template property '$prop' has no value provided.")
-      }
+    parseTemplate(template).forEach { prop, defaultValue ->
+      prompts[prop] = PropertyPrompt(prop, { defaultValue })
     }
 
     return { renderTemplate(template) }
   }
 
-  private fun parseTemplate(template: String): List<String> {
-    val p = Pattern.compile("\\{\\{(.+?)\\}\\}")
-    val m = p.matcher(template)
+  private fun parseTemplate(template: String): Map<String, String?> {
+    val m = TEMPLATE_PROP_PATTERN.matcher(template)
 
-    val result = mutableListOf<String>()
+    val result = mutableMapOf<String, String?>()
     while (m.find()) {
-      result += m.group(1)
+      val prop = m.group(1)
+
+      if (prop.contains(TEMPLATE_PROP_DELIMITER)) {
+        val parts = prop.split(TEMPLATE_PROP_DELIMITER)
+
+        val defaultName = parts[0].trim()
+        val defaultValue = parts.mapNotNull {
+          val match = TEMPLATE_DEFAULT_REGEX.matchEntire(it.trim())
+          if (match != null) {
+            match.groupValues[1]
+          } else {
+            null
+          }
+        }.firstOrNull()
+
+        result[defaultName] = defaultValue
+      } else {
+        result[prop] = null
+      }
     }
 
     return result
   }
 
   fun renderTemplate(template: String): String {
-    return StrSubstitutor(props, "{{", "}}").replace(template)
+    val interpolated = TEMPLATE_INTERPOLATOR(template, props)
+    val expanded = StringWriter()
+    TEMPLATE_ENGINE.getTemplate(interpolated).evaluate(expanded, props)
+
+    return expanded.toString()
   }
 
   private fun promptFill(): Map<String, String> {
-    val result = mutableMapOf<String, String>()
-
-    // Evaluate defaults
-    prompts.forEach { (prop, defaultValue) ->
-      try {
-        result[prop] = defaultValue()
-      } catch (e: PropertyException) {
-        result[prop] = ""
-      }
-    }
-
     // Fill from properties file
     val propsFileSpecified = project.properties.containsKey("fork.properties")
     val propsFile = project.file(project.properties.getOrElse("fork.properties", { "fork.properties" }) as String)
@@ -109,29 +115,29 @@ class Config(val project: Project, val name: String) {
     if (propsFile.exists()) {
       val fileProps = Properties()
       fileProps.load(FileInputStream(propsFile))
-      fileProps.forEach { k, v -> result[k.toString()] = v.toString() }
+      fileProps.forEach { p, v -> prompts[p.toString()]!!.value = v.toString() }
     } else if (propsFileSpecified) {
       throw ForkException("Fork properties file does not exist: $propsFile")
     }
 
     // Fill missing by GUI
-    var missingProps = result.filter { it.value.isBlank() }
-    val interactiveForced = (project.properties["fork.interactive"] as String?)?.toBoolean() ?: false
+    val interactiveForced = (project.properties["fork.interactive"] as String?)?.toBoolean()
+      ?: false
     val interactiveSpecified = project.properties.containsKey("fork.interactive")
 
-    if (interactiveForced || (!interactiveSpecified && missingProps.isNotEmpty())) {
-      result.putAll(PropsDialog.prompt(this, result))
+    if (interactiveForced || (!interactiveSpecified && !prompts.values.any { it.valid })) {
+      val guiProps = PropertyDialog.prompt(this, prompts.values.toList())
+      guiProps.forEach { p, v -> prompts[p]!!.value = v }
     }
 
-    // Validate missing again
-    missingProps = result.filter { it.value.isBlank() }
-
-    if (missingProps.isNotEmpty()) {
-      throw ForkException("Fork cannot be performed, because of missing properties: ${missingProps.keys}."
+    // Revalidate missing props
+    val invalidProps = prompts.values.filter { !it.valid }.map { it.name }
+    if (invalidProps.isNotEmpty()) {
+      throw ForkException("Fork cannot be performed, because of missing properties: $invalidProps."
         + " Specify them via properties file $propsFile or interactive mode.")
     }
 
-    return result
+    return prompts.mapValues { it.value.valueOrDefault }
   }
 
   private fun rule(rule: Rule, configurer: Closure<*>) {
@@ -189,7 +195,7 @@ class Config(val project: Project, val name: String) {
     copyTemplateFiles(mapOf(templateName to targetName))
   }
 
-  fun copyTemplateFiles(files : Map<String, String>) {
+  fun copyTemplateFiles(files: Map<String, String>) {
     rule(CopyTemplateFilesRule(this, files))
   }
 
@@ -199,6 +205,37 @@ class Config(val project: Project, val name: String) {
 
   override fun toString(): String {
     return "Config(name=$name,ruleCount=${rules.size})"
+  }
+
+  companion object {
+    const val NAME_DEFAULT = "default"
+
+    private val TEMPLATE_PROP_PATTERN = Pattern.compile("\\{\\{(.+?)\\}\\}")
+
+    private val TEMPLATE_PROP_DELIMITER = "|"
+
+    private val TEMPLATE_DEFAULT_REGEX = Regex("default\\('([^']*)'\\)")
+
+    private val TEMPLATE_VAR_PREFIX = "{{"
+
+    private val TEMPLATE_VAR_SUFFIX = "}}"
+
+    private val TEMPLATE_ENGINE = PebbleEngine.Builder()
+      .autoEscaping(false)
+      .cacheActive(false)
+      .strictVariables(true)
+      .newLineTrimming(false) // TODO pebble is trimming new line in gradle.properties if no value specified
+      .loader(StringLoader())
+      .syntax(Syntax.Builder()
+        .setPrintOpenDelimiter(TEMPLATE_VAR_PREFIX)
+        .setPrintCloseDelimiter(TEMPLATE_VAR_SUFFIX)
+        .build()
+      )
+      .build()
+
+    private val TEMPLATE_INTERPOLATOR: (String, Map<String, Any>) -> String = { source, props ->
+      StrSubstitutor.replace(source, props, TEMPLATE_VAR_PREFIX, TEMPLATE_VAR_SUFFIX)
+    }
   }
 
 }

@@ -2,18 +2,18 @@ package com.neva.gradle.fork.gui
 
 import com.neva.gradle.fork.ForkException
 import com.neva.gradle.fork.config.Config
+import com.neva.gradle.fork.config.PropertyPrompt
 import net.miginfocom.swing.MigLayout
 import java.awt.Toolkit
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import javax.swing.*
 
-
-class PropsDialog(val config : Config, defaults: Map<String, String>) {
-
-  private val fields = mutableMapOf<String, JTextField>()
+class PropertyDialog(private val config: Config, private val prompts: List<PropertyPrompt>) {
 
   private val dialog = JDialog()
+
+  private lateinit var fields: Map<PropertyPrompt, JTextField>
 
   private val close = JButton()
 
@@ -31,20 +31,28 @@ class PropsDialog(val config : Config, defaults: Map<String, String>) {
       isModal = true
       isResizable = false
 
-      defaults.forEach { prop, defaultValue ->
-        val field = JTextField(defaultValue)
-        field.addActionListener { this@PropsDialog.validate() }
-        fields[prop] = field
+      fields = prompts.fold(mutableMapOf(), { r, prompt ->
+        val label = JLabel(if (prompt.required) "${prompt.name}*" else prompt.name)
+        add(label, "align label")
 
-        add(JLabel(prop), "align label")
+        val field = when(prompt.type) {
+          PropertyPrompt.Type.PASSWORD -> JPasswordField(prompt.valueOrDefault)
+          else -> JTextField(prompt.valueOrDefault)
+        }
+        field.addActionListener { this@PropertyDialog.validate() }
         add(field, "width 300::, wrap")
-      }
+
+        r[prompt] = field
+        r
+      })
 
       add(close.apply {
         text = "OK"
         addActionListener {
           if (valid) {
             dialog.dispose()
+          } else {
+            focusInvalidField()
           }
         }
       }, "span, south, wrap")
@@ -58,7 +66,6 @@ class PropsDialog(val config : Config, defaults: Map<String, String>) {
 
       pack()
       centre()
-
       validate()
     }
   }
@@ -69,7 +76,7 @@ class PropsDialog(val config : Config, defaults: Map<String, String>) {
       throw ForkException("Fork canceled by interactive mode.")
     }
 
-    return fields.mapValues { it.value.text }
+    return fields.entries.fold(mutableMapOf(), { r, e -> r[e.key.name] = e.value.text;r })
   }
 
   fun validate() {
@@ -77,7 +84,20 @@ class PropsDialog(val config : Config, defaults: Map<String, String>) {
   }
 
   val valid: Boolean
-    get() = fields.all { !it.value.text.isNullOrBlank() }
+    get() = fields.all { isValidField(it.key, it.value) }
+
+  fun isValidField(prompt: PropertyPrompt, field: JTextField): Boolean {
+    return !prompt.required || field.text.isNotBlank()
+  }
+
+  fun focusInvalidField() {
+    for ((prompt, field) in fields) {
+      if (!isValidField(prompt, field)) {
+        field.requestFocus()
+        break
+      }
+    }
+  }
 
   fun centre() {
     val dimension = Toolkit.getDefaultToolkit().screenSize
@@ -89,10 +109,10 @@ class PropsDialog(val config : Config, defaults: Map<String, String>) {
 
   companion object {
 
-    fun prompt(config: Config, defaults: Map<String, String>): Map<String, String> {
+    fun prompt(config: Config, prompts: List<PropertyPrompt>): Map<String, String> {
       val laf = UIManager.getLookAndFeel()
       UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
-      val result = PropsDialog(config, defaults).prompt()
+      val result = PropertyDialog(config, prompts).prompt()
       UIManager.setLookAndFeel(laf)
 
       return result

@@ -34,7 +34,7 @@ class CopyTemplateFilesRule(config: Config, private val files: Map<String, Strin
       val templateFile = File(config.templateDir, templateName)
       val targetFile = File(config.targetDir, targetName)
 
-      FileHandler(config, templateFile).copy(targetFile)
+      FileHandler(config, templateFile).copy(targetFile).perform()
       FileHandler(config, targetFile).expand()
     }
   }
