@@ -13,6 +13,7 @@ import org.gradle.api.file.FileTree
 import org.gradle.util.ConfigureUtil
 import java.io.File
 import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.io.StringWriter
 import java.util.*
 import java.util.regex.Pattern
@@ -51,6 +52,20 @@ class Config(val project: Project, val name: String) {
   )
 
   var templateDir: File = project.file("gradle/fork")
+
+  var propsFile = project.file(project.properties.getOrElse("fork.properties", { "fork.properties" }) as String)
+
+  private val propsFileSpecified = project.properties.containsKey("fork.properties")
+
+  private val interactiveForced = flag("fork.interactive")
+
+  private val interactiveSpecified = project.properties.containsKey("fork.interactive")
+
+  private fun flag(prop: String): Boolean {
+    val value = project.properties[prop] as String? ?: return false
+
+    return if (!value.isBlank()) value.toBoolean() else true
+  }
 
   fun promptProp(prop: String, defaultProvider: () -> String?): () -> String {
     prompts[prop] = PropertyPrompt(prop, defaultProvider)
@@ -108,44 +123,55 @@ class Config(val project: Project, val name: String) {
   }
 
   private fun promptFill(): Map<String, String> {
-    // Fill from command line
+    promptFillPropertiesFile()
+    promptFillCommandLine()
+    promptFillGui()
+    promptValidate()
+    promptSavePropertiesFile()
+
+    return prompts.mapValues { it.value.valueOrDefault }
+  }
+
+  private fun promptFillCommandLine() {
     prompts.keys.forEach { prop ->
       val value = project.properties[prop]
       if (value is String) {
         prompts[prop]!!.value = value
       }
     }
+  }
 
-    // Fill from properties file
-    val propsFileSpecified = project.properties.containsKey("fork.properties")
-    val propsFile = project.file(project.properties.getOrElse("fork.properties", { "fork.properties" }) as String)
-
+  private fun promptFillPropertiesFile(): File {
     if (propsFile.exists()) {
-      val fileProps = Properties()
-      fileProps.load(FileInputStream(propsFile))
-      fileProps.forEach { p, v -> prompts[p.toString()]!!.value = v.toString() }
+      val props = Properties()
+      props.load(FileInputStream(propsFile))
+      props.forEach { p, v -> prompts[p.toString()]!!.value = v.toString() }
     } else if (propsFileSpecified) {
       throw ForkException("Fork properties file does not exist: $propsFile")
     }
 
-    // Fill missing by GUI
-    val interactiveForced = (project.properties["fork.interactive"] as String?)?.toBoolean()
-      ?: false
-    val interactiveSpecified = project.properties.containsKey("fork.interactive")
+    return propsFile
+  }
 
+  private fun promptFillGui() {
     if (interactiveForced || (!interactiveSpecified && prompts.values.any { !it.valid })) {
-      val guiProps = PropertyDialog.prompt(this, prompts.values.toList())
-      guiProps.forEach { p, v -> prompts[p]!!.value = v }
+      val props = PropertyDialog.prompt(this, prompts.values.toList())
+      props.forEach { p, v -> prompts[p]!!.value = v }
     }
+  }
 
-    // Revalidate missing props
+  private fun promptValidate() {
     val invalidProps = prompts.values.filter { !it.valid }.map { it.name }
     if (invalidProps.isNotEmpty()) {
       throw ForkException("Fork cannot be performed, because of missing properties: $invalidProps."
         + " Specify them via properties file $propsFile or interactive mode.")
     }
+  }
 
-    return prompts.mapValues { it.value.valueOrDefault }
+  private fun promptSavePropertiesFile() {
+    val props = Properties()
+    prompts.values.forEach { prompt -> props[prompt.name] = prompt.valueOrDefault }
+    props.store(FileOutputStream(propsFile), null)
   }
 
   private fun rule(rule: Rule, configurer: Closure<*>) {
@@ -212,7 +238,7 @@ class Config(val project: Project, val name: String) {
   }
 
   override fun toString(): String {
-    return "Config(name=$name,ruleCount=$rules)"
+    return "Config(name=$name,rules=$rules)"
   }
 
   companion object {
