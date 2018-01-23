@@ -18,12 +18,15 @@ Assumptions:
 ## Table of Contents
 
 * [Usage](#usage)
+   * [Sample build script](#sample-build-script)
    * [Defining and executing configurations](#defining-and-executing-configurations)
    * [Providing properties](#providing-properties)
-   * [Output](#output)
+   * [Sample output](#sample-output)
 * [License](#license)
 
 ## Usage
+
+### Sample build script
 
 ```groovy
 buildscript {
@@ -121,7 +124,7 @@ Properties can be provided by (order makes precedence):
   
 4. Mixed approach.
 
-### Output
+### Sample output
 
 As a fork result, there will be a cloned project with correctly changed directory names, with replaced project name and label in text files (all stuff being previously performed manually).
 
