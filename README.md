@@ -4,14 +4,24 @@
 
 ## Description
 
-Project generator based on live archetypes (example projects).
+**Project generator based on live archetypes** (example projects).
+
+Newcomers of Gradle Build System very often complain about that in Gradle there is no Maven's archetype like mechanism OOTB. This plugin tries to fill that gap.
 
 Assumptions:
 
-  * instead of creating a virtual project aka Maven Archetype with placeholders, plugin allows to treat any existing project like a base for a new project.
-  * maintenance of real / working example projects is easier than maintaining archetypes (there is no need to regenerate project every time to prove that archetype is working properly).
-  * it is easier to copy rich example project and remove redundant things than creating and assembling project from the scratch.
-  * from business perspective, plugin allows to perform rebranding at code level (perform massive renaming, repackaging).
+  * Instead of creating a virtual project aka Maven Archetype with placeholders, plugin allows to treat any existing project like a base for a new project.
+  * It is easier to copy rich example project and remove redundant things than creating project from archetype and looking for missing things.
+  * From business perspective, plugin allows to automate rebranding at code level (perform massive renaming, repackaging).
+  * Maintenance of real / working example projects is probably easier than maintaining archetypes (there is no need to regenerate project every time to prove that archetype is working properly).
+
+## Table of Contents
+
+* [Usage](#usage)
+   * [Defining and executing configurations](#defining-and-executing-configurations)
+   * [Providing properties](#providing-properties)
+   * [Output](#output)
+* [License](#license)
 
 ## Usage
 
@@ -29,7 +39,7 @@ buildscript {
 apply plugin: 'com.neva.fork'
 
 fork {
-    config {
+    config { // 'default'
         cloneFiles()
         moveFiles([
                 "/example": "/{{projectName}}"
@@ -41,20 +51,38 @@ fork {
         ])
         copyTemplateFile("gradle.properties")
     }
+    config 'setup', {
+        copyTemplateFile("gradle.properties")
+    }
 }
 ```
 
-Fork configuration above will:
+### Defining and executing configurations
 
-* copy all project files respecting filtering defined in *.gitignore* files,
-* rename directories using rules with properties injecting,
-* replace contents using rules with properties injecting.
+Default fork configuration will:
 
-To execute fork configuration, run command:
+* Copy all project files respecting filtering defined in *.gitignore* files.
+* Rename directories using rules with properties injecting.
+* Replace contents using rules with properties injecting.
+* Generate from template a file containing user specific properties (like repository credentials etc).
 
-```bash
-sh gradlew fork
-```
+Setup fork configuration will:
+
+* Do only last step from default configuration. 
+
+1. To execute default configuration, run command:
+
+    ```bash
+    sh gradlew fork
+    ```
+
+2. To execute configuration named `setup`, run command:
+
+    ```bash
+    sh gradlew fork -Pfork.config=setup
+    ```
+
+### Providing properties
 
 Properties can be provided by (order makes precedence):
  
@@ -93,6 +121,8 @@ Properties can be provided by (order makes precedence):
   
 4. Mixed approach.
 
+### Output
+
 As a fork result, there will be a cloned project with correctly changed directory names, with replaced project name and label in text files (all stuff being previously performed manually).
 
 <pre>
@@ -108,3 +138,8 @@ Replacing 'example' with 'sample' in file C:\Users\krystian.panek\Projects\sampl
 Copying file from C:\Users\krystian.panek\Projects\example\gradle\fork\gradle.properties to ..\sample\gradle.properties
 Expanding properties in file ..\sample\gradle.properties
 </pre>
+
+## License
+
+**Gradle AEM Plugin** is licensed under the [Apache License, Version 2.0 (the "License")](https://www.apache.org/licenses/LICENSE-2.0.txt)
+
