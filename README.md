@@ -119,7 +119,7 @@ Properties can be provided by (order makes precedence):
     To enforce displaying (or not) dialog above regardless values provided, use command line parameter:
     
     ```bash
-    sh gradlew fork -Pfork.interactive=true
+    sh gradlew fork -Pfork.interactive
     ```
   
 4. Mixed approach.
