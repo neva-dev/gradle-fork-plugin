@@ -55,7 +55,7 @@ fork {
                 "example": "{{projectName}}",
                 "Example": "{{projectLabel}}"
         ])
-        use 'setup'
+        copyTemplateFile("gradle.properties")
     }
 }
 ```
