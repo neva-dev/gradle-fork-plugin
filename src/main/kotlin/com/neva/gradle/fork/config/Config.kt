@@ -57,12 +57,10 @@ class Config(val project: Project, val name: String) {
 
   private val propsFileSpecified = project.properties.containsKey("fork.properties")
 
-  private val interactiveForced = flag("fork.interactive")
+  private val interactive = flag("fork.interactive", true)
 
-  private val interactiveSpecified = project.properties.containsKey("fork.interactive")
-
-  private fun flag(prop: String): Boolean {
-    val value = project.properties[prop] as String? ?: return false
+  private fun flag(prop: String, defaultValue: Boolean = false): Boolean {
+    val value = project.properties[prop] as String? ?: return defaultValue
 
     return if (!value.isBlank()) value.toBoolean() else true
   }
@@ -134,18 +132,18 @@ class Config(val project: Project, val name: String) {
 
   private fun promptFillCommandLine() {
     prompts.keys.forEach { prop ->
-      val value = project.properties[prop]
-      if (value is String) {
-        prompts[prop]?.value = value
+      val cmdProp = project.properties[prop]
+      if (cmdProp is String) {
+        prompts[prop]?.value = cmdProp
       }
     }
   }
 
   private fun promptFillPropertiesFile(): File {
     if (propsFile.exists()) {
-      val props = Properties()
-      props.load(FileInputStream(propsFile))
-      props.forEach { p, v -> prompts[p.toString()]?.value = v.toString() }
+      val fileProps = Properties()
+      fileProps.load(FileInputStream(propsFile))
+      fileProps.forEach { p, v -> prompts[p.toString()]?.value = v.toString() }
     } else if (propsFileSpecified) {
       throw ForkException("Fork properties file does not exist: $propsFile")
     }
@@ -154,9 +152,9 @@ class Config(val project: Project, val name: String) {
   }
 
   private fun promptFillGui() {
-    if (interactiveForced || (!interactiveSpecified && prompts.values.any { !it.valid })) {
-      val props = PropertyDialog.prompt(this, prompts.values.toList())
-      props.forEach { p, v -> prompts[p]?.value = v }
+    if (interactive) {
+      val guiProps = PropertyDialog.prompt(this, prompts.values.toList())
+      guiProps.forEach { p, v -> prompts[p]?.value = v }
     }
   }
 

@@ -117,12 +117,12 @@ Properties can be provided by (order makes precedence):
 
     ![Props Dialog](docs/props-dialog.png)
     
-    This dialog is being displayed always when there are properties which have no value provided.
+    This dialog is always displayed to allow amending values provided by command line or properties file.
     
-    To enforce displaying (or not) dialog above regardless values provided, use command line parameter:
+    To disable it, use command line parameter:
     
     ```bash
-    sh gradlew fork -Pfork.interactive
+    sh gradlew fork -Pfork.interactive=false
     ```
   
 4. Mixed approach.
