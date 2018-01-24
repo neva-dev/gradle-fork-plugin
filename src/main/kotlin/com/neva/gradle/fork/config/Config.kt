@@ -136,7 +136,7 @@ class Config(val project: Project, val name: String) {
     prompts.keys.forEach { prop ->
       val value = project.properties[prop]
       if (value is String) {
-        prompts[prop]!!.value = value
+        prompts[prop]?.value = value
       }
     }
   }
@@ -145,7 +145,7 @@ class Config(val project: Project, val name: String) {
     if (propsFile.exists()) {
       val props = Properties()
       props.load(FileInputStream(propsFile))
-      props.forEach { p, v -> prompts[p.toString()]!!.value = v.toString() }
+      props.forEach { p, v -> prompts[p.toString()]?.value = v.toString() }
     } else if (propsFileSpecified) {
       throw ForkException("Fork properties file does not exist: $propsFile")
     }
@@ -156,7 +156,7 @@ class Config(val project: Project, val name: String) {
   private fun promptFillGui() {
     if (interactiveForced || (!interactiveSpecified && prompts.values.any { !it.valid })) {
       val props = PropertyDialog.prompt(this, prompts.values.toList())
-      props.forEach { p, v -> prompts[p]!!.value = v }
+      props.forEach { p, v -> prompts[p]?.value = v }
     }
   }
 
@@ -235,6 +235,16 @@ class Config(val project: Project, val name: String) {
 
   fun action(closure: Closure<*>) {
     rule(ActionRule(this, closure))
+  }
+
+  fun validate() {
+    if (targetDir.exists()) {
+      throw ForkException("Fork target directory already exists: ${targetDir.canonicalPath}")
+    }
+  }
+
+  fun execute() {
+    rules.forEach { it.execute() }
   }
 
   override fun toString(): String {

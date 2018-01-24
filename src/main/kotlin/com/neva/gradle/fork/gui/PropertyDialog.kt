@@ -35,7 +35,7 @@ class PropertyDialog(private val config: Config, private val prompts: List<Prope
         val label = JLabel(if (prompt.required) "${prompt.name}*" else prompt.name)
         add(label, "align label")
 
-        val field = when(prompt.type) {
+        val field = when (prompt.type) {
           PropertyPrompt.Type.PASSWORD -> JPasswordField(prompt.valueOrDefault)
           else -> JTextField(prompt.valueOrDefault)
         }

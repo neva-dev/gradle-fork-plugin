@@ -9,7 +9,7 @@ class MoveFilesRule(config: Config, movements: Map<String, () -> String>) : Abst
 
   private val movements by lazy { movements.mapValues { it.value() } }
 
-  override fun apply() {
+  override fun execute() {
     moveFiles()
     removeEmptyDirs()
   }

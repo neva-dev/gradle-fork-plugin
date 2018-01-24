@@ -7,7 +7,7 @@ import org.gradle.util.ConfigureUtil
 
 class ActionRule(config: Config, val closure: Closure<*>) : AbstractRule(config) {
 
-  override fun apply() {
+  override fun execute() {
     ConfigureUtil.configure(closure, this)
   }
 

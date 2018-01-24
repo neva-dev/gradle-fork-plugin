@@ -1,6 +1,9 @@
-# Gradle Fork Plugin
+![Neva logo](docs/neva-logo.png)
 
 [![Apache License, Version 2.0, January 2004](https://img.shields.io/github/license/neva-dev/gradle-fork-plugin.svg?label=License)](http://www.apache.org/licenses/)
+[![GitHub stars](https://img.shields.io/github/stars/neva-dev/gradle-fork-plugin.svg)](https://github.com/neva-dev/gradle-fork-plugin/stargazers)
+
+# Gradle Fork Plugin
 
 ## Description
 
@@ -8,7 +11,7 @@
 
 Newcomers of Gradle Build System very often complain about that in Gradle there is no Maven's archetype like mechanism OOTB. This plugin tries to fill that gap.
 
-Assumptions:
+**Assumptions**
 
   * Instead of creating a virtual project aka Maven Archetype with placeholders, plugin allows to treat any existing project like a base for a new project.
   * It is easier to copy rich example project and remove redundant things than creating project from archetype and looking for missing things.
@@ -42,7 +45,10 @@ buildscript {
 apply plugin: 'com.neva.fork'
 
 fork {
-    config { // 'default'
+    config 'setup', {
+        copyTemplateFile("gradle.properties")
+    }
+    config 'default', {
         cloneFiles()
         moveFiles([
                 "/example": "/{{projectName}}"
@@ -52,10 +58,7 @@ fork {
                 "example": "{{projectName}}",
                 "Example": "{{projectLabel}}"
         ])
-        copyTemplateFile("gradle.properties")
-    }
-    config 'setup', {
-        copyTemplateFile("gradle.properties")
+        use 'setup'
     }
 }
 ```
@@ -144,5 +147,5 @@ Expanding properties in file ..\sample\gradle.properties
 
 ## License
 
-**Gradle AEM Plugin** is licensed under the [Apache License, Version 2.0 (the "License")](https://www.apache.org/licenses/LICENSE-2.0.txt)
+**Gradle Fork Plugin** is licensed under the [Apache License, Version 2.0 (the "License")](https://www.apache.org/licenses/LICENSE-2.0.txt)
 

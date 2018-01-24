@@ -22,7 +22,7 @@ class CloneFilesRule(config: Config) : AbstractRule(config) {
   private val sourceTree: FileTree
     get() = config.sourceTree.matching(filter)
 
-  override fun apply() {
+  override fun execute() {
     if (defaultFilters) {
       configureDefaultFilters()
     }

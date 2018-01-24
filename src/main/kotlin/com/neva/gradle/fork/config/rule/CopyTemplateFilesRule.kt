@@ -25,7 +25,7 @@ class CopyTemplateFilesRule(config: Config, private val files: Map<String, Strin
     }
   }
 
-  override fun apply() {
+  override fun execute() {
     copyAndExpandTemplateFiles()
   }
 
