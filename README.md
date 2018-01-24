@@ -45,10 +45,7 @@ buildscript {
 apply plugin: 'com.neva.fork'
 
 fork {
-    config 'setup', {
-        copyTemplateFile("gradle.properties")
-    }
-    config 'default', {
+    config {
         cloneFiles()
         moveFiles([
                 "/example": "/{{projectName}}"
@@ -65,28 +62,18 @@ fork {
 
 ### Defining and executing configurations
 
-Default fork configuration will:
+Fork configuration will:
 
 * Copy all project files respecting filtering defined in *.gitignore* files.
 * Rename directories using rules with properties injecting.
 * Replace contents using rules with properties injecting.
 * Generate from template a file containing user specific properties (like repository credentials etc).
 
-Setup fork configuration will:
+To execute default configuration, run command:
 
-* Do only last step from default configuration. 
-
-1. To execute default configuration, run command:
-
-    ```bash
-    sh gradlew fork
-    ```
-
-2. To execute configuration named `setup`, run command:
-
-    ```bash
-    sh gradlew fork -Pfork.config=setup
-    ```
+```bash
+sh gradlew fork
+```
 
 ### Providing properties
 
