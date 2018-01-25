@@ -51,9 +51,10 @@ fork {
                 "/example": "/{{projectName}}"
         ])
         replaceContents([
-                "com.company.app.example": "{{package}}",
+                "com.company.app.example": "{{projectGroup}}.{projectName}}",
+                'com.company.app': "{{projectGroup}}",
+                "Example": "{{projectLabel}}",
                 "example": "{{projectName}}",
-                "Example": "{{projectLabel}}"
         ])
         copyTemplateFile("gradle.properties")
     }
