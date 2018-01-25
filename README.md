@@ -48,6 +48,7 @@ fork {
     config {
         cloneFiles()
         moveFiles([
+                "/com/company/app/example": "{{projectGroup|replace('.', '/')}}.{projectName}}",
                 "/example": "/{{projectName}}"
         ])
         replaceContents([

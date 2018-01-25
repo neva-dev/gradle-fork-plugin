@@ -1,22 +1,17 @@
 package com.neva.gradle.fork.config
 
-import com.mitchellbosecke.pebble.PebbleEngine
-import com.mitchellbosecke.pebble.lexer.Syntax
-import com.mitchellbosecke.pebble.loader.StringLoader
 import com.neva.gradle.fork.ForkException
 import com.neva.gradle.fork.config.rule.*
 import com.neva.gradle.fork.gui.PropertyDialog
+import com.neva.gradle.fork.template.TemplateEngine
 import groovy.lang.Closure
-import org.apache.commons.lang3.text.StrSubstitutor
 import org.gradle.api.Project
 import org.gradle.api.file.FileTree
 import org.gradle.util.ConfigureUtil
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.io.StringWriter
 import java.util.*
-import java.util.regex.Pattern
 
 class Config(val project: Project, val name: String) {
 
@@ -53,6 +48,8 @@ class Config(val project: Project, val name: String) {
 
   var templateDir: File = project.file("gradle/fork")
 
+  val templateEngine = TemplateEngine()
+
   var propsFile = project.file(project.properties.getOrElse("fork.properties", { "fork.properties" }) as String)
 
   private val propsFileSpecified = project.properties.containsKey("fork.properties")
@@ -76,48 +73,15 @@ class Config(val project: Project, val name: String) {
   }
 
   fun promptTemplate(template: String): () -> String {
-    parseTemplate(template).forEach { prop, defaultValue ->
+    templateEngine.parse(template).forEach { prop, defaultValue ->
       prompts[prop] = PropertyPrompt(prop, { defaultValue })
     }
 
     return { renderTemplate(template) }
   }
 
-  private fun parseTemplate(template: String): Map<String, String?> {
-    val m = TEMPLATE_PROP_PATTERN.matcher(template)
-
-    val result = mutableMapOf<String, String?>()
-    while (m.find()) {
-      val prop = m.group(1)
-
-      if (prop.contains(TEMPLATE_PROP_DELIMITER)) {
-        val parts = prop.split(TEMPLATE_PROP_DELIMITER)
-
-        val defaultName = parts[0].trim()
-        val defaultValue = parts.mapNotNull {
-          val match = TEMPLATE_DEFAULT_REGEX.matchEntire(it.trim())
-          if (match != null) {
-            match.groupValues[1]
-          } else {
-            null
-          }
-        }.firstOrNull()
-
-        result[defaultName] = defaultValue
-      } else {
-        result[prop] = null
-      }
-    }
-
-    return result
-  }
-
   fun renderTemplate(template: String): String {
-    val interpolated = TEMPLATE_INTERPOLATOR(template, props)
-    val expanded = StringWriter()
-    TEMPLATE_ENGINE.getTemplate(interpolated).evaluate(expanded, props)
-
-    return expanded.toString()
+    return templateEngine.render(template, props)
   }
 
   private fun promptFill(): Map<String, String> {
@@ -251,34 +215,6 @@ class Config(val project: Project, val name: String) {
 
   companion object {
     const val NAME_DEFAULT = "default"
-
-    private val TEMPLATE_PROP_PATTERN = Pattern.compile("\\{\\{(.+?)\\}\\}")
-
-    private val TEMPLATE_PROP_DELIMITER = "|"
-
-    private val TEMPLATE_DEFAULT_REGEX = Regex("default\\('([^']*)'\\)")
-
-    private val TEMPLATE_VAR_PREFIX = "{{"
-
-    private val TEMPLATE_VAR_SUFFIX = "}}"
-
-    private val TEMPLATE_ENGINE = PebbleEngine.Builder()
-      .autoEscaping(false)
-      .cacheActive(false)
-      .strictVariables(true)
-      .newLineTrimming(false)
-      .loader(StringLoader())
-      .syntax(Syntax.Builder()
-        .setEnableNewLineTrimming(false)
-        .setPrintOpenDelimiter(TEMPLATE_VAR_PREFIX)
-        .setPrintCloseDelimiter(TEMPLATE_VAR_SUFFIX)
-        .build()
-      )
-      .build()
-
-    private val TEMPLATE_INTERPOLATOR: (String, Map<String, Any>) -> String = { source, props ->
-      StrSubstitutor.replace(source, props, TEMPLATE_VAR_PREFIX, TEMPLATE_VAR_SUFFIX)
-    }
   }
 
 }
