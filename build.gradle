@@ -6,9 +6,9 @@ plugins {
 }
 
 group 'com.neva.gradle'
-version '1.0.0'
+version '1.1.0'
 description = 'Gradle Fork Plugin'
-defaultTasks = ['clean', 'publishToMavenLocal']
+defaultTasks = ['publishToMavenLocal']
 
 repositories {
     mavenLocal()
@@ -23,8 +23,8 @@ dependencies {
     compile 'commons-httpclient:commons-httpclient:3.1'
     compile 'commons-validator:commons-validator:1.6'
     compile 'com.neva.commons:gitignore-file-filter:1.0.0'
-    compile group: 'com.miglayout', name: 'miglayout', version: '3.7.4'
     compile group: 'com.mitchellbosecke', name: 'pebble', version: '2.4.0'
+    compile group: 'no.tornado', name: 'tornadofx', version: '1.7.14'
 
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }

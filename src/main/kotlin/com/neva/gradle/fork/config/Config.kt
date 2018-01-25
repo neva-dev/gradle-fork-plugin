@@ -5,7 +5,8 @@ import com.mitchellbosecke.pebble.lexer.Syntax
 import com.mitchellbosecke.pebble.loader.StringLoader
 import com.neva.gradle.fork.ForkException
 import com.neva.gradle.fork.config.rule.*
-import com.neva.gradle.fork.gui.PropertyDialog
+import com.neva.gradle.fork.gui.PropertyApp
+import com.neva.gradle.fork.gui.PropertyScreen
 import groovy.lang.Closure
 import org.apache.commons.lang3.text.StrSubstitutor
 import org.gradle.api.Project
@@ -153,8 +154,8 @@ class Config(val project: Project, val name: String) {
 
   private fun promptFillGui() {
     if (interactive) {
-      val guiProps = PropertyDialog.prompt(this, prompts.values.toList())
-      guiProps.forEach { p, v -> prompts[p]?.value = v }
+      val guiProps = PropertyApp.launch(this)
+      ///guiProps.forEach { p, v -> prompts[p]?.value = v }
     }
   }
 
