@@ -3,7 +3,10 @@ package com.neva.gradle.fork.template.filter
 import com.mitchellbosecke.pebble.extension.Filter
 import org.apache.commons.lang3.StringUtils
 
-class ReplaceFilter : Filter {
+/**
+ * There is 'replace' filter in core but takes a map as argument.
+ */
+class SubstituteFilter : Filter {
 
   override fun getArgumentNames(): List<String>? {
     return listOf("search", "replace")

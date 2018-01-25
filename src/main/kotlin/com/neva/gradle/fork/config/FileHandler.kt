@@ -27,11 +27,17 @@ class FileHandler(val config: Config, val file: File) {
   }
 
   fun move(target: File): FileHandler {
-    if (target.exists()) {
-      return this
-    }
+    actions += action@ {
+      if (!file.exists()) {
+        logger.debug("File to be moved does not exist: $file")
+        return@action
+      }
 
-    actions += {
+      if (target.exists()) {
+        logger.debug("Cannot move, because target file already exists: $target")
+        return@action
+      }
+
       logger.info("Moving file from $file to $target")
 
       GFileUtils.parentMkdirs(target)
