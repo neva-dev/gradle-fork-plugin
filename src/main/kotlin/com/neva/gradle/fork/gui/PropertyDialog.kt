@@ -32,7 +32,7 @@ class PropertyDialog(private val config: Config, private val prompts: List<Prope
       isResizable = false
 
       fields = prompts.fold(mutableMapOf(), { r, prompt ->
-        val label = JLabel(if (prompt.required) "${prompt.name}*" else prompt.name)
+        val label = JLabel(if (prompt.required) "${prompt.label}*" else prompt.label)
         add(label, "align label")
 
         val field = when (prompt.type) {
