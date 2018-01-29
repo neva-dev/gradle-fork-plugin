@@ -131,7 +131,7 @@ Properties can be provided by (order makes precedence):
 
 ### Sample output
 
-As a fork result, there will be a cloned project with correctly changed directory names, with replaced project name and label in text files (all stuff being previously performed manually).
+After executing command `gradlew fork`, there will be a cloned project with correctly changed directory names, with replaced project name and label in text files (all stuff being previously performed manually).
 
 <pre>
 Cloning files from C:\Users\krystian.panek\Projects\example to ..\sample
@@ -142,9 +142,13 @@ Moving file from C:\Users\krystian.panek\Projects\example\apps\example\content.x
 Replacing 'Example' with 'Sample' in file C:\Users\krystian.panek\Projects\sample\app\build.gradle
 Replacing 'com.company.aem.example' with 'com.neva.aem.sample' in file C:\Users\krystian.panek\Projects\sample\app\common\build.gradle
 Replacing 'example' with 'sample' in file C:\Users\krystian.panek\Projects\sample\app\common\src\main\content\META-INF\vault\filter.xml
-...
-Copying file from C:\Users\krystian.panek\Projects\example\gradle\fork\gradle.properties to ..\sample\gradle.properties
-Expanding properties in file ..\sample\gradle.properties
+</pre>
+
+Then such forked project could be saved in VCS and each developer after cloning it could perform a setup very easily using command `gradlew fork -Pfork.config=setup` to provide credentials to e.g Maven repositories, deployment servers etc before running application build that requires such data to be specified in *gradle.properties* file.
+
+<pre>
+Copying file from C:\Users\krystian.panek\Projects\sample\gradle\fork\gradle.properties to C:\Users\krystian.panek\Projects\sample\gradle.properties
+Expanding properties in file C:\Users\krystian.panek\Projects\sample\gradle.properties
 </pre>
 
 ## License
