@@ -199,13 +199,17 @@ abstract class Config(val project: Project, val name: String) {
     rule(CopyTemplateFilesRule(this, files))
   }
 
-  fun action(closure: Closure<*>) {
-    rule(ActionRule(this, closure))
+  fun action(executor: Closure<*>) {
+    rule(ActionRule(this, Closure.IDENTITY, executor))
+  }
+
+  fun action(validator: Closure<*>, executor: Closure<*>) {
+    rule(ActionRule(this, validator, executor))
   }
 
   fun validate() {
     logger.info("Validating $this")
-    logger.info("Effective properties: $props")
+    logger.debug("Effective properties: $props")
     rules.forEach { it.validate() }
   }
 
