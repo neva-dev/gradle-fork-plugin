@@ -10,6 +10,10 @@ abstract class AbstractRule(val config: Config) : Rule {
 
   protected val logger = project.logger
 
+  override fun validate() {
+    // nothing to do
+  }
+
   fun visitTree(tree: FileTree, condition: (FileVisitDetails) -> Boolean, callback: (FileHandler, FileVisitDetails) -> Unit) {
     val actions = mutableListOf<() -> Unit>()
     tree.visitAll { fileDetail ->

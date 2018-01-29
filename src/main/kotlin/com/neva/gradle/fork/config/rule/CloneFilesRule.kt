@@ -1,6 +1,7 @@
 package com.neva.gradle.fork.config.rule
 
 import com.neva.commons.gitignore.GitIgnore
+import com.neva.gradle.fork.ForkException
 import com.neva.gradle.fork.config.AbstractRule
 import com.neva.gradle.fork.config.Config
 import groovy.lang.Closure
@@ -21,6 +22,12 @@ class CloneFilesRule(config: Config) : AbstractRule(config) {
 
   private val sourceTree: FileTree
     get() = config.sourceTree.matching(filter)
+
+  override fun validate() {
+    if (config.targetDir.exists()) {
+      throw ForkException("Clone target directory already exists: ${config.targetDir.canonicalPath}")
+    }
+  }
 
   override fun execute() {
     if (defaultFilters) {

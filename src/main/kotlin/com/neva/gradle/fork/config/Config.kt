@@ -8,12 +8,13 @@ import groovy.lang.Closure
 import org.gradle.api.Project
 import org.gradle.api.file.FileTree
 import org.gradle.util.ConfigureUtil
+import org.gradle.util.GFileUtils
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.*
 
-class Config(val project: Project, val name: String) {
+abstract class Config(val project: Project, val name: String) {
 
   val prompts = mutableMapOf<String, PropertyPrompt>()
 
@@ -21,9 +22,7 @@ class Config(val project: Project, val name: String) {
 
   val rules = mutableListOf<Rule>()
 
-  val sourcePath: String by lazy(promptProp("sourcePath", {
-    project.projectDir.absolutePath
-  }))
+  abstract val sourcePath: String
 
   val sourceDir: File
     get() = File(sourcePath)
@@ -31,9 +30,7 @@ class Config(val project: Project, val name: String) {
   val sourceTree: FileTree
     get() = project.fileTree(sourcePath)
 
-  val targetPath: String by lazy(promptProp("targetPath", {
-    File(project.rootDir.parentFile, "${project.rootDir.name}-fork").absolutePath
-  }))
+  abstract val targetPath: String
 
   val targetDir: File
     get() = File(targetPath)
@@ -52,9 +49,11 @@ class Config(val project: Project, val name: String) {
 
   var propsFile = project.file(project.properties.getOrElse("fork.properties", { "fork.properties" }) as String)
 
-  private val propsFileSpecified = project.properties.containsKey("fork.properties")
+  private val previousPropsFile = File(project.buildDir, "fork/config/$name.properties")
 
   private val interactive = flag("fork.interactive", true)
+
+  private val logger = project.logger
 
   private fun flag(prop: String, defaultValue: Boolean = false): Boolean {
     val value = project.properties[prop] as String? ?: return defaultValue
@@ -85,11 +84,16 @@ class Config(val project: Project, val name: String) {
   }
 
   private fun promptFill(): Map<String, String> {
-    promptFillPropertiesFile()
-    promptFillCommandLine()
-    promptFillGui()
-    promptValidate()
-    promptSavePropertiesFile()
+    promptFillPropertiesFile(previousPropsFile)
+
+    try {
+      promptFillPropertiesFile(propsFile)
+      promptFillCommandLine()
+      promptFillGui()
+      promptValidate()
+    } finally {
+      promptSavePropertiesFile(previousPropsFile)
+    }
 
     return prompts.mapValues { it.value.valueOrDefault }
   }
@@ -103,16 +107,22 @@ class Config(val project: Project, val name: String) {
     }
   }
 
-  private fun promptFillPropertiesFile(): File {
-    if (propsFile.exists()) {
-      val fileProps = Properties()
-      fileProps.load(FileInputStream(propsFile))
-      fileProps.forEach { p, v -> prompts[p.toString()]?.value = v.toString() }
-    } else if (propsFileSpecified) {
-      throw ForkException("Fork properties file does not exist: $propsFile")
+  private fun promptFillPropertiesFile(file: File) {
+    if (!file.exists()) {
+      return
     }
 
-    return propsFile
+    val fileProps = Properties()
+    fileProps.load(FileInputStream(file))
+    fileProps.forEach { p, v -> prompts[p.toString()]?.value = v.toString() }
+  }
+
+  private fun promptSavePropertiesFile(file: File) {
+    GFileUtils.mkdirs(file.parentFile)
+
+    val props = Properties()
+    prompts.values.forEach { prompt -> props[prompt.name] = prompt.valueOrDefault }
+    props.store(FileOutputStream(file), null)
   }
 
   private fun promptFillGui() {
@@ -128,12 +138,6 @@ class Config(val project: Project, val name: String) {
       throw ForkException("Fork cannot be performed, because of missing properties: $invalidProps."
         + " Specify them via properties file $propsFile or interactive mode.")
     }
-  }
-
-  private fun promptSavePropertiesFile() {
-    val props = Properties()
-    prompts.values.forEach { prompt -> props[prompt.name] = prompt.valueOrDefault }
-    props.store(FileOutputStream(propsFile), null)
   }
 
   private fun rule(rule: Rule, configurer: Closure<*>) {
@@ -200,17 +204,18 @@ class Config(val project: Project, val name: String) {
   }
 
   fun validate() {
-    if (targetDir.exists()) {
-      throw ForkException("Fork target directory already exists: ${targetDir.canonicalPath}")
-    }
+    logger.info("Validating $this")
+    logger.info("Effective properties: $props")
+    rules.forEach { it.validate() }
   }
 
   fun execute() {
+    logger.info("Executing $this")
     rules.forEach { it.execute() }
   }
 
   override fun toString(): String {
-    return "Config(name=$name,rules=$rules)"
+    return "Config(name=$name)"
   }
 
   companion object {

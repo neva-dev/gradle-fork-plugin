@@ -1,6 +1,8 @@
 package com.neva.gradle.fork
 
 import com.neva.gradle.fork.config.Config
+import com.neva.gradle.fork.config.InPlaceConfig
+import com.neva.gradle.fork.config.SourceTargetConfig
 import groovy.lang.Closure
 import org.apache.commons.io.FilenameUtils
 import org.apache.commons.io.IOCase
@@ -46,11 +48,15 @@ open class ForkTask : DefaultTask() {
   }
 
   fun config(configurer: Closure<*>) {
-    config(Config(project, Config.NAME_DEFAULT), configurer)
+    config(SourceTargetConfig(project, Config.NAME_DEFAULT), configurer)
   }
 
   fun config(name: String, configurer: Closure<*>) {
-    config(Config(project, name), configurer)
+    config(SourceTargetConfig(project, name), configurer)
+  }
+
+  fun inPlaceConfig(name: String, configurer: Closure<*>) {
+    config(InPlaceConfig(project, name), configurer)
   }
 
   private fun config(config: Config, configurer: Closure<*>) {

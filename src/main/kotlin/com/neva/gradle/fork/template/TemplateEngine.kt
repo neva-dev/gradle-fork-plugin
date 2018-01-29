@@ -3,16 +3,26 @@ package com.neva.gradle.fork.template
 import com.mitchellbosecke.pebble.PebbleEngine
 import com.mitchellbosecke.pebble.lexer.Syntax
 import com.mitchellbosecke.pebble.loader.StringLoader
-import org.apache.commons.lang3.text.StrSubstitutor
 import java.io.StringWriter
 import java.util.regex.Pattern
 
 class TemplateEngine {
 
-  fun render(template: String, props: Map<String, String>): String {
-    val interpolated = INTERPOLATOR(template, props)
+  private val envProperties by lazy {
+    mapOf("env" to System.getenv())
+  }
+
+  private val systemProperties: Map<String, Any> by lazy {
+    val result = System.getProperties().entries.fold(mutableMapOf<String, String>(), { props, prop ->
+      props[prop.key.toString()] = prop.value.toString(); props
+    })
+
+    mapOf("system" to result)
+  }
+
+  fun render(template: String, props: Map<String, Any?>): String {
     val expanded = StringWriter()
-    ENGINE.getTemplate(interpolated).evaluate(expanded, props)
+    ENGINE.getTemplate(template).evaluate(expanded, envProperties + systemProperties + props)
 
     return expanded.toString()
   }
@@ -25,17 +35,15 @@ class TemplateEngine {
       val prop = m.group(1)
 
       if (prop.contains(PROP_DELIMITER)) {
-        val parts = prop.split(PROP_DELIMITER)
+        val parts = prop.split(PROP_DELIMITER).map { it.trim() }
+        val defaultName = parts[0]
 
-        val defaultName = parts[0].trim()
-        val defaultValue = parts.mapNotNull {
-          val match = DEFAULT_REGEX.matchEntire(it.trim())
-          if (match != null) {
-            match.groupValues[1]
-          } else {
-            null
-          }
-        }.firstOrNull()
+        val defaultExpr = parts.find { DEFAULT_REGEX.matches(it) }
+        val defaultValue = if (defaultExpr != null) {
+          render("$VAR_PREFIX$defaultName | $defaultExpr$VAR_SUFFIX", mapOf(defaultName to null))
+        } else {
+          null
+        }
 
         result[defaultName] = defaultValue
       } else {
@@ -52,7 +60,7 @@ class TemplateEngine {
 
     private val PROP_DELIMITER = "|"
 
-    private val DEFAULT_REGEX = Regex("default\\('([^']*)'\\)")
+    private val DEFAULT_REGEX = Regex("default\\(([^\\(\\)]+)\\)")
 
     private val VAR_PREFIX = "{{"
 
@@ -72,10 +80,6 @@ class TemplateEngine {
         .build()
       )
       .build()
-
-    private val INTERPOLATOR: (String, Map<String, Any>) -> String = { source, props ->
-      StrSubstitutor.replace(source, props, VAR_PREFIX, VAR_SUFFIX)
-    }
 
   }
 }
