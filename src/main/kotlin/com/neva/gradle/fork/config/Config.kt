@@ -127,8 +127,11 @@ abstract class Config(val project: Project, val name: String) {
 
   private fun promptFillGui() {
     if (interactive) {
-      val guiProps = PropertyDialog.prompt(this, prompts.values.toList())
-      guiProps.forEach { p, v -> prompts[p]?.value = v }
+      val dialog = PropertyDialog.make(this)
+      dialog.props.forEach { p, v -> prompts[p]?.value = v }
+      if (dialog.cancelled) {
+        throw ForkException("Fork cancelled by interactive mode.")
+      }
     }
   }
 

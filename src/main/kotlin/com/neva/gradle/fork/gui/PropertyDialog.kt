@@ -1,23 +1,30 @@
 package com.neva.gradle.fork.gui
 
-import com.neva.gradle.fork.ForkException
 import com.neva.gradle.fork.config.Config
 import com.neva.gradle.fork.config.PropertyPrompt
 import net.miginfocom.swing.MigLayout
 import java.awt.Toolkit
+import java.awt.event.FocusEvent
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import javax.swing.*
+import javax.swing.event.DocumentEvent
 
-class PropertyDialog(private val config: Config, private val prompts: List<PropertyPrompt>) {
+class PropertyDialog(private val config: Config) {
 
   private val dialog = JDialog()
 
+  private val fileChooser = JFileChooser()
+
   private lateinit var fields: Map<PropertyPrompt, JTextField>
 
-  private val close = JButton()
+  private var fieldFocused: JTextField? = null
 
-  private var canceled = false
+  private lateinit var pathButton: JButton
+
+  private lateinit var closeButton: JButton
+
+  var cancelled = false
 
   init {
     dialog.apply {
@@ -31,7 +38,20 @@ class PropertyDialog(private val config: Config, private val prompts: List<Prope
       isModal = true
       isResizable = false
 
-      fields = prompts.fold(mutableMapOf(), { r, prompt ->
+      pathButton = JButton("Pick a path")
+      add(pathButton.apply {
+        addActionListener {
+          if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+            fieldFocused!!.document.insertString(
+              fieldFocused!!.caretPosition,
+              fileChooser.selectedFile.absolutePath.replace("\\", "/"),
+              null
+            )
+          }
+        }
+      }, "span, wrap")
+
+      fields = config.prompts.values.fold(mutableMapOf(), { r, prompt ->
         val label = JLabel(if (prompt.required) "${prompt.label}*" else prompt.label)
         add(label, "align label")
 
@@ -39,20 +59,29 @@ class PropertyDialog(private val config: Config, private val prompts: List<Prope
           PropertyPrompt.Type.PASSWORD -> JPasswordField(prompt.valueOrDefault)
           else -> JTextField(prompt.valueOrDefault)
         }
-        field.addActionListener { this@PropertyDialog.validate() }
+        field.document.addDocumentListener(object : DocumentListener() {
+          override fun change(e: DocumentEvent) {
+            this@PropertyDialog.update()
+          }
+        })
+        field.addFocusListener(object : FocusListener() {
+          override fun focusGained(e: FocusEvent) {
+            fieldFocused = field
+            this@PropertyDialog.update()
+          }
+        })
         add(field, "width 300::, wrap")
 
         r[prompt] = field
         r
       })
 
-      add(close.apply {
-        text = "OK"
+      closeButton = JButton()
+      add(closeButton.apply {
+        text = "Execute"
         addActionListener {
           if (valid) {
             dialog.dispose()
-          } else {
-            focusInvalidField()
           }
         }
       }, "span, south, wrap")
@@ -60,27 +89,23 @@ class PropertyDialog(private val config: Config, private val prompts: List<Prope
       addWindowListener(object : WindowAdapter() {
         override fun windowClosing(e: WindowEvent) {
           e.window.dispose()
-          canceled = true
+          cancelled = true
         }
       })
 
       pack()
       centre()
-      validate()
+      update()
     }
   }
 
-  fun prompt(): Map<String, String> {
+  val props : Map<String, String>
+    get() = fields.entries.fold(mutableMapOf(), { r, e -> r[e.key.name] = e.value.text;r })
+
+  fun update() {
+    closeButton.isEnabled = valid
+    pathButton.isEnabled = fieldFocused != null
     dialog.isVisible = true
-    if (canceled) {
-      throw ForkException("Fork canceled by interactive mode.")
-    }
-
-    return fields.entries.fold(mutableMapOf(), { r, e -> r[e.key.name] = e.value.text;r })
-  }
-
-  fun validate() {
-    close.isEnabled = valid
   }
 
   val valid: Boolean
@@ -88,15 +113,6 @@ class PropertyDialog(private val config: Config, private val prompts: List<Prope
 
   fun isValidField(prompt: PropertyPrompt, field: JTextField): Boolean {
     return !prompt.required || field.text.isNotBlank()
-  }
-
-  fun focusInvalidField() {
-    for ((prompt, field) in fields) {
-      if (!isValidField(prompt, field)) {
-        field.requestFocus()
-        break
-      }
-    }
   }
 
   fun centre() {
@@ -109,13 +125,13 @@ class PropertyDialog(private val config: Config, private val prompts: List<Prope
 
   companion object {
 
-    fun prompt(config: Config, prompts: List<PropertyPrompt>): Map<String, String> {
+    fun make(config: Config): PropertyDialog {
       val laf = UIManager.getLookAndFeel()
       UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
-      val result = PropertyDialog(config, prompts).prompt()
+      val dialog = PropertyDialog(config)
       UIManager.setLookAndFeel(laf)
 
-      return result
+      return dialog
     }
 
   }

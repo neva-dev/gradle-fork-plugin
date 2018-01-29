@@ -38,14 +38,14 @@ buildscript {
       maven { url  "https://dl.bintray.com/neva-dev/maven-public" }
   }
   dependencies {
-      classpath 'com.neva.gradle:fork-plugin:1.0.2'
+      classpath 'com.neva.gradle:fork-plugin:1.0.3'
   }
 }
 
 apply plugin: 'com.neva.fork'
 
 fork {
-    config {
+    config /* 'default', */ { 
         cloneFiles()
         moveFiles([
                 "/com/company/app/example": "/{{projectGroup|substitute('.', '/')}}/{{projectName}}",
@@ -57,6 +57,8 @@ fork {
                 "Example": "{{projectLabel}}",
                 "example": "{{projectName}}",
         ])
+    }
+    inPlaceConfig 'setup', {
         copyTemplateFile("gradle.properties")
     }
 }
@@ -64,17 +66,28 @@ fork {
 
 ### Defining and executing configurations
 
-Fork configuration will:
+Fork plugin allows to have multiple fork configurations defined. In above sample build script, there are 2 configurations defined:
 
-* Copy all project files respecting filtering defined in *.gitignore* files.
-* Rename directories using rules with properties injecting.
-* Replace contents using rules with properties injecting.
-* Generate from template a file containing user specific properties (like repository credentials etc).
+1. Configuration *default* with the purpose of creating a new project based on existing one. In detail, it will:
+    * Copy all project files respecting filtering defined in *.gitignore* files.
+    * Rename directories using rules with properties injecting.
+    * Replace contents using rules with properties injecting.
+2. Configuration *setup* with the purpose of creating initial configuration before building project. In detail, it will:
+    * Generate from template a file containing user specific properties (like repository credentials etc).
 
-To execute default configuration, run command:
+To determine which configurations should be executed, command line parameter could be used:
 
 ```bash
-sh gradlew fork
+gradlew fork -Pfork.config=setup
+gradlew fork -Pfork.config=*
+gradlew fork -Pfork.config=no-search,no-auth
+```
+
+When parameter is skipped, then only *default* configuration will be executed. 
+
+```bash
+gradlew fork 
+gradlew fork -Pfork.config=default
 ```
 
 ### Providing properties
@@ -84,22 +97,22 @@ Properties can be provided by (order makes precedence):
 1. File which path could be specified as command line parameter:
 
     ```bash
-    sh gradlew fork -Pfork.properties=fork.properties
+    gradlew fork -Pfork.properties=fork.properties
     ```
     
     Such file should be in format:
     
     ```bash
     targetPath=../sample
+    projectGroup=com.neva.app
     projectName=sample
     projectLabel=Sample
-    package=com.neva.app.sample
     ```
   
 2. Each property defined separately as command line parameter:
 
     ```bash
-    sh gradlew fork -PprojectName=sample -PprojectLabel=Sample -PtargetPath=../sample -Ppackage=com.neva.app.sample
+    gradlew fork -PprojectName=sample -PprojectLabel=Sample -PtargetPath=../sample -Ppackage=com.neva.app.sample
     ```
 
 3. GUI / properties dialog
@@ -111,7 +124,7 @@ Properties can be provided by (order makes precedence):
     To disable it, use command line parameter:
     
     ```bash
-    sh gradlew fork -Pfork.interactive=false
+    gradlew fork -Pfork.interactive=false
     ```
   
 4. Mixed approach.
