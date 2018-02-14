@@ -3,10 +3,15 @@ package com.neva.gradle.fork.template
 import com.mitchellbosecke.pebble.PebbleEngine
 import com.mitchellbosecke.pebble.lexer.Syntax
 import com.mitchellbosecke.pebble.loader.StringLoader
+import org.gradle.api.Project
 import java.io.StringWriter
 import java.util.regex.Pattern
 
-class TemplateEngine {
+class TemplateEngine(val project: Project) {
+
+  private val projectProperties by lazy {
+    mapOf("prop" to project.properties)
+  }
 
   private val envProperties by lazy {
     mapOf("env" to System.getenv())
@@ -21,10 +26,11 @@ class TemplateEngine {
   }
 
   fun render(template: String, props: Map<String, Any?>): String {
-    val expanded = StringWriter()
-    ENGINE.getTemplate(template).evaluate(expanded, envProperties + systemProperties + props)
+    val effectiveProps = envProperties + systemProperties + projectProperties + props
+    val renderer = StringWriter()
+    ENGINE.getTemplate(template).evaluate(renderer, effectiveProps)
 
-    return expanded.toString()
+    return renderer.toString()
   }
 
   fun parse(template: String): Map<String, String?> {

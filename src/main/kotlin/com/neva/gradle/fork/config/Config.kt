@@ -45,7 +45,7 @@ abstract class Config(val project: Project, val name: String) {
 
   var templateDir: File = project.file("gradle/fork")
 
-  val templateEngine = TemplateEngine()
+  val templateEngine = TemplateEngine(project)
 
   var propsFile = project.file(project.properties.getOrElse("fork.properties", { "fork.properties" }) as String)
 

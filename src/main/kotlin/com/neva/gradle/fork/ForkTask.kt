@@ -32,7 +32,7 @@ open class ForkTask : DefaultTask() {
     }
 
     if (result.isEmpty()) {
-      throw ForkException("Fork configuration named: '$configNames' not found.")
+      throw ForkException("Fork configuration named: $configNames not found.")
     }
     result
   }
