@@ -6,7 +6,6 @@ import com.neva.gradle.fork.config.SourceTargetConfig
 import groovy.lang.Closure
 import org.apache.commons.io.FilenameUtils
 import org.apache.commons.io.IOCase
-import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
@@ -15,7 +14,7 @@ import org.gradle.util.ConfigureUtil
 open class ForkTask : DefaultTask() {
 
   init {
-    outputs.upToDateWhen { false }
+    description = "Generates new project basing on itself."
   }
 
   @Input
@@ -47,20 +46,37 @@ open class ForkTask : DefaultTask() {
     configsForked.forEach { it.execute() }
   }
 
+  fun config(name: String): Config {
+    return configs.find { it.name == name }
+      ?: throw ForkException("Fork configuration '$name' is yet not defined.")
+  }
+
   fun config(configurer: Closure<*>) {
+    config { ConfigureUtil.configure(configurer, this) }
+  }
+
+  fun config(configurer: Config.() -> Unit) {
     config(SourceTargetConfig(project, Config.NAME_DEFAULT), configurer)
   }
 
   fun config(name: String, configurer: Closure<*>) {
+    config(name, { ConfigureUtil.configure(configurer, this) })
+  }
+
+  fun config(name: String, configurer: Config.() -> Unit) {
     config(SourceTargetConfig(project, name), configurer)
   }
 
   fun inPlaceConfig(name: String, configurer: Closure<*>) {
+    inPlaceConfig(name, { ConfigureUtil.configure(configurer, this) })
+  }
+
+  fun inPlaceConfig(name: String, configurer: Config.() -> Unit) {
     config(InPlaceConfig(project, name), configurer)
   }
 
-  private fun config(config: Config, configurer: Closure<*>) {
-    ConfigureUtil.configure(configurer, config)
+  private fun config(config: Config, configurer: Config.() -> Unit) {
+    config.apply(configurer)
     configs += config
   }
 

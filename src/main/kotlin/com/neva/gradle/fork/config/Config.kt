@@ -210,6 +210,11 @@ abstract class Config(val project: Project, val name: String) {
     rule(ActionRule(this, validator, executor))
   }
 
+  fun evaluate() {
+    validate()
+    execute()
+  }
+
   fun validate() {
     logger.info("Validating $this")
     logger.debug("Effective properties: $props")
