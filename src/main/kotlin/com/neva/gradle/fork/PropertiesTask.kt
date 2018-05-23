@@ -21,7 +21,7 @@ open class PropertiesTask : DefaultTask() {
 
   companion object {
 
-    const val NAME = "properties"
+    const val NAME = "props"
 
     const val CONFIG_NAME = "properties"
 
