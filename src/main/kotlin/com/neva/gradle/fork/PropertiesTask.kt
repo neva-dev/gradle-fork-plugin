@@ -25,7 +25,7 @@ open class PropertiesTask : DefaultTask() {
 
     const val CONFIG_NAME = "properties"
 
-    const val TEMPLATE_FILE = "$CONFIG_NAME/gradle.properties"
+    const val TEMPLATE_FILE = "gradle.properties"
 
   }
 
