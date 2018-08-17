@@ -59,7 +59,7 @@ fork {
         ])
     }
     inPlaceConfig 'setup', {
-        copyTemplateFile("gradle.properties")
+        copyTemplateFile("setup.properties")
     }
 }
 ```
@@ -144,7 +144,7 @@ Replacing 'com.company.aem.example' with 'com.neva.aem.sample' in file C:\Users\
 Replacing 'example' with 'sample' in file C:\Users\krystian.panek\Projects\sample\app\common\src\main\content\META-INF\vault\filter.xml
 </pre>
 
-Then such forked project could be saved in VCS and each developer after cloning it could perform a setup very easily using command `gradlew fork -Pfork.config=setup` to provide credentials to e.g Maven repositories, deployment servers etc before running application build that requires such data to be specified in *gradle.properties* file.
+Then such forked project could be saved in VCS and each developer after cloning it could perform a setup very easily using command `gradlew props` to provide credentials to e.g Maven repositories, deployment servers etc before running application build that requires such data to be specified in *gradle.properties* file.
 
 <pre>
 Copying file from C:\Users\krystian.panek\Projects\sample\gradle\fork\gradle.properties to C:\Users\krystian.panek\Projects\sample\gradle.properties
