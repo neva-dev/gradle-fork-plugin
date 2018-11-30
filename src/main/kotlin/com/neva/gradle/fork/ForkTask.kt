@@ -60,7 +60,7 @@ open class ForkTask : DefaultTask() {
   }
 
   fun config(name: String, configurer: Closure<*>) {
-    config(name, { ConfigureUtil.configure(configurer, this) })
+    config(name) { ConfigureUtil.configure(configurer, this) }
   }
 
   fun config(name: String, configurer: Config.() -> Unit) {
@@ -68,7 +68,7 @@ open class ForkTask : DefaultTask() {
   }
 
   fun inPlaceConfig(name: String, configurer: Closure<*>) {
-    inPlaceConfig(name, { ConfigureUtil.configure(configurer, this) })
+    inPlaceConfig(name) { ConfigureUtil.configure(configurer, this) }
   }
 
   fun inPlaceConfig(name: String, configurer: Config.() -> Unit) {

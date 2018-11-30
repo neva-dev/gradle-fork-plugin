@@ -15,7 +15,7 @@ object FileOperations {
   }
 
   fun isDirEmpty(dir: Path): Boolean {
-    Files.newDirectoryStream(dir).use({ dirStream -> return !dirStream.iterator().hasNext() })
+    Files.newDirectoryStream(dir).use { dirStream -> return !dirStream.iterator().hasNext() }
   }
 
   fun read(file: File): String {
@@ -42,11 +42,11 @@ fun FileTree.visitAll(visitor: (FileVisitDetails) -> Unit): FileTree {
   val current = DirectoryScanner.getDefaultExcludes()
 
   current.forEach { DirectoryScanner.removeDefaultExclude(it) }
-  return visit({ f ->
+  return visit { f ->
     if (!reset) {
       current.forEach { DirectoryScanner.addDefaultExclude(it) }
       reset = true
     }
     visitor(f)
-  })
+  }
 }

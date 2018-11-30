@@ -12,87 +12,84 @@ import javax.swing.event.DocumentEvent
 
 class PropertyDialog(private val config: Config) {
 
-  private val dialog = JDialog()
+  private val dialog = JDialog().apply {
+    title = "Fork properties for config '${config.name}'"
+    layout = MigLayout(
+      "insets 10 10 10 10",
+      "[fill,grow][fill,grow]",
+      "[fill,grow]"
+    )
+    isAlwaysOnTop = true
+    isModal = true
+    isResizable = false
+
+    addWindowListener(object : WindowAdapter() {
+      override fun windowClosing(e: WindowEvent) {
+        e.window.dispose()
+        cancelled = true
+      }
+    })
+  }
+
+  private var pathButton = JButton().apply {
+    text = "Pick a path"
+    addActionListener {
+      if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+        fieldFocused!!.document.insertString(
+          fieldFocused!!.caretPosition,
+          fileChooser.selectedFile.absolutePath.replace("\\", "/"),
+          null
+        )
+      }
+    }
+
+    dialog.add(this, "span, wrap")
+  }
+
+  private var fields: Map<PropertyPrompt, JTextField> = config.prompts.values.fold(mutableMapOf()) { r, prompt ->
+    val label = JLabel(if (prompt.required) "${prompt.label}*" else prompt.label)
+    dialog.add(label, "align label")
+
+    val field = when (prompt.type) {
+      PropertyPrompt.Type.PASSWORD -> JPasswordField(prompt.valueOrDefault)
+      else -> JTextField(prompt.valueOrDefault)
+    }
+    field.document.addDocumentListener(object : DocumentListener() {
+      override fun change(e: DocumentEvent) {
+        this@PropertyDialog.update()
+      }
+    })
+    field.addFocusListener(object : FocusListener() {
+      override fun focusGained(e: FocusEvent) {
+        fieldFocused = field
+        this@PropertyDialog.update()
+      }
+    })
+    dialog.add(field, "width 300::, wrap")
+
+    r[prompt] = field
+    r
+  }
+
+  private var closeButton = JButton().apply {
+    text = "Execute"
+    addActionListener {
+      if (valid) {
+        dialog.dispose()
+      }
+    }
+
+    dialog.add(this, "span, south, wrap")
+  }
 
   private val fileChooser = JFileChooser()
 
-  private lateinit var fields: Map<PropertyPrompt, JTextField>
-
   private var fieldFocused: JTextField? = null
-
-  private lateinit var pathButton: JButton
-
-  private lateinit var closeButton: JButton
 
   var cancelled = false
 
   init {
     dialog.apply {
-      title = "Fork properties for config '${config.name}'"
-      layout = MigLayout(
-        "insets 10 10 10 10",
-        "[fill,grow][fill,grow]",
-        "[fill,grow]"
-      )
-      isAlwaysOnTop = true
-      isModal = true
-      isResizable = false
-
-      pathButton = JButton("Pick a path")
-      add(pathButton.apply {
-        addActionListener {
-          if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            fieldFocused!!.document.insertString(
-              fieldFocused!!.caretPosition,
-              fileChooser.selectedFile.absolutePath.replace("\\", "/"),
-              null
-            )
-          }
-        }
-      }, "span, wrap")
-
-      fields = config.prompts.values.fold(mutableMapOf(), { r, prompt ->
-        val label = JLabel(if (prompt.required) "${prompt.label}*" else prompt.label)
-        add(label, "align label")
-
-        val field = when (prompt.type) {
-          PropertyPrompt.Type.PASSWORD -> JPasswordField(prompt.valueOrDefault)
-          else -> JTextField(prompt.valueOrDefault)
-        }
-        field.document.addDocumentListener(object : DocumentListener() {
-          override fun change(e: DocumentEvent) {
-            this@PropertyDialog.update()
-          }
-        })
-        field.addFocusListener(object : FocusListener() {
-          override fun focusGained(e: FocusEvent) {
-            fieldFocused = field
-            this@PropertyDialog.update()
-          }
-        })
-        add(field, "width 300::, wrap")
-
-        r[prompt] = field
-        r
-      })
-
-      closeButton = JButton()
-      add(closeButton.apply {
-        text = "Execute"
-        addActionListener {
-          if (valid) {
-            dialog.dispose()
-          }
-        }
-      }, "span, south, wrap")
-
-      addWindowListener(object : WindowAdapter() {
-        override fun windowClosing(e: WindowEvent) {
-          e.window.dispose()
-          cancelled = true
-        }
-      })
-
       pack()
       centre()
       update()
@@ -100,7 +97,7 @@ class PropertyDialog(private val config: Config) {
   }
 
   val props : Map<String, String>
-    get() = fields.entries.fold(mutableMapOf(), { r, e -> r[e.key.name] = e.value.text;r })
+    get() = fields.entries.fold(mutableMapOf()) { r, e -> r[e.key.name] = e.value.text;r }
 
   fun update() {
     closeButton.isEnabled = valid

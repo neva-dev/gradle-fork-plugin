@@ -15,7 +15,7 @@ class MoveFilesRule(config: Config, movements: Map<String, () -> String>) : Abst
   }
 
   private fun moveFiles() {
-    visitFiles(config.targetTree, { handler, details ->
+    visitFiles(config.targetTree) { handler, details ->
       movements.forEach { searchPath, replacePath ->
         val sourcePath = details.relativePath.pathString
         val targetPath = sourcePath.replace(searchPath, replacePath)
@@ -25,18 +25,18 @@ class MoveFilesRule(config: Config, movements: Map<String, () -> String>) : Abst
           handler.move(target)
         }
       }
-    })
+    }
   }
 
   private fun removeEmptyDirs() {
     val emptyDirs = mutableListOf<File>()
 
-    visitDirs(config.targetTree, { handler, _ ->
+    visitDirs(config.targetTree) { handler, _ ->
       val dir = handler.file
       if (FileOperations.isDirEmpty(dir)) {
         emptyDirs += dir
       }
-    })
+    }
 
     emptyDirs.forEach { dir ->
       var current = dir

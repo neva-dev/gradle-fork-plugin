@@ -11,7 +11,7 @@ open class PropertiesTask : DefaultTask() {
   init {
     description = "Generates user specific 'gradle.properties' file basing on template and prompted values."
 
-    fork.inPlaceConfig(CONFIG_NAME, { copyTemplateFile(TEMPLATE_FILE) })
+    fork.inPlaceConfig(CONFIG_NAME) { copyTemplateFile(TEMPLATE_FILE) }
   }
 
   @TaskAction

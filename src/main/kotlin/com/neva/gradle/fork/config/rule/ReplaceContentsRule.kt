@@ -17,9 +17,9 @@ class ReplaceContentsRule(config: Config, replacements: Map<String, () -> String
     get() = config.targetTree.matching(filter)
 
   override fun execute() {
-    visitFiles(targetTree, { fileHandler, _ ->
-      replacements.forEach({ search, replace -> fileHandler.replace(search, replace) })
-    })
+    visitFiles(targetTree) { fileHandler, _ ->
+      replacements.forEach { search, replace -> fileHandler.replace(search, replace) }
+    }
   }
 
   fun filter(closure: Closure<*>) {

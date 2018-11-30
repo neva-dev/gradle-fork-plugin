@@ -38,7 +38,7 @@ buildscript {
       maven { url  "https://dl.bintray.com/neva-dev/maven-public" }
   }
   dependencies {
-      classpath 'com.neva.gradle:fork-plugin:1.0.3'
+      classpath 'com.neva.gradle:fork-plugin:1.0.8'
   }
 }
 

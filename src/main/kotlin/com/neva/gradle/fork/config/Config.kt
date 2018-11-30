@@ -47,7 +47,7 @@ abstract class Config(val project: Project, val name: String) {
 
   val templateEngine = TemplateEngine(project)
 
-  var propsFile = project.file(project.properties.getOrElse("fork.properties", { "fork.properties" }) as String)
+  var propsFile = project.file(project.properties.getOrElse("fork.properties") { "fork.properties" } as String)
 
   private val previousPropsFile = File(project.buildDir, "fork/config/$name.properties")
 
@@ -68,12 +68,12 @@ abstract class Config(val project: Project, val name: String) {
   }
 
   fun promptProp(prop: String): () -> String {
-    return promptProp(prop, { null })
+    return promptProp(prop) { null }
   }
 
   fun promptTemplate(template: String): () -> String {
     templateEngine.parse(template).forEach { prop, defaultValue ->
-      prompts[prop] = PropertyPrompt(prop, { defaultValue })
+      prompts[prop] = PropertyPrompt(prop) { defaultValue }
     }
 
     return { renderTemplate(template) }
@@ -126,7 +126,7 @@ abstract class Config(val project: Project, val name: String) {
   }
 
   private fun promptFillGui() {
-    if (interactive) {
+    if (interactive && prompts.isNotEmpty()) {
       val dialog = PropertyDialog.make(this)
       dialog.props.forEach { p, v -> prompts[p]?.value = v }
       if (dialog.cancelled) {

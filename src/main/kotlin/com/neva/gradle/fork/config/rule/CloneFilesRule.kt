@@ -51,7 +51,7 @@ class CloneFilesRule(config: Config) : AbstractRule(config) {
   private fun cloneFiles() {
     logger.info("Cloning files from ${config.sourceDir} to ${config.targetDir}")
 
-    visitFiles(sourceTree, { handler, details ->
+    visitFiles(sourceTree) { handler, details ->
       if (gitIgnores && gitIgnore.isExcluded(handler.file)) {
         logger.debug("Skipping file ignored by Git: ${handler.file}")
         return@visitFiles
@@ -60,7 +60,7 @@ class CloneFilesRule(config: Config) : AbstractRule(config) {
       val target = File(config.targetDir, details.relativePath.pathString)
 
       handler.copy(target)
-    })
+    }
   }
 
   fun filter(closure: Closure<*>) {
