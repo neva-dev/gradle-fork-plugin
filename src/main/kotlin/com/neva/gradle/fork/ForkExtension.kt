@@ -4,47 +4,14 @@ import com.neva.gradle.fork.config.Config
 import com.neva.gradle.fork.config.InPlaceConfig
 import com.neva.gradle.fork.config.SourceTargetConfig
 import groovy.lang.Closure
-import org.apache.commons.io.FilenameUtils
-import org.apache.commons.io.IOCase
 import org.gradle.api.Project
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.TaskAction
 import org.gradle.util.ConfigureUtil
 
-open class ForkTask : DefaultTask() {
-
-  init {
-    description = "Generates new project basing on itself."
-  }
+open class ForkExtension(val project: Project) {
 
   @Input
-  private val configs = mutableListOf<Config>()
-
-  private val configsForked by lazy {
-    val result = mutableListOf<Config>()
-    configNames.forEach { configName ->
-      configs.forEach { config ->
-        if (FilenameUtils.wildcardMatch(config.name, configName, IOCase.INSENSITIVE)) {
-          result += config
-        }
-      }
-    }
-
-    if (result.isEmpty()) {
-      throw ForkException("Fork configuration named: $configNames not found.")
-    }
-    result
-  }
-
-  private val configNames: List<String>
-    get() = (project.properties[CONFIG_PROP] as String?)?.split(",")
-      ?: listOf(Config.NAME_DEFAULT)
-
-  @TaskAction
-  fun fork() {
-    configsForked.forEach { it.validate() }
-    configsForked.forEach { it.execute() }
-  }
+  val configs = mutableListOf<Config>()
 
   fun config(name: String): Config {
     return configs.find { it.name == name }
@@ -81,12 +48,13 @@ open class ForkTask : DefaultTask() {
   }
 
   companion object {
-    const val NAME = "fork"
 
-    const val CONFIG_PROP = "fork.config"
+      const val NAME = "fork"
 
-    fun of(project: Project): ForkTask {
-      return project.tasks.getByName(ForkTask.NAME) as ForkTask
-    }
+      fun of(project: Project): ForkExtension {
+        return project.extensions.getByType(ForkExtension::class.java)
+      }
+
   }
+
 }
