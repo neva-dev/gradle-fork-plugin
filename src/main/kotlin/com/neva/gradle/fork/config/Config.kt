@@ -40,7 +40,7 @@ abstract class Config(val project: Project, val name: String) {
 
   var textFiles = mutableListOf(
     "**/*.gradle", "**/*.xml", "**/*.properties", "**/*.js", "**/*.json", "**/*.css", "**/*.scss",
-    "**/*.java", "**/*.kt", "**/*.groovy", "**/*.html", "**/*.jsp"
+    "**/*.java", "**/*.kt", "**/*.kts", "**/*.groovy", "**/*.html", "**/*.jsp"
   )
 
   var templateDir: File = project.file("gradle/fork")
