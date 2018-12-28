@@ -1,5 +1,6 @@
 package com.neva.gradle.fork.tasks
 
+import com.neva.gradle.fork.config.Config
 import org.gradle.api.tasks.TaskAction
 
 open class Props : DefaultTask() {
@@ -7,22 +8,19 @@ open class Props : DefaultTask() {
   init {
     description = "Generates user specific 'gradle.properties' file basing on template and prompted values."
 
-    ext.inPlaceConfig(CONFIG_NAME) { copyTemplateFile(TEMPLATE_FILE) }
+    ext.inPlaceConfig(Config.NAME_PROPERTIES) { copyTemplateFile(TEMPLATE_FILE) }
   }
 
   @TaskAction
   fun properties() {
-    ext.config(CONFIG_NAME).evaluate()
+    ext.config(Config.NAME_PROPERTIES).evaluate()
   }
 
   companion object {
 
     const val NAME = "props"
 
-    const val CONFIG_NAME = "properties"
-
     const val TEMPLATE_FILE = "gradle.properties"
-
   }
 
 }

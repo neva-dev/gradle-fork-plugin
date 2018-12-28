@@ -3,6 +3,8 @@ package com.neva.gradle.fork
 import com.neva.gradle.fork.config.Config
 import com.neva.gradle.fork.config.InPlaceConfig
 import com.neva.gradle.fork.config.SourceTargetConfig
+import com.neva.gradle.fork.config.properties.PropertyDefinition
+import com.neva.gradle.fork.config.properties.PropertyDefinitionDsl
 import groovy.lang.Closure
 import org.gradle.api.Project
 import org.gradle.api.tasks.Input
@@ -39,8 +41,20 @@ open class ForkExtension(val project: Project) {
   }
 
   fun inPlaceConfig(name: String, configurer: Config.() -> Unit) {
-    config(InPlaceConfig(project, name), configurer)
+    if (configExists(name)) {
+      config(name).configurer()
+    } else {
+      config(InPlaceConfig(project, name), configurer)
+    }
   }
+
+  fun defineProperties(propertiesDefinition: Map<String, PropertyDefinitionDsl.() -> Unit>) {
+    config(InPlaceConfig(project, Config.NAME_PROPERTIES)) {
+      definitions += propertiesDefinition.mapValues { PropertyDefinition(it.key).apply(it.value) }
+    }
+  }
+
+  private fun configExists(name: String) = configs.any { it.name == name }
 
   private fun config(config: Config, configurer: Config.() -> Unit) {
     config.apply(configurer)
@@ -49,11 +63,11 @@ open class ForkExtension(val project: Project) {
 
   companion object {
 
-      const val NAME = "fork"
+    const val NAME = "fork"
 
-      fun of(project: Project): ForkExtension {
-        return project.extensions.getByType(ForkExtension::class.java)
-      }
+    fun of(project: Project): ForkExtension {
+      return project.extensions.getByType(ForkExtension::class.java)
+    }
 
   }
 
