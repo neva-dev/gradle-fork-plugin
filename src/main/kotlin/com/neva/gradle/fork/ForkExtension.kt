@@ -4,7 +4,7 @@ import com.neva.gradle.fork.config.Config
 import com.neva.gradle.fork.config.InPlaceConfig
 import com.neva.gradle.fork.config.SourceTargetConfig
 import com.neva.gradle.fork.config.properties.PropertiesDefinitions
-import com.neva.gradle.fork.config.properties.PropertyDefinitionDsl
+import com.neva.gradle.fork.config.properties.PropertyDefinition
 import groovy.lang.Closure
 import org.gradle.api.Project
 import org.gradle.api.tasks.Input
@@ -46,7 +46,7 @@ open class ForkExtension(val project: Project) {
     config(InPlaceConfig(project, propertiesDefinitions, name), configurer)
   }
 
-  fun properties(propertiesConfiguration: Map<String, PropertyDefinitionDsl.() -> Unit>) {
+  fun properties(propertiesConfiguration: Map<String, PropertyDefinition.() -> Unit>) {
     propertiesDefinitions.configure(propertiesConfiguration)
   }
 

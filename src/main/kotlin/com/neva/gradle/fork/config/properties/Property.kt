@@ -17,9 +17,13 @@ class Property(private val definition: PropertyDefinition, private val prompt: P
   private val required: Boolean
     get() = prompt.required || definition.required
 
-  fun validate(propText: String): ValidatorErrors {
-    val result = definition.validate(propText)
-    if (required && propText.isBlank()) result.error("This property is required.")
-    return result
+  fun validate(propText: String): Validator {
+    val validator = Validator()
+    if (required || propText.isNotBlank()) {
+      val validatePropertyValue = definition.validator
+      validator.validatePropertyValue(propText)
+    }
+    if (required && propText.isBlank()) validator.error("This property is required.")
+    return validator
   }
 }

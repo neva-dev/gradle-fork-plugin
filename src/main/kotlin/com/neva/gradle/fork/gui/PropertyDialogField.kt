@@ -1,7 +1,7 @@
 package com.neva.gradle.fork.gui
 
 import com.neva.gradle.fork.config.properties.Property
-import com.neva.gradle.fork.config.properties.ValidatorErrors
+import com.neva.gradle.fork.config.properties.Validator
 import java.awt.Color
 import javax.swing.JDialog
 import javax.swing.JLabel
@@ -34,7 +34,7 @@ class PropertyDialogField(private val property: Property, private val propField:
     dialog.pack()
   }
 
-  private fun displayErrorState(result: ValidatorErrors) {
+  private fun displayErrorState(result: Validator) {
     val errorMessage = "<html>${result.errors.joinToString(separator = "<br/>")}</html>"
     validationMessageLabel.apply {
       foreground = ERROR_TEXT_COLOR

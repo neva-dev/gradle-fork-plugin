@@ -1,11 +1,9 @@
 package com.neva.gradle.fork.config.properties
 
-import com.neva.gradle.fork.ForkException
-
 class PropertiesDefinitions {
   private val definitions = mutableMapOf<String, PropertyDefinition>()
 
-  fun configure(propertiesConfiguration: Map<String, PropertyDefinitionDsl.() -> Unit>) {
+  fun configure(propertiesConfiguration: Map<String, PropertyDefinition.() -> Unit>) {
     definitions += propertiesConfiguration.mapValues { PropertyDefinition(it.key).apply(it.value) }
   }
 
@@ -17,41 +15,24 @@ class PropertiesDefinitions {
   }
 }
 
-sealed class PropertyDefinitionDsl {
-  var defaultValue: String? = null
-  var validator: ValidatorErrorsDsl.(String) -> Unit = {}
-  abstract fun required()
-}
-
-class PropertyDefinition(val name: String, var required: Boolean = false) : PropertyDefinitionDsl() {
+class PropertyDefinition(val name: String) {
   init {
-    if (name.isBlank()) throw ForkException("Name of property definition cannot be blank!")
+    if (name.isBlank()) throw PropertyException("Name of property definition cannot be blank!")
   }
 
-  override fun required() {
-    required = true
-  }
+  var required: Boolean = true
+  var defaultValue: String? = null
+  var validator: Validator.(String) -> Unit = {}
 
-  fun validate(value: String): ValidatorErrors {
-    val validatePropertyValue = validator
-    val errors = ValidatorErrors()
-    errors.validatePropertyValue(value)
-    return errors
-  }
-
-  companion object {
-    fun default(name: String) = PropertyDefinition(name)
+  fun optional() {
+    required = false
   }
 }
 
-sealed class ValidatorErrorsDsl {
-  abstract fun error(message: String)
-}
-
-class ValidatorErrors : ValidatorErrorsDsl() {
+class Validator {
   val errors = mutableListOf<String>()
 
-  override fun error(message: String) {
+  fun error(message: String) {
     errors.add(message)
   }
 
