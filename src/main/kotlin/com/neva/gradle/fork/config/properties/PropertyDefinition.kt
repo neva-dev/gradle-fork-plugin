@@ -20,13 +20,31 @@ class PropertyDefinition(val name: String) {
     if (name.isBlank()) throw PropertyException("Name of property definition cannot be blank!")
   }
 
+  val PASSWORD = PropertyType.PASSWORD
+  val TEXT = PropertyType.TEXT
+  val CHECKBOX = PropertyType.CHECKBOX
+
   var required: Boolean = true
   var defaultValue: String = ""
   var validator: Validator.(String) -> Unit = {}
+  var type: PropertyType = calculateDefaultType()
 
   fun optional() {
     required = false
   }
+
+  private fun calculateDefaultType(): PropertyType {
+    if (name.endsWith("password", true)) {
+      return PropertyType.PASSWORD
+    }
+    return PropertyType.TEXT
+  }
+}
+
+enum class PropertyType {
+  PASSWORD,
+  TEXT,
+  CHECKBOX
 }
 
 class Validator {

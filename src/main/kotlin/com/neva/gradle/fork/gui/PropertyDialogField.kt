@@ -3,10 +3,9 @@ package com.neva.gradle.fork.gui
 import com.neva.gradle.fork.config.properties.Property
 import com.neva.gradle.fork.config.properties.Validator
 import java.awt.Color
-import javax.swing.JLabel
-import javax.swing.JTextField
+import javax.swing.*
 
-class PropertyDialogField(private val property: Property, private val propField: JTextField, private val validationMessageLabel: JLabel) {
+class PropertyDialogField(private val property: Property, private val propField: JComponent, private val validationMessageLabel: JLabel, private val dialog: JDialog) {
 
   init {
     setPropertyValue()
@@ -26,11 +25,15 @@ class PropertyDialogField(private val property: Property, private val propField:
     } else {
       displayValidState()
     }
+    dialog.pack()
     return result.hasErrors()
   }
 
   private fun setPropertyValue() {
-    property.value = propField.text
+    when (propField) {
+      is JCheckBox -> property.value = propField.isSelected.toString()
+      is JTextField -> property.value = propField.text
+    }
   }
 
   private fun displayValidState() {

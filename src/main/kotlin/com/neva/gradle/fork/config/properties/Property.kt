@@ -14,8 +14,7 @@ class Property(private val definition: PropertyDefinition, private val prompt: P
   val label: String
     get() = if (required) "${prompt.label}*" else prompt.label
 
-  val type: PropertyPrompt.Type
-    get() = prompt.type
+  val type: PropertyType = definition.type
 
   private val required: Boolean
     get() = definition.required

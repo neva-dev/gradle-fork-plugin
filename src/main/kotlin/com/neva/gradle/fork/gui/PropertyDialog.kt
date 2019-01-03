@@ -1,7 +1,7 @@
 package com.neva.gradle.fork.gui
 
 import com.neva.gradle.fork.config.Config
-import com.neva.gradle.fork.config.properties.PropertyPrompt
+import com.neva.gradle.fork.config.properties.PropertyType
 import net.miginfocom.swing.MigLayout
 import java.awt.Toolkit
 import java.awt.event.FocusEvent
@@ -9,6 +9,7 @@ import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import javax.swing.*
 import javax.swing.event.DocumentEvent
+
 
 class PropertyDialog(private val config: Config) {
 
@@ -51,27 +52,32 @@ class PropertyDialog(private val config: Config) {
       val label = JLabel(property.label)
       dialog.add(label, "align label")
 
-      val field = when (property.type) {
-        PropertyPrompt.Type.PASSWORD -> JPasswordField(property.value)
+      val field: JComponent = when (property.type) {
+        PropertyType.PASSWORD -> JPasswordField(property.value)
+        PropertyType.CHECKBOX -> JCheckBox("", property.value.toBoolean())
         else -> JTextField(property.value)
       }
-      field.document.addDocumentListener(object : DocumentListener() {
-        override fun change(e: DocumentEvent) {
-          this@PropertyDialog.update()
-        }
-      })
-      field.addFocusListener(object : FocusListener() {
-        override fun focusGained(e: FocusEvent) {
-          fieldFocused = field
-          this@PropertyDialog.update()
-        }
-      })
+
+      if (field is JTextField) {
+        field.document.addDocumentListener(object : DocumentListener() {
+          override fun change(e: DocumentEvent) {
+            this@PropertyDialog.update()
+          }
+        })
+        field.addFocusListener(object : FocusListener() {
+          override fun focusGained(e: FocusEvent) {
+            fieldFocused = field
+            this@PropertyDialog.update()
+          }
+        })
+      }
+
       dialog.add(field, "width 300::, wrap")
 
       val validationMessage = JLabel()
       dialog.add(validationMessage, "skip, wrap")
 
-      PropertyDialogField(property, field, validationMessage)
+      PropertyDialogField(property, field, validationMessage, dialog)
     }
 
   private var closeButton = JButton().apply {
@@ -128,9 +134,7 @@ class PropertyDialog(private val config: Config) {
       UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
       val dialog = PropertyDialog(config)
       UIManager.setLookAndFeel(laf)
-
       return dialog
     }
   }
 }
-
