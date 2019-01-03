@@ -1,7 +1,7 @@
 package com.neva.gradle.fork.gui
 
 import com.neva.gradle.fork.config.Config
-import com.neva.gradle.fork.config.PropertyPrompt
+import com.neva.gradle.fork.config.properties.PropertyPrompt
 import net.miginfocom.swing.MigLayout
 import java.awt.Toolkit
 import java.awt.event.FocusEvent

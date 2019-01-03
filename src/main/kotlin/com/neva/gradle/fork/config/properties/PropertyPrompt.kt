@@ -1,4 +1,4 @@
-package com.neva.gradle.fork.config
+package com.neva.gradle.fork.config.properties
 
 class PropertyPrompt(val name: String, private val defaultProvider: () -> String?) {
 

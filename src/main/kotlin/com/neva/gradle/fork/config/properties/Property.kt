@@ -1,7 +1,4 @@
-package com.neva.gradle.fork.config
-
-import com.neva.gradle.fork.config.properties.PropertyDefinition
-import com.neva.gradle.fork.config.properties.ValidatorErrors
+package com.neva.gradle.fork.config.properties
 
 class Property(private val definition: PropertyDefinition, private val prompt: PropertyPrompt) {
 

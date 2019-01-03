@@ -1,6 +1,6 @@
 package com.neva.gradle.fork.gui
 
-import com.neva.gradle.fork.config.Property
+import com.neva.gradle.fork.config.properties.Property
 import com.neva.gradle.fork.config.properties.ValidatorErrors
 import java.awt.Color
 import javax.swing.JDialog

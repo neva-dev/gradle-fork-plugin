@@ -1,8 +1,6 @@
 package com.neva.gradle.fork.config.properties
 
 import com.neva.gradle.fork.ForkException
-import com.neva.gradle.fork.config.Property
-import com.neva.gradle.fork.config.PropertyPrompt
 
 class PropertiesDefinitions {
   private val definitions = mutableMapOf<String, PropertyDefinition>()

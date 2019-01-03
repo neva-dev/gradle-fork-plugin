@@ -2,8 +2,8 @@ package com.neva.gradle.fork.config
 
 import com.neva.gradle.fork.ForkException
 import com.neva.gradle.fork.config.properties.PropertiesDefinitions
-import com.neva.gradle.fork.config.properties.PropertyDefinition
-import com.neva.gradle.fork.config.properties.PropertyDefinitionDsl
+import com.neva.gradle.fork.config.properties.Property
+import com.neva.gradle.fork.config.properties.PropertyPrompt
 import com.neva.gradle.fork.config.rule.*
 import com.neva.gradle.fork.gui.PropertyDialog
 import com.neva.gradle.fork.template.TemplateEngine
