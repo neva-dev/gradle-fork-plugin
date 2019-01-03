@@ -1,6 +1,6 @@
 package com.neva.gradle.fork.config.properties
 
-class PropertyPrompt(val name: String, private val defaultProvider: () -> String?) {
+class PropertyPrompt(val name: String, private val defaultProvider: () -> String? = { null }) {
 
   enum class Type(val check: (PropertyPrompt) -> Boolean) {
     PASSWORD({ it.name.endsWith("password", true) }),
@@ -15,16 +15,10 @@ class PropertyPrompt(val name: String, private val defaultProvider: () -> String
 
   var value: String? = null
 
-  val valueOrDefault: String
-    get() = value ?: defaultValue ?: ""
+  val valueOrDefault: String?
+    get() = value ?: defaultValue
 
-  val required: Boolean
-    get() = defaultValue == null
-
-  val valid: Boolean
-    get() = !required || valueOrDefault.isNotEmpty()
-
-  val defaultValue: String? by lazy {
+  private val defaultValue: String? by lazy {
     try {
       defaultProvider()
     } catch (e: PropertyException) {

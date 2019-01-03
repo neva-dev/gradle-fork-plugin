@@ -21,7 +21,7 @@ class PropertyDefinition(val name: String) {
   }
 
   var required: Boolean = true
-  var defaultValue: String? = null
+  var defaultValue: String = ""
   var validator: Validator.(String) -> Unit = {}
 
   fun optional() {

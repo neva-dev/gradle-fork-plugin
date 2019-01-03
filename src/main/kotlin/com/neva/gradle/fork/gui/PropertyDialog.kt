@@ -52,8 +52,8 @@ class PropertyDialog(private val config: Config) {
       dialog.add(label, "align label")
 
       val field = when (property.type) {
-        PropertyPrompt.Type.PASSWORD -> JPasswordField(property.valueOrDefault)
-        else -> JTextField(property.valueOrDefault)
+        PropertyPrompt.Type.PASSWORD -> JPasswordField(property.value)
+        else -> JTextField(property.value)
       }
       field.document.addDocumentListener(object : DocumentListener() {
         override fun change(e: DocumentEvent) {
@@ -71,7 +71,7 @@ class PropertyDialog(private val config: Config) {
       val validationMessage = JLabel()
       dialog.add(validationMessage, "skip, wrap")
 
-      PropertyDialogField(property = property, dialog = dialog, validationMessageLabel = validationMessage, propField = field)
+      PropertyDialogField(property, field, validationMessage)
     }
 
   private var closeButton = JButton().apply {
@@ -100,13 +100,14 @@ class PropertyDialog(private val config: Config) {
   }
 
   val props: Map<String, String>
-    get() = fields.fold(mutableMapOf()) { r, e -> r[e.name] = e.textValue;r }
+    get() = fields.fold(mutableMapOf()) { r, e -> r[e.name] = e.value;r }
 
   fun update() {
     val isFieldSelected = fieldFocused != null
     closeButton.isEnabled = valid
     pathButton.isEnabled = isFieldSelected
     dialog.isVisible = true
+    dialog.pack()
   }
 
   private val valid: Boolean

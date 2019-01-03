@@ -5,8 +5,11 @@ class Property(private val definition: PropertyDefinition, private val prompt: P
   val name: String
     get() = prompt.name
 
-  val valueOrDefault: String
-    get() = definition.defaultValue ?: prompt.valueOrDefault
+  var value: String
+    set(newValue) {
+      prompt.value = newValue
+    }
+    get() = prompt.valueOrDefault ?: definition.defaultValue
 
   val label: String
     get() = if (required) "${prompt.label}*" else prompt.label
@@ -15,15 +18,15 @@ class Property(private val definition: PropertyDefinition, private val prompt: P
     get() = prompt.type
 
   private val required: Boolean
-    get() = prompt.required || definition.required
+    get() = definition.required
 
-  fun validate(propText: String): Validator {
+  fun validate(): Validator {
     val validator = Validator()
-    if (required || propText.isNotBlank()) {
+    if (required || value.isNotBlank()) {
       val validatePropertyValue = definition.validator
-      validator.validatePropertyValue(propText)
+      validator.validatePropertyValue(value)
     }
-    if (required && propText.isBlank()) validator.error("This property is required.")
+    if (required && value.isBlank()) validator.error("This property is required.")
     return validator
   }
 }

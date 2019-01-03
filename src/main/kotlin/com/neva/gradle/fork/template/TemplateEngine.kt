@@ -33,27 +33,18 @@ class TemplateEngine(val project: Project) {
     return renderer.toString()
   }
 
-  fun parse(template: String): Map<String, String?> {
+  fun parse(template: String): List<String> {
     val m = PROP_PATTERN.matcher(template)
 
-    val result = mutableMapOf<String, String?>()
+    val result = mutableListOf<String>()
     while (m.find()) {
       val prop = m.group(1)
 
-      if (prop.contains(PROP_DELIMITER)) {
+      result += if (prop.contains(PROP_DELIMITER)) {
         val parts = prop.split(PROP_DELIMITER).map { it.trim() }
-        val defaultName = parts[0]
-
-        val defaultExpr = parts.find { DEFAULT_REGEX.matches(it) }
-        val defaultValue = if (defaultExpr != null) {
-          render("$VAR_PREFIX$defaultName | $defaultExpr$VAR_SUFFIX", mapOf(defaultName to null))
-        } else {
-          null
-        }
-
-        result[defaultName] = defaultValue
+        parts[0]
       } else {
-        result[prop] = null
+        prop
       }
     }
 
@@ -62,15 +53,13 @@ class TemplateEngine(val project: Project) {
 
   companion object {
 
-    private val PROP_PATTERN = Pattern.compile("\\{\\{(.+?)\\}\\}")
+    private val PROP_PATTERN = Pattern.compile("\\{\\{(.+?)}}")
 
-    private val PROP_DELIMITER = "|"
+    private const val PROP_DELIMITER = "|"
 
-    private val DEFAULT_REGEX = Regex("default\\(([^\\(\\)]+)\\)")
+    private const val VAR_PREFIX = "{{"
 
-    private val VAR_PREFIX = "{{"
-
-    private val VAR_SUFFIX = "}}"
+    private const val VAR_SUFFIX = "}}"
 
     private val ENGINE = PebbleEngine.Builder()
       .extension(TemplateExtension())

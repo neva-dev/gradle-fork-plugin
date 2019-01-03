@@ -3,20 +3,24 @@ package com.neva.gradle.fork.gui
 import com.neva.gradle.fork.config.properties.Property
 import com.neva.gradle.fork.config.properties.Validator
 import java.awt.Color
-import javax.swing.JDialog
 import javax.swing.JLabel
 import javax.swing.JTextField
 
-class PropertyDialogField(private val property: Property, private val propField: JTextField, private val validationMessageLabel: JLabel, private val dialog: JDialog) {
+class PropertyDialogField(private val property: Property, private val propField: JTextField, private val validationMessageLabel: JLabel) {
+
+  init {
+    setPropertyValue()
+  }
 
   val name: String
     get() = property.name
 
-  val textValue: String
-    get() = propField.text
+  val value: String
+    get() = property.value
 
   fun validateAndDisplayErrors(): Boolean {
-    val result = property.validate(textValue)
+    setPropertyValue()
+    val result = property.validate()
     if (result.hasErrors()) {
       displayErrorState(result)
     } else {
@@ -25,13 +29,16 @@ class PropertyDialogField(private val property: Property, private val propField:
     return result.hasErrors()
   }
 
+  private fun setPropertyValue() {
+    property.value = propField.text
+  }
+
   private fun displayValidState() {
     validationMessageLabel.apply {
       foreground = null
       text = null
     }
     propField.background = null
-    dialog.pack()
   }
 
   private fun displayErrorState(result: Validator) {
@@ -41,7 +48,6 @@ class PropertyDialogField(private val property: Property, private val propField:
       text = errorMessage
     }
     propField.background = ERROR_FIELD_COLOR
-    dialog.pack()
   }
 
   companion object {

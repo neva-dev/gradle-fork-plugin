@@ -67,19 +67,19 @@ abstract class Config(val project: Project, private val propertiesDefinitions: P
     return if (!value.isBlank()) value.toBoolean() else true
   }
 
-  fun promptProp(prop: String, defaultProvider: () -> String?): () -> String {
+  fun promptProp(prop: String, defaultProvider: () -> String): () -> String {
     prompts[prop] = PropertyPrompt(prop, defaultProvider)
 
     return { props[prop] ?: throw ForkException("Fork prompt property '$prop' not bound.") }
   }
 
   fun promptProp(prop: String): () -> String {
-    return promptProp(prop) { null }
+    return promptProp(prop)
   }
 
   fun promptTemplate(template: String): () -> String {
-    templateEngine.parse(template).forEach { prop, defaultValue ->
-      prompts[prop] = PropertyPrompt(prop) { defaultValue }
+    templateEngine.parse(template).forEach { prop ->
+      prompts[prop] = PropertyPrompt(prop)
     }
 
     return { renderTemplate(template) }
@@ -89,7 +89,7 @@ abstract class Config(val project: Project, private val propertiesDefinitions: P
     return templateEngine.render(template, props)
   }
 
-  private fun promptFill(): Map<String, String> {
+  private fun promptFill(): Map<String, String?> {
     promptFillPropertiesFile(previousPropsFile)
 
     try {
@@ -142,7 +142,7 @@ abstract class Config(val project: Project, private val propertiesDefinitions: P
   }
 
   private fun promptValidate() {
-    val invalidProps = prompts.values.filter { !it.valid }.map { it.name }
+    val invalidProps = properties.filter { prop -> prop.validate().hasErrors() }.map { it.name }
     if (invalidProps.isNotEmpty()) {
       throw ForkException("Fork cannot be performed, because of missing properties: $invalidProps."
         + " Specify them via properties file $propsFile or interactive mode.")
