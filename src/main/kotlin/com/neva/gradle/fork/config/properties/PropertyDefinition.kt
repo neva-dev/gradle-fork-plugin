@@ -1,6 +1,23 @@
 package com.neva.gradle.fork.config.properties
 
 import com.neva.gradle.fork.ForkException
+import com.neva.gradle.fork.config.Property
+import com.neva.gradle.fork.config.PropertyPrompt
+
+class PropertiesDefinitions {
+  private val definitions = mutableMapOf<String, PropertyDefinition>()
+
+  fun configure(propertiesConfiguration: Map<String, PropertyDefinitionDsl.() -> Unit>) {
+    definitions += propertiesConfiguration.mapValues { PropertyDefinition(it.key).apply(it.value) }
+  }
+
+  fun getProperty(prompt: PropertyPrompt): Property {
+    val definition = definitions.getOrElse(prompt.name) {
+      PropertyDefinition(prompt.name)
+    }
+    return Property(definition, prompt)
+  }
+}
 
 sealed class PropertyDefinitionDsl {
   var defaultValue: String? = null
@@ -8,7 +25,7 @@ sealed class PropertyDefinitionDsl {
   abstract fun required()
 }
 
-data class PropertyDefinition(val name: String, var required: Boolean = false) : PropertyDefinitionDsl() {
+class PropertyDefinition(val name: String, var required: Boolean = false) : PropertyDefinitionDsl() {
   init {
     if (name.isBlank()) throw ForkException("Name of property definition cannot be blank!")
   }

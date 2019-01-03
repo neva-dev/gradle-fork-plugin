@@ -1,6 +1,7 @@
 package com.neva.gradle.fork.config
 
 import com.neva.gradle.fork.ForkException
+import com.neva.gradle.fork.config.properties.PropertiesDefinitions
 import com.neva.gradle.fork.config.properties.PropertyDefinition
 import com.neva.gradle.fork.config.properties.PropertyDefinitionDsl
 import com.neva.gradle.fork.config.rule.*
@@ -16,18 +17,16 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.*
 
-abstract class Config(val project: Project, val name: String) {
+abstract class Config(val project: Project, private val propertiesDefinitions: PropertiesDefinitions, val name: String) {
 
   private val prompts = mutableMapOf<String, PropertyPrompt>()
-
-  val definitions = mutableMapOf<String, PropertyDefinition>()
 
   private val props by lazy { promptFill() }
 
   private val rules = mutableListOf<Rule>()
 
   val properties: List<Property>
-    get() = this.prompts.values.map { prompt -> Property(propertyDefinition(prompt), prompt) }
+    get() = this.prompts.values.map { prompt -> propertiesDefinitions.getProperty(prompt) }
 
   abstract val sourcePath: String
 
@@ -159,9 +158,6 @@ abstract class Config(val project: Project, val name: String) {
     rules += rule
   }
 
-  private fun propertyDefinition(prompt: PropertyPrompt) =
-    definitions[prompt.name] ?: PropertyDefinition.default(prompt.name)
-
   fun cloneFiles() {
     rule(CloneFilesRule(this))
   }
@@ -198,10 +194,6 @@ abstract class Config(val project: Project, val name: String) {
     val rule = ReplaceContentsRule(this, replacements.mapValues { promptTemplate(it.value) })
     rule.filter.include(filterIncludes)
     rule(rule)
-  }
-
-  fun defineProperties(propertiesDefinition: Map<String, PropertyDefinitionDsl.() -> Unit>) {
-    definitions.putAll(propertiesDefinition.mapValues { PropertyDefinition(it.key).apply(it.value) })
   }
 
   fun copyTemplateFile(templateName: String) {

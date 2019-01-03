@@ -7,7 +7,7 @@ import javax.swing.JDialog
 import javax.swing.JLabel
 import javax.swing.JTextField
 
-data class PropertyDialogField(private val property: Property, private val propField: JTextField, private val validationMessageLabel: JLabel, private val dialog: JDialog) {
+class PropertyDialogField(private val property: Property, private val propField: JTextField, private val validationMessageLabel: JLabel, private val dialog: JDialog) {
 
   val name: String
     get() = property.name
