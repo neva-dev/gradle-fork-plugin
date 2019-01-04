@@ -33,11 +33,13 @@ class PropertyDefinition(val name: String) {
     required = false
   }
 
-  private fun calculateDefaultType(): PropertyType {
-    if (name.endsWith("password", true)) {
-      return PropertyType.PASSWORD
-    }
-    return PropertyType.TEXT
+  private fun calculateDefaultType() = when {
+    name.endsWith("password", true) -> PropertyType.PASSWORD
+    name.startsWith("enable", true) -> PropertyType.CHECKBOX
+    name.startsWith("disable", true) -> PropertyType.CHECKBOX
+    name.endsWith("enabled", true) -> PropertyType.CHECKBOX
+    name.endsWith("disabled", true) -> PropertyType.CHECKBOX
+    else -> PropertyType.TEXT
   }
 }
 

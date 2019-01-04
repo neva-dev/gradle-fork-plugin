@@ -113,7 +113,6 @@ class PropertyDialog(private val config: Config) {
     closeButton.isEnabled = valid
     pathButton.isEnabled = isFieldSelected
     dialog.isVisible = true
-    dialog.pack()
   }
 
   private val valid: Boolean
