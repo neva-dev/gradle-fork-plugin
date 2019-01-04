@@ -3,7 +3,7 @@ package com.neva.gradle.fork
 import com.neva.gradle.fork.config.Config
 import com.neva.gradle.fork.config.InPlaceConfig
 import com.neva.gradle.fork.config.SourceTargetConfig
-import com.neva.gradle.fork.config.properties.PropertiesDefinitions
+import com.neva.gradle.fork.config.properties.PropertyDefinitions
 import com.neva.gradle.fork.config.properties.PropertyDefinition
 import groovy.lang.Closure
 import org.gradle.api.Project
@@ -12,7 +12,7 @@ import org.gradle.util.ConfigureUtil
 
 open class ForkExtension(val project: Project) {
 
-  private val propertiesDefinitions = PropertiesDefinitions()
+  private val propertiesDefinitions = PropertyDefinitions()
 
   @Input
   val configs = mutableListOf<Config>()

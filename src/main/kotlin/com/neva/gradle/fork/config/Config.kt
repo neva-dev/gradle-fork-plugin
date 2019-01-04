@@ -1,7 +1,7 @@
 package com.neva.gradle.fork.config
 
 import com.neva.gradle.fork.ForkException
-import com.neva.gradle.fork.config.properties.PropertiesDefinitions
+import com.neva.gradle.fork.config.properties.PropertyDefinitions
 import com.neva.gradle.fork.config.properties.Property
 import com.neva.gradle.fork.config.properties.PropertyPrompt
 import com.neva.gradle.fork.config.rule.*
@@ -17,7 +17,7 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.*
 
-abstract class Config(val project: Project, private val propertiesDefinitions: PropertiesDefinitions, val name: String) {
+abstract class Config(val project: Project, private val propertyDefinitions: PropertyDefinitions, val name: String) {
 
   private val prompts = mutableMapOf<String, PropertyPrompt>()
 
@@ -26,7 +26,7 @@ abstract class Config(val project: Project, private val propertiesDefinitions: P
   private val rules = mutableListOf<Rule>()
 
   val properties: List<Property>
-    get() = this.prompts.values.map { prompt -> propertiesDefinitions.getProperty(prompt) }
+    get() = this.prompts.values.map { prompt -> propertyDefinitions.getProperty(prompt) }
 
   abstract val sourcePath: String
 
@@ -142,7 +142,7 @@ abstract class Config(val project: Project, private val propertiesDefinitions: P
   }
 
   private fun promptValidate() {
-    val invalidProps = properties.filter { prop -> prop.validate().hasErrors() }.map { it.name }
+    val invalidProps = properties.filter(Property::isInvalid).map { it.name }
     if (invalidProps.isNotEmpty()) {
       throw ForkException("Fork cannot be performed, because of missing properties: $invalidProps."
         + " Specify them via properties file $propsFile or interactive mode.")

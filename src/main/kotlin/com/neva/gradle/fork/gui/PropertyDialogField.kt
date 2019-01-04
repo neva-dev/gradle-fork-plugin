@@ -54,7 +54,7 @@ class PropertyDialogField(private val property: Property, private val propField:
   }
 
   companion object {
-    val ERROR_TEXT_COLOR: Color? = Color(255, 80, 80)
-    val ERROR_FIELD_COLOR: Color? = Color(255, 221, 153)
+    val ERROR_TEXT_COLOR = Color(255, 80, 80)
+    val ERROR_FIELD_COLOR = Color(255, 221, 153)
   }
 }
