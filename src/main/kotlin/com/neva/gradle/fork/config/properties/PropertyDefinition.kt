@@ -26,7 +26,7 @@ class PropertyDefinition(val name: String) {
 
   var required: Boolean = true
   var defaultValue: String = ""
-  var validator: Validator.(String) -> Unit = {}
+  var validator: Validator.() -> Unit = {}
   var type: PropertyType = calculateDefaultType()
 
   fun optional() {
@@ -47,7 +47,7 @@ enum class PropertyType {
   CHECKBOX
 }
 
-class Validator {
+class Validator(val value: String) {
   val errors = mutableListOf<String>()
 
   fun error(message: String) {

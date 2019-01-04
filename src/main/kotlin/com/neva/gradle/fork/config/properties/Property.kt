@@ -20,10 +20,10 @@ class Property(private val definition: PropertyDefinition, private val prompt: P
     get() = definition.required
 
   fun validate(): Validator {
-    val validator = Validator()
+    val validator = Validator(value)
     if (required || value.isNotBlank()) {
       val validatePropertyValue = definition.validator
-      validator.validatePropertyValue(value)
+      validator.validatePropertyValue()
     }
     if (required && value.isBlank()) validator.error("This property is required.")
     return validator
