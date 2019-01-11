@@ -135,28 +135,24 @@ Properties can be provided by (order makes precedence):
 Configuring of project properties can be enhanced by providing properties definitions which can be used for property value validation, e.g.:
 ```kotlin
 fork {
-    properties(mapOf(
-            "enableSomething" to {
+    properties {
+            property("enableSomething") {
                 checkbox(defaultValue = true)
-            },
-            "someJvaOpts" to {
+            }
+            property("someJvaOpts") {
                 optional()
                 text(defaultValue = "-server -Xmx1024m -XX:MaxPermSize=256M -Djava.awt.headless=true")
                 validator {
-                    if (value.split(" ").any { !it.startsWith("-") })
-                        error("This is not a JVM option!")
+                    if (!value.startsWith("-")) error("This is not a JVM option!")
                 }
-            },
-            "someUserName" to {
+            }
+            property("someUserName") {
                 text(defaultValue = System.getProperty("user.name"))
-            },
-            "someUrl" to {
-                url(defaultValue = "http://localhost:8080")
-            },
-            "projectGroup" to {
+            }
+            property("projectGroup") {
                 text(defaultValue = "org.neva")
             }
-    ))
+    }
 }
 ```
 

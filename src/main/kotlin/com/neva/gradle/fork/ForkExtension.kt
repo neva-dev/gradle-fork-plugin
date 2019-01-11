@@ -3,19 +3,20 @@ package com.neva.gradle.fork
 import com.neva.gradle.fork.config.Config
 import com.neva.gradle.fork.config.InPlaceConfig
 import com.neva.gradle.fork.config.SourceTargetConfig
-import com.neva.gradle.fork.config.properties.PropertyDefinitions
 import com.neva.gradle.fork.config.properties.PropertyDefinition
+import com.neva.gradle.fork.config.properties.PropertyDefinitions
 import groovy.lang.Closure
+import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.tasks.Input
 import org.gradle.util.ConfigureUtil
 
 open class ForkExtension(val project: Project) {
 
-  val propertyDefinitions = PropertyDefinitions()
-
   @Input
   val configs = mutableListOf<Config>()
+
+  val propertyDefinitions = PropertyDefinitions()
 
   fun config(name: String): Config {
     return configs.find { it.name == name }
@@ -46,8 +47,14 @@ open class ForkExtension(val project: Project) {
     config(InPlaceConfig(this, name), configurer)
   }
 
-  fun properties(propertiesConfiguration: Map<String, PropertyDefinition.() -> Unit>) {
-    propertyDefinitions.configure(propertiesConfiguration)
+  fun properties(action: Action<in ForkExtension>) {
+    action.execute(this)
+  }
+
+  fun property(name: String, action: Action<in PropertyDefinition>) {
+    val definition = project.objects.newInstance(PropertyDefinition::class.java, name)
+    action.execute(definition)
+    propertyDefinitions.add(definition)
   }
 
   private fun config(config: Config, configurer: Config.() -> Unit) {

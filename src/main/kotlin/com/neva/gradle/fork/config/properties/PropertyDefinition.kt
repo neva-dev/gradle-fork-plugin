@@ -1,11 +1,14 @@
 package com.neva.gradle.fork.config.properties
 
+import org.gradle.api.Action
+import javax.inject.Inject
+
 class PropertyDefinitions {
 
   private val definitions = mutableMapOf<String, PropertyDefinition>()
 
-  fun configure(configuration: Map<String, PropertyDefinition.() -> Unit>) {
-    definitions += configuration.mapValues { PropertyDefinition(it.key).apply(it.value) }
+  fun add(propertyDefinition: PropertyDefinition) {
+    definitions += propertyDefinition.name to propertyDefinition
   }
 
   fun getProperty(prompt: PropertyPrompt): Property {
@@ -16,22 +19,23 @@ class PropertyDefinitions {
   }
 }
 
-class PropertyDefinition(val name: String) {
+open class PropertyDefinition @Inject constructor(val name: String) {
+
   init {
     if (name.isBlank()) throw PropertyException("Name of property definition cannot be blank!")
   }
 
   var required: Boolean = true
   var defaultValue: String = ""
-  var validator: (Validator.() -> Unit)? = null
+  var validator: (Action<in Validator>)? = null
   var type: PropertyType = determineDefaultType()
 
   fun optional() {
     required = false
   }
 
-  fun validator(validatorLogic: Validator.() -> Unit) {
-    validator = validatorLogic
+  fun validator(validateAction: Action<in Validator>) {
+    validator = validateAction
   }
 
   fun checkbox(defaultValue: Boolean = false) {

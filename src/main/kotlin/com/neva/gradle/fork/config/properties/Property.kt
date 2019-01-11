@@ -33,7 +33,7 @@ class Property(private val definition: PropertyDefinition, private val prompt: P
     if (shouldBeValidated()) {
       when (definition.validator) {
         null -> applyDefaultValidation(validator)
-        else -> validator.apply(definition.validator ?: {})
+        else -> definition.validator?.execute(validator)
       }
     }
     return validator
