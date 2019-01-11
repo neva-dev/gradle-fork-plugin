@@ -1,14 +1,13 @@
 package com.neva.gradle.fork.config
 
 import com.neva.gradle.fork.ForkException
-import com.neva.gradle.fork.config.properties.PropertyDefinitions
+import com.neva.gradle.fork.ForkExtension
 import com.neva.gradle.fork.config.properties.Property
 import com.neva.gradle.fork.config.properties.PropertyPrompt
 import com.neva.gradle.fork.config.rule.*
 import com.neva.gradle.fork.gui.PropertyDialog
 import com.neva.gradle.fork.template.TemplateEngine
 import groovy.lang.Closure
-import org.gradle.api.Project
 import org.gradle.api.file.FileTree
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.GFileUtils
@@ -17,7 +16,7 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.*
 
-abstract class Config(val project: Project, private val propertyDefinitions: PropertyDefinitions, val name: String) {
+abstract class Config(private val forkExtension: ForkExtension, val name: String) {
 
   private val prompts = mutableMapOf<String, PropertyPrompt>()
 
@@ -25,8 +24,10 @@ abstract class Config(val project: Project, private val propertyDefinitions: Pro
 
   private val rules = mutableListOf<Rule>()
 
+  val project = forkExtension.project
+
   val properties: List<Property>
-    get() = this.prompts.values.map { prompt -> propertyDefinitions.getProperty(prompt) }
+    get() = this.prompts.values.map { prompt -> forkExtension.propertyDefinitions.getProperty(prompt) }
 
   abstract val sourcePath: String
 

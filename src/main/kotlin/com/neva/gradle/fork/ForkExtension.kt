@@ -12,7 +12,7 @@ import org.gradle.util.ConfigureUtil
 
 open class ForkExtension(val project: Project) {
 
-  private val propertiesDefinitions = PropertyDefinitions()
+  val propertyDefinitions = PropertyDefinitions()
 
   @Input
   val configs = mutableListOf<Config>()
@@ -27,7 +27,7 @@ open class ForkExtension(val project: Project) {
   }
 
   fun config(configurer: Config.() -> Unit) {
-    config(SourceTargetConfig(project, propertiesDefinitions, Config.NAME_DEFAULT), configurer)
+    config(SourceTargetConfig(this, Config.NAME_DEFAULT), configurer)
   }
 
   fun config(name: String, configurer: Closure<*>) {
@@ -35,7 +35,7 @@ open class ForkExtension(val project: Project) {
   }
 
   fun config(name: String, configurer: Config.() -> Unit) {
-    config(SourceTargetConfig(project, propertiesDefinitions, name), configurer)
+    config(SourceTargetConfig(this, name), configurer)
   }
 
   fun inPlaceConfig(name: String, configurer: Closure<*>) {
@@ -43,11 +43,11 @@ open class ForkExtension(val project: Project) {
   }
 
   fun inPlaceConfig(name: String, configurer: Config.() -> Unit) {
-    config(InPlaceConfig(project, propertiesDefinitions, name), configurer)
+    config(InPlaceConfig(this, name), configurer)
   }
 
   fun properties(propertiesConfiguration: Map<String, PropertyDefinition.() -> Unit>) {
-    propertiesDefinitions.configure(propertiesConfiguration)
+    propertyDefinitions.configure(propertiesConfiguration)
   }
 
   private fun config(config: Config, configurer: Config.() -> Unit) {

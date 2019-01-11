@@ -24,7 +24,7 @@ Newcomers of Gradle Build System very often complain about that in Gradle there 
    * [Sample build script](#sample-build-script)
    * [Defining and executing configurations](#defining-and-executing-configurations)
    * [Providing properties](#providing-properties)
-   * [Validating properties](#validating-properties)
+   * [Defining project properties](#defining-project-properties)
    * [Sample output](#sample-output)
 * [License](#license)
 
@@ -130,37 +130,40 @@ Properties can be provided by (order makes precedence):
   
 4. Mixed approach.
 
-### Validating properties
+### Defining project properties
 
 Configuring of project properties can be enhanced by providing properties definitions which can be used for property value validation, e.g.:
 ```kotlin
 fork {
     properties(mapOf(
-            "enableSmbClient" to {
-                type = CHECKBOX
-                defaultValue = "true"
+            "enableSomething" to {
+                checkbox(defaultValue = true)
             },
-            "aemInstanceAuthorJvmOpts" to {
+            "someJvaOpts" to {
                 optional()
-                defaultValue = "-server -Xmx1024m -XX:MaxPermSize=256M -Djava.awt.headless=true"
-                validator = {
-                    if (!value.startsWith("-")) error("This is not a JVM option!")
+                text(defaultValue = "-server -Xmx1024m -XX:MaxPermSize=256M -Djava.awt.headless=true")
+                validator {
+                    if (value.split(" ").any { !it.startsWith("-") })
+                        error("This is not a JVM option!")
                 }
             },
-            "aemSmbUsername" to {
-                defaultValue = System.getProperty("user.name")
+            "someUserName" to {
+                text(defaultValue = System.getProperty("user.name"))
+            },
+            "someUrl" to {
+                url(defaultValue = "http://localhost:8080")
             },
             "projectGroup" to {
-                defaultValue = "org.neva"
+                text(defaultValue = "org.neva")
             }
     ))
 }
 ```
 
-#### Defining property
+#### Property definition
 Property definition can consists of:
 * type specification: `type = TYPE_NAME`
-  * there are five types available: `TEXT` (default one), `CHECKBOX` (representing boolean), `PASSWORD`, `PATH` & `URL`.
+  * there are five types available: `TEXT` x(default one), `CHECKBOX` (representing boolean), `PASSWORD`, `PATH` & `URL`.
   * there is default convention of type inference using property name (case insensitive):
     * ends with "password" -> `PASSWORD`
     * starts with "enable", "disable" -> `CHECKBOX`

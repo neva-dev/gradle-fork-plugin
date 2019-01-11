@@ -5,10 +5,15 @@ import com.neva.gradle.fork.config.properties.Validator
 import java.awt.Color
 import javax.swing.*
 
-class PropertyDialogField(private val property: Property, private val propField: JComponent, private val validationMessageLabel: JLabel, private val dialog: JDialog) {
+class PropertyDialogField(
+  private val property: Property,
+  private val propField: JComponent,
+  private val validationMessageLabel: JLabel,
+  private val dialog: JDialog
+) {
 
   init {
-    setPropertyValue()
+    assignPropertyValue()
   }
 
   val name: String
@@ -18,7 +23,7 @@ class PropertyDialogField(private val property: Property, private val propField:
     get() = property.value
 
   fun validateAndDisplayErrors(): Boolean {
-    setPropertyValue()
+    assignPropertyValue()
     val result = property.validate()
     if (result.hasErrors()) {
       displayErrorState(result)
@@ -29,7 +34,7 @@ class PropertyDialogField(private val property: Property, private val propField:
     return result.hasErrors()
   }
 
-  private fun setPropertyValue() {
+  private fun assignPropertyValue() {
     when (propField) {
       is JCheckBox -> property.value = propField.isSelected.toString()
       is JTextField -> property.value = propField.text
