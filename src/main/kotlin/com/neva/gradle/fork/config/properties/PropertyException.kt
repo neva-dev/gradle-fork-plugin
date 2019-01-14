@@ -1,4 +1,4 @@
-package com.neva.gradle.fork.config
+package com.neva.gradle.fork.config.properties
 
 import com.neva.gradle.fork.ForkException
 

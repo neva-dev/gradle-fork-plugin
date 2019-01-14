@@ -1,7 +1,7 @@
 package com.neva.gradle.fork.gui
 
 import com.neva.gradle.fork.config.Config
-import com.neva.gradle.fork.config.PropertyPrompt
+import com.neva.gradle.fork.config.properties.PropertyType
 import net.miginfocom.swing.MigLayout
 import java.awt.Toolkit
 import java.awt.event.FocusEvent
@@ -9,6 +9,7 @@ import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import javax.swing.*
 import javax.swing.event.DocumentEvent
+
 
 class PropertyDialog(private val config: Config) {
 
@@ -46,30 +47,38 @@ class PropertyDialog(private val config: Config) {
     dialog.add(this, "span, wrap")
   }
 
-  private var fields: Map<PropertyPrompt, JTextField> = config.prompts.values.fold(mutableMapOf()) { r, prompt ->
-    val label = JLabel(if (prompt.required) "${prompt.label}*" else prompt.label)
-    dialog.add(label, "align label")
+  private var fields: List<PropertyDialogField> = config.properties
+    .map { property ->
+      val label = JLabel(property.label)
+      dialog.add(label, "align label")
 
-    val field = when (prompt.type) {
-      PropertyPrompt.Type.PASSWORD -> JPasswordField(prompt.valueOrDefault)
-      else -> JTextField(prompt.valueOrDefault)
+      val field: JComponent = when (property.type) {
+        PropertyType.PASSWORD -> JPasswordField(property.value)
+        PropertyType.CHECKBOX -> JCheckBox("", property.value.toBoolean())
+        else -> JTextField(property.value)
+      }
+
+      if (field is JTextField) {
+        field.document.addDocumentListener(object : DocumentListener() {
+          override fun change(e: DocumentEvent) {
+            this@PropertyDialog.update()
+          }
+        })
+        field.addFocusListener(object : FocusListener() {
+          override fun focusGained(e: FocusEvent) {
+            fieldFocused = field
+            this@PropertyDialog.update()
+          }
+        })
+      }
+
+      dialog.add(field, "width 300::, wrap")
+
+      val validationMessage = JLabel()
+      dialog.add(validationMessage, "skip, wrap")
+
+      PropertyDialogField(property, field, validationMessage, dialog)
     }
-    field.document.addDocumentListener(object : DocumentListener() {
-      override fun change(e: DocumentEvent) {
-        this@PropertyDialog.update()
-      }
-    })
-    field.addFocusListener(object : FocusListener() {
-      override fun focusGained(e: FocusEvent) {
-        fieldFocused = field
-        this@PropertyDialog.update()
-      }
-    })
-    dialog.add(field, "width 300::, wrap")
-
-    r[prompt] = field
-    r
-  }
 
   private var closeButton = JButton().apply {
     text = "Execute"
@@ -96,21 +105,18 @@ class PropertyDialog(private val config: Config) {
     }
   }
 
-  val props : Map<String, String>
-    get() = fields.entries.fold(mutableMapOf()) { r, e -> r[e.key.name] = e.value.text;r }
+  val props: Map<String, String>
+    get() = fields.fold(mutableMapOf()) { r, e -> r[e.name] = e.value;r }
 
   fun update() {
+    val isFieldSelected = fieldFocused != null
     closeButton.isEnabled = valid
-    pathButton.isEnabled = fieldFocused != null
+    pathButton.isEnabled = isFieldSelected
     dialog.isVisible = true
   }
 
-  val valid: Boolean
-    get() = fields.all { isValidField(it.key, it.value) }
-
-  fun isValidField(prompt: PropertyPrompt, field: JTextField): Boolean {
-    return !prompt.required || field.text.isNotBlank()
-  }
+  private val valid: Boolean
+    get() = fields.filter(PropertyDialogField::validateAndDisplayErrors).isEmpty()
 
   fun centre() {
     val dimension = Toolkit.getDefaultToolkit().screenSize
@@ -127,10 +133,7 @@ class PropertyDialog(private val config: Config) {
       UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
       val dialog = PropertyDialog(config)
       UIManager.setLookAndFeel(laf)
-
       return dialog
     }
-
   }
-
 }

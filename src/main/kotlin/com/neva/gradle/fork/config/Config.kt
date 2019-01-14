@@ -1,11 +1,13 @@
 package com.neva.gradle.fork.config
 
 import com.neva.gradle.fork.ForkException
+import com.neva.gradle.fork.ForkExtension
+import com.neva.gradle.fork.config.properties.Property
+import com.neva.gradle.fork.config.properties.PropertyPrompt
 import com.neva.gradle.fork.config.rule.*
 import com.neva.gradle.fork.gui.PropertyDialog
 import com.neva.gradle.fork.template.TemplateEngine
 import groovy.lang.Closure
-import org.gradle.api.Project
 import org.gradle.api.file.FileTree
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.GFileUtils
@@ -14,13 +16,18 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.*
 
-abstract class Config(val project: Project, val name: String) {
+abstract class Config(private val forkExtension: ForkExtension, val name: String) {
 
-  val prompts = mutableMapOf<String, PropertyPrompt>()
+  private val prompts = mutableMapOf<String, PropertyPrompt>()
 
-  val props by lazy { promptFill() }
+  private val props by lazy { promptFill() }
 
-  val rules = mutableListOf<Rule>()
+  private val rules = mutableListOf<Rule>()
+
+  val project = forkExtension.project
+
+  val properties: List<Property>
+    get() = this.prompts.values.map { prompt -> forkExtension.propertyDefinitions.getProperty(prompt) }
 
   abstract val sourcePath: String
 
@@ -61,19 +68,19 @@ abstract class Config(val project: Project, val name: String) {
     return if (!value.isBlank()) value.toBoolean() else true
   }
 
-  fun promptProp(prop: String, defaultProvider: () -> String?): () -> String {
+  fun promptProp(prop: String, defaultProvider: () -> String): () -> String {
     prompts[prop] = PropertyPrompt(prop, defaultProvider)
 
     return { props[prop] ?: throw ForkException("Fork prompt property '$prop' not bound.") }
   }
 
   fun promptProp(prop: String): () -> String {
-    return promptProp(prop) { null }
+    return promptProp(prop)
   }
 
   fun promptTemplate(template: String): () -> String {
-    templateEngine.parse(template).forEach { prop, defaultValue ->
-      prompts[prop] = PropertyPrompt(prop) { defaultValue }
+    templateEngine.parse(template).forEach { prop ->
+      prompts[prop] = PropertyPrompt(prop)
     }
 
     return { renderTemplate(template) }
@@ -83,7 +90,7 @@ abstract class Config(val project: Project, val name: String) {
     return templateEngine.render(template, props)
   }
 
-  private fun promptFill(): Map<String, String> {
+  private fun promptFill(): Map<String, String?> {
     promptFillPropertiesFile(previousPropsFile)
 
     try {
@@ -136,7 +143,7 @@ abstract class Config(val project: Project, val name: String) {
   }
 
   private fun promptValidate() {
-    val invalidProps = prompts.values.filter { !it.valid }.map { it.name }
+    val invalidProps = properties.filter(Property::isInvalid).map { it.name }
     if (invalidProps.isNotEmpty()) {
       throw ForkException("Fork cannot be performed, because of missing properties: $invalidProps."
         + " Specify them via properties file $propsFile or interactive mode.")
@@ -232,6 +239,7 @@ abstract class Config(val project: Project, val name: String) {
 
   companion object {
     const val NAME_DEFAULT = "default"
+    const val NAME_PROPERTIES = "properties"
   }
 
 }

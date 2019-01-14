@@ -1,9 +1,9 @@
 package com.neva.gradle.fork.config
 
-import org.gradle.api.Project
+import com.neva.gradle.fork.ForkExtension
 import java.io.File
 
-class SourceTargetConfig(project: Project, name: String) : Config(project, name) {
+class SourceTargetConfig(forkExtension: ForkExtension, name: String) : Config(forkExtension, name) {
 
   override val sourcePath: String by lazy(promptProp("sourcePath") {
     project.projectDir.absolutePath
