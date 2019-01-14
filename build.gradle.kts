@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "com.neva.gradle"
-version = "2.0.1"
+version = "3.0.0"
 description = "Gradle Fork Plugin"
 defaultTasks = listOf("clean", "publishToMavenLocal")
 
