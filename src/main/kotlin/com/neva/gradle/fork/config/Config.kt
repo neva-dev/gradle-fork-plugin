@@ -74,7 +74,7 @@ abstract class Config(private val fork: ForkExtension, val name: String) {
   }
 
   fun promptProp(prop: String, defaultProvider: () -> String): () -> String {
-    prompts[prop] = PropertyPrompt(this, prop, defaultProvider)
+    prompts[prop] = PropertyPrompt(prop, defaultProvider)
 
     return { props[prop] ?: throw ForkException("Fork prompt property '$prop' not bound.") }
   }
@@ -85,7 +85,7 @@ abstract class Config(private val fork: ForkExtension, val name: String) {
 
   fun promptTemplate(template: String): () -> String {
     templateEngine.parse(template).forEach { prop ->
-      prompts[prop] = PropertyPrompt(this, prop)
+      prompts[prop] = PropertyPrompt(prop)
     }
 
     return { renderTemplate(template) }
