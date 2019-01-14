@@ -3,38 +3,27 @@ package com.neva.gradle.fork.config.properties
 import org.gradle.api.Action
 import javax.inject.Inject
 
-class PropertyDefinitions {
-
-  private val definitions = mutableMapOf<String, PropertyDefinition>()
-
-  fun add(propertyDefinition: PropertyDefinition) {
-    definitions += propertyDefinition.name to propertyDefinition
-  }
-
-  fun getProperty(prompt: PropertyPrompt): Property {
-    val definition = definitions.getOrElse(prompt.name) {
-      PropertyDefinition(prompt.name)
-    }
-    return Property(definition, prompt)
-  }
-}
-
 open class PropertyDefinition @Inject constructor(val name: String) {
 
   init {
-    if (name.isBlank()) throw PropertyException("Name of property definition cannot be blank!")
+    if (name.isBlank()) {
+      throw PropertyException("Name of property definition cannot be blank!")
+    }
   }
 
   var required: Boolean = true
+
   var defaultValue: String = ""
-  var validator: (Action<in Validator>)? = null
+
+  var validator: (Action<in PropertyValidator>)? = null
+
   var type: PropertyType = determineDefaultType()
 
   fun optional() {
     required = false
   }
 
-  fun validator(validateAction: Action<in Validator>) {
+  fun validator(validateAction: Action<in PropertyValidator>) {
     validator = validateAction
   }
 
@@ -75,20 +64,4 @@ open class PropertyDefinition @Inject constructor(val name: String) {
   }
 }
 
-enum class PropertyType {
-  TEXT,
-  PASSWORD,
-  CHECKBOX,
-  PATH,
-  URL
-}
 
-class Validator(val value: String) {
-  val errors = mutableListOf<String>()
-
-  fun error(message: String) {
-    errors.add(message)
-  }
-
-  fun hasErrors() = errors.isNotEmpty()
-}

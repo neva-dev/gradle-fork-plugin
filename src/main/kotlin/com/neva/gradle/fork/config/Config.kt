@@ -3,6 +3,7 @@ package com.neva.gradle.fork.config
 import com.neva.gradle.fork.ForkException
 import com.neva.gradle.fork.ForkExtension
 import com.neva.gradle.fork.config.properties.Property
+import com.neva.gradle.fork.config.properties.PropertyDefinition
 import com.neva.gradle.fork.config.properties.PropertyPrompt
 import com.neva.gradle.fork.config.rule.*
 import com.neva.gradle.fork.gui.PropertyDialog
@@ -16,7 +17,7 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.*
 
-abstract class Config(private val forkExtension: ForkExtension, val name: String) {
+abstract class Config(private val fork: ForkExtension, val name: String) {
 
   private val prompts = mutableMapOf<String, PropertyPrompt>()
 
@@ -24,10 +25,14 @@ abstract class Config(private val forkExtension: ForkExtension, val name: String
 
   private val rules = mutableListOf<Rule>()
 
-  val project = forkExtension.project
+  val project = fork.project
 
   val properties: List<Property>
-    get() = this.prompts.values.map { prompt -> forkExtension.propertyDefinitions.getProperty(prompt) }
+    get() {
+      val others = mutableMapOf<String, Property>()
+      prompts.forEach { name, p -> others[name] = Property(others, fork.propertyDefinitions.get(p.name) ?: PropertyDefinition(p.name), p) }
+      return others.values.toList()
+    }
 
   abstract val sourcePath: String
 
@@ -69,7 +74,7 @@ abstract class Config(private val forkExtension: ForkExtension, val name: String
   }
 
   fun promptProp(prop: String, defaultProvider: () -> String): () -> String {
-    prompts[prop] = PropertyPrompt(prop, defaultProvider)
+    prompts[prop] = PropertyPrompt(this, prop, defaultProvider)
 
     return { props[prop] ?: throw ForkException("Fork prompt property '$prop' not bound.") }
   }
@@ -80,7 +85,7 @@ abstract class Config(private val forkExtension: ForkExtension, val name: String
 
   fun promptTemplate(template: String): () -> String {
     templateEngine.parse(template).forEach { prop ->
-      prompts[prop] = PropertyPrompt(prop)
+      prompts[prop] = PropertyPrompt(this, prop)
     }
 
     return { renderTemplate(template) }

@@ -5,7 +5,11 @@ import java.net.URL
 import java.nio.file.InvalidPathException
 import java.nio.file.Paths
 
-class Property(private val definition: PropertyDefinition, private val prompt: PropertyPrompt) {
+class Property(
+  private val others: Map<String, Property>,
+  private val definition: PropertyDefinition,
+  private val prompt: PropertyPrompt
+) {
 
   val name: String
     get() = prompt.name
@@ -24,8 +28,12 @@ class Property(private val definition: PropertyDefinition, private val prompt: P
   private val required: Boolean
     get() = definition.required
 
-  fun validate(): Validator {
-    val validator = Validator(value)
+  fun other(name: String): Property {
+    return others[name] ?: throw PropertyException("Property named '$name' is not defined.")
+  }
+
+  fun validate(): PropertyValidator {
+    val validator = PropertyValidator(value)
     if (required && value.isBlank()) {
       validator.error("This property is required.")
       return validator
@@ -41,14 +49,14 @@ class Property(private val definition: PropertyDefinition, private val prompt: P
 
   fun isInvalid() = validate().hasErrors()
 
-  private fun applyDefaultValidation(validator: Validator) = when (type) {
+  private fun applyDefaultValidation(validator: PropertyValidator) = when (type) {
     PropertyType.PATH -> validatePath(validator)
     PropertyType.URL -> validateUrl(validator)
     else -> {
     }
   }
 
-  private fun validateUrl(validator: Validator) {
+  private fun validateUrl(validator: PropertyValidator) {
     try {
       URL(value)
     } catch (e: MalformedURLException) {
@@ -56,7 +64,7 @@ class Property(private val definition: PropertyDefinition, private val prompt: P
     }
   }
 
-  private fun validatePath(validator: Validator) {
+  private fun validatePath(validator: PropertyValidator) {
     try {
       Paths.get(value)
     } catch (e: InvalidPathException) {

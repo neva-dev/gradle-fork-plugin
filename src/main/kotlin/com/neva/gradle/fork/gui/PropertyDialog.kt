@@ -47,8 +47,7 @@ class PropertyDialog(private val config: Config) {
     dialog.add(this, "span, wrap")
   }
 
-  private var fields: List<PropertyDialogField> = config.properties
-    .map { property ->
+  private var fields: List<PropertyDialogField> = config.properties.map { property ->
       val label = JLabel(property.label)
       dialog.add(label, "align label")
 
