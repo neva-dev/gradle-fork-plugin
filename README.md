@@ -136,22 +136,14 @@ Configuring of project properties can be enhanced by providing properties defini
 ```kotlin
 fork {
     properties {
-            property("enableSomething") {
-                checkbox(defaultValue = true)
-            }
-            property("someJvaOpts") {
-                optional()
-                text(defaultValue = "-server -Xmx1024m -XX:MaxPermSize=256M -Djava.awt.headless=true")
-                validator {
-                    if (!value.startsWith("-")) error("This is not a JVM option!")
-                }
-            }
-            property("someUserName") {
-                text(defaultValue = System.getProperty("user.name"))
-            }
-            property("projectGroup") {
-                text(defaultValue = "org.neva")
-            }
+        define("enableSomething") { checkbox(defaultValue = true) }
+        define("someUserName") { text(defaultValue = System.getProperty("user.name")) }
+        define("projectGroup") { text(defaultValue = "org.neva") }
+        define("someJvmOpts") {
+            optional()
+            text(defaultValue = "-server -Xmx1024m -XX:MaxPermSize=256M -Djava.awt.headless=true")
+            validator { if (!property.value.startsWith("-")) error("This is not a JVM option!") }
+        }
     }
 }
 ```

@@ -10,10 +10,10 @@ class PropertyValidator(val property: Property) {
 
   fun hasErrors() = errors.isNotEmpty()
 
-  fun notContains(otherName: String) {
+  fun shouldNotContain(otherName: String) {
     val otherValue = property.other(otherName).value
-    if (otherValue.contains(property.value)) {
-      error("Cannot contain value '$otherValue' ($otherName)'")
+    if (property.value.contains(otherValue)) {
+      error("Should not contain value '$otherValue' ($otherName)")
     }
   }
 }
