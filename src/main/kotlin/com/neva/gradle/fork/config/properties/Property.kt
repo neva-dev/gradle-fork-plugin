@@ -84,5 +84,5 @@ class Property(
     }
   }
 
-  private fun shouldBeValidated() = required || value.isNotBlank()
+  private fun shouldBeValidated() = required || value.isNotEmpty()
 }
