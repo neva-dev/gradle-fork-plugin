@@ -47,6 +47,7 @@ class PropertyDialog(private val config: Config) {
     dialog.add(this, "span, wrap")
   }
 
+  @Suppress("unchecked_cast")
   private var fields: List<PropertyDialogField> = config.properties.map { property ->
       val label = JLabel(property.label)
       dialog.add(label, "align label")
@@ -54,6 +55,7 @@ class PropertyDialog(private val config: Config) {
       val field: JComponent = when (property.type) {
         PropertyType.PASSWORD -> JPasswordField(property.value)
         PropertyType.CHECKBOX -> JCheckBox("", property.value.toBoolean())
+        PropertyType.SELECT -> JComboBox((property.options as List<String>).toTypedArray()).apply { setSelectedItem(property.value) }
         else -> JTextField(property.value)
       }
 

@@ -13,7 +13,7 @@ class PropertyDialogField(
 ) {
 
   init {
-    assignPropertyValue()
+    assignValue()
   }
 
   val name: String
@@ -23,7 +23,7 @@ class PropertyDialogField(
     get() = property.value
 
   fun validateAndDisplayErrors(): Boolean {
-    assignPropertyValue()
+    assignValue()
     val result = property.validate()
     if (result.hasErrors()) {
       displayErrorState(result)
@@ -34,9 +34,10 @@ class PropertyDialogField(
     return result.hasErrors()
   }
 
-  private fun assignPropertyValue() {
+  private fun assignValue() {
     when (propField) {
       is JCheckBox -> property.value = propField.isSelected.toString()
+      is JComboBox<*> -> property.value = propField.selectedItem.toString()
       is JTextField -> property.value = propField.text
     }
   }
@@ -59,7 +60,10 @@ class PropertyDialogField(
   }
 
   companion object {
-    val ERROR_TEXT_COLOR = Color(255, 80, 80)
-    val ERROR_FIELD_COLOR = Color(255, 221, 153)
+
+    val ERROR_TEXT_COLOR = Color(255, 0, 0)
+
+    val ERROR_FIELD_COLOR = Color(255, 240, 240)
+
   }
 }

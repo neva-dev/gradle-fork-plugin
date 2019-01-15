@@ -25,6 +25,8 @@ class Property(
 
   val type: PropertyType = definition.type
 
+  val options: Any? = definition.options
+
   private val required: Boolean
     get() = definition.required
 
@@ -33,18 +35,13 @@ class Property(
   }
 
   fun validate(): PropertyValidator {
-    val validator = PropertyValidator(value)
-    if (required && value.isBlank()) {
-      validator.error("This property is required.")
-      return validator
-    }
-    if (shouldBeValidated()) {
-      when (definition.validator) {
-        null -> applyDefaultValidation(validator)
-        else -> definition.validator?.execute(validator)
+    return PropertyValidator(this).apply {
+      if (required && value.isBlank()) {
+        error("Value is required")
+      } else if (shouldBeValidated()) {
+        definition.validator?.execute(this) ?: applyDefaultValidation(this)
       }
     }
-    return validator
   }
 
   fun isInvalid() = validate().hasErrors()
@@ -52,7 +49,20 @@ class Property(
   private fun applyDefaultValidation(validator: PropertyValidator) = when (type) {
     PropertyType.PATH -> validatePath(validator)
     PropertyType.URL -> validateUrl(validator)
+    PropertyType.URI -> validateUri(validator)
     else -> {
+    }
+  }
+
+  private fun validateUri(validator: PropertyValidator) {
+    try {
+      URL(value)
+    } catch (urlException: MalformedURLException) {
+      try {
+        Paths.get(value)
+      } catch (pathException: InvalidPathException) {
+        validator.error("Invalid URI")
+      }
     }
   }
 
@@ -60,7 +70,7 @@ class Property(
     try {
       URL(value)
     } catch (e: MalformedURLException) {
-      validator.error("This URL is invalid: \"${e.message}\"")
+      validator.error("Invalid URL")
     }
   }
 
@@ -68,7 +78,7 @@ class Property(
     try {
       Paths.get(value)
     } catch (e: InvalidPathException) {
-      validator.error("This path is invalid: \"${e.message}\"")
+      validator.error("Invalid path")
     }
   }
 

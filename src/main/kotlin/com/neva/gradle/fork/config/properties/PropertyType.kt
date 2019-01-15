@@ -4,6 +4,8 @@ enum class PropertyType {
   TEXT,
   PASSWORD,
   CHECKBOX,
+  SELECT,
   PATH,
-  URL
+  URL,
+  URI
 }
