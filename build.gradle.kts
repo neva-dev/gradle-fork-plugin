@@ -43,13 +43,13 @@ tasks {
 
 gradlePlugin {
     plugins {
+        create("fork") {
+            id = "com.neva.fork"
+            implementationClass = "com.neva.gradle.fork.ForkPlugin"
+        }
         create("base") {
             id = "com.neva.fork.base"
             implementationClass = "com.neva.gradle.fork.BasePlugin"
-        }
-        create("config") {
-            id = "com.neva.fork.config"
-            implementationClass = "com.neva.gradle.fork.ConfigPlugin"
         }
     }
 }

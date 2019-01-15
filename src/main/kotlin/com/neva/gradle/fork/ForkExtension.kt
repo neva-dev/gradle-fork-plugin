@@ -11,10 +11,7 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.util.ConfigureUtil
 
-/**
- * Allows to define and execute forking configurations and also base functions.
- */
-open class ConfigExtension(project: Project): BaseExtension(project) {
+open class ForkExtension(project: Project): BaseExtension(project) {
 
   @Input
   val configs = mutableListOf<Config>()
@@ -64,8 +61,8 @@ open class ConfigExtension(project: Project): BaseExtension(project) {
 
     const val NAME = "fork"
 
-    fun of(project: Project): ConfigExtension {
-      return project.extensions.getByType(ConfigExtension::class.java)
+    fun of(project: Project): ForkExtension {
+      return project.extensions.getByType(ForkExtension::class.java)
     }
 
   }

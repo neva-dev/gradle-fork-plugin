@@ -5,10 +5,15 @@ import com.neva.gradle.fork.tasks.Props
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
-open class ConfigPlugin : Plugin<Project> {
+/**
+ * Allows to define and execute forking configurations and also use base API.
+ *
+ * Dedicated to be used only at root project. For subprojects, apply plugin 'com.neva.fork.base'.
+ */
+open class ForkPlugin : Plugin<Project> {
 
   override fun apply(project: Project) {
-    project.extensions.create(ConfigExtension.NAME, ConfigExtension::class.java, project)
+    project.extensions.create(ForkExtension.NAME, ForkExtension::class.java, project)
     project.tasks.register(Fork.NAME, Fork::class.java)
     project.tasks.register(Props.NAME, Props::class.java)
   }

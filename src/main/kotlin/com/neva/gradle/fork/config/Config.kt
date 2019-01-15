@@ -1,7 +1,7 @@
 package com.neva.gradle.fork.config
 
 import com.neva.gradle.fork.ForkException
-import com.neva.gradle.fork.ConfigExtension
+import com.neva.gradle.fork.ForkExtension
 import com.neva.gradle.fork.config.properties.Property
 import com.neva.gradle.fork.config.properties.PropertyDefinition
 import com.neva.gradle.fork.config.properties.PropertyPrompt
@@ -18,7 +18,7 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.*
 
-abstract class Config(private val fork: ConfigExtension, val name: String) {
+abstract class Config(private val fork: ForkExtension, val name: String) {
 
   private val prompts = mutableMapOf<String, PropertyPrompt>()
 
