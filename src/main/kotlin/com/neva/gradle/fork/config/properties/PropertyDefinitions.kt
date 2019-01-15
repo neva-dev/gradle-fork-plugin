@@ -1,10 +1,10 @@
 package com.neva.gradle.fork.config.properties
 
-import com.neva.gradle.fork.ForkExtension
+import com.neva.gradle.fork.ConfigExtension
 import org.gradle.api.Action
 import org.gradle.internal.Actions
 
-class PropertyDefinitions(val fork: ForkExtension) {
+class PropertyDefinitions(val fork: ConfigExtension) {
 
   private val definitions = mutableMapOf<String, PropertyDefinition>()
 

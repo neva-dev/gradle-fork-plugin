@@ -24,6 +24,8 @@ dependencies {
     implementation("org.apache.commons:commons-lang3:3.4")
     implementation("commons-io:commons-io:2.4")
     implementation("commons-validator:commons-validator:1.6")
+    implementation("commons-codec:commons-codec:1.11")
+
     implementation("com.neva.commons:gitignore-file-filter:1.0.0")
     implementation("com.miglayout:miglayout:3.7.4")
     implementation("io.pebbletemplates:pebble:3.0.4")
@@ -41,9 +43,13 @@ tasks {
 
 gradlePlugin {
     plugins {
-        create("fork") {
-            id = "com.neva.fork"
-            implementationClass = "com.neva.gradle.fork.ForkPlugin"
+        create("base") {
+            id = "com.neva.fork.base"
+            implementationClass = "com.neva.gradle.fork.BasePlugin"
+        }
+        create("config") {
+            id = "com.neva.fork.config"
+            implementationClass = "com.neva.gradle.fork.ConfigPlugin"
         }
     }
 }

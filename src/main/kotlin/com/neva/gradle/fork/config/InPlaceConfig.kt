@@ -1,8 +1,8 @@
 package com.neva.gradle.fork.config
 
-import com.neva.gradle.fork.ForkExtension
+import com.neva.gradle.fork.ConfigExtension
 
-class InPlaceConfig(forkExtension: ForkExtension, name: String) : Config(forkExtension, name) {
+class InPlaceConfig(forkExtension: ConfigExtension, name: String) : Config(forkExtension, name) {
 
   override val sourcePath: String by lazy { project.projectDir.absolutePath }
 
