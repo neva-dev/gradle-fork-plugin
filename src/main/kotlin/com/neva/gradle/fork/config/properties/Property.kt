@@ -38,7 +38,7 @@ class Property(
 
   fun validate(): PropertyValidator {
     return PropertyValidator(this).apply {
-      if (required && value.isBlank()) {
+      if (required && value.isEmpty()) {
         error("Value is required")
       } else if (shouldBeValidated()) {
         definition.validator?.execute(this) ?: applyDefaultValidation(this)

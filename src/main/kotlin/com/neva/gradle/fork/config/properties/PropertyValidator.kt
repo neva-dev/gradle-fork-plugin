@@ -69,7 +69,7 @@ class PropertyValidator(val property: Property) {
 
   fun notContains(otherName: String) {
     val otherValue = property.other(otherName).value
-    if (otherValue.isNotBlank() && property.value.contains(otherValue)) {
+    if (otherValue.isNotEmpty() && property.value.contains(otherValue)) {
       error("Should not contain '$otherValue' ($otherName)")
     }
   }
