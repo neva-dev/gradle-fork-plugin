@@ -15,6 +15,8 @@ open class PropertyDefinition @Inject constructor(val name: String) {
 
   var defaultValue: String = ""
 
+  var description = ""
+
   var validator: (Action<in PropertyValidator>)? = null
 
   var type: PropertyType = determineDefaultType()

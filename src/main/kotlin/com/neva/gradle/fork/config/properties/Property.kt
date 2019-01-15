@@ -27,6 +27,8 @@ class Property(
 
   val options: Any? = definition.options
 
+  val description: String = definition.description
+
   private val required: Boolean
     get() = definition.required
 

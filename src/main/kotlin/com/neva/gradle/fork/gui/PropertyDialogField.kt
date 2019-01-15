@@ -7,9 +7,9 @@ import javax.swing.*
 
 class PropertyDialogField(
   private val property: Property,
+  private val dialog: JDialog,
   private val propField: JComponent,
-  private val validationMessageLabel: JLabel,
-  private val dialog: JDialog
+  private val validationMessageLabel: JLabel
 ) {
 
   init {
@@ -60,6 +60,8 @@ class PropertyDialogField(
   }
 
   companion object {
+
+    val DESCRIPTION_TEXT_COLOR = Color(128, 128, 128)
 
     val ERROR_TEXT_COLOR = Color(255, 0, 0)
 
