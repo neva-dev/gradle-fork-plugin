@@ -18,9 +18,9 @@ class TemplateEngine(val project: Project) {
   }
 
   private val systemProperties: Map<String, Any> by lazy {
-    val result = System.getProperties().entries.fold(mutableMapOf<String, String>(), { props, prop ->
+    val result = System.getProperties().entries.fold(mutableMapOf<String, String>()) { props, prop ->
       props[prop.key.toString()] = prop.value.toString(); props
-    })
+    }
 
     mapOf("system" to result)
   }

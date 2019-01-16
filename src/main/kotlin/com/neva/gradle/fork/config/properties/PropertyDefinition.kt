@@ -1,94 +1,95 @@
 package com.neva.gradle.fork.config.properties
 
 import org.gradle.api.Action
+import org.gradle.internal.Actions
 import javax.inject.Inject
-
-class PropertyDefinitions {
-
-  private val definitions = mutableMapOf<String, PropertyDefinition>()
-
-  fun add(propertyDefinition: PropertyDefinition) {
-    definitions += propertyDefinition.name to propertyDefinition
-  }
-
-  fun getProperty(prompt: PropertyPrompt): Property {
-    val definition = definitions.getOrElse(prompt.name) {
-      PropertyDefinition(prompt.name)
-    }
-    return Property(definition, prompt)
-  }
-}
 
 open class PropertyDefinition @Inject constructor(val name: String) {
 
-  init {
-    if (name.isBlank()) throw PropertyException("Name of property definition cannot be blank!")
+  var type: PropertyType = PropertyType.TEXT
+
+  var options: Any? = null
+
+  var description = ""
+
+  var defaultValue: String = ""
+
+  var required = true
+
+  var validator: PropertyValidator.() -> Unit = {
+    if (required) {
+      required()
+    }
   }
 
-  var required: Boolean = true
-  var defaultValue: String = ""
-  var validator: (Action<in Validator>)? = null
-  var type: PropertyType = determineDefaultType()
+  init {
+    if (name.isBlank()) {
+      throw PropertyException("Name of property definition cannot be blank!")
+    }
+
+    when {
+      name.endsWith("password", true) -> password()
+      name.startsWith("enable", true) -> checkbox()
+      name.startsWith("disable", true) -> checkbox(true)
+      name.endsWith("enabled", true) -> checkbox()
+      name.endsWith("disabled", true) -> checkbox(true)
+      name.endsWith("path", true) -> path()
+      name.endsWith("url", true) -> url()
+      name.endsWith("uri", true) -> uri()
+      else -> text()
+    }
+  }
 
   fun optional() {
     required = false
   }
 
-  fun validator(validateAction: Action<in Validator>) {
-    validator = validateAction
+  fun validator(action: Action<in PropertyValidator>) {
+    validator = { Actions.with(this, action) }
   }
 
   fun checkbox(defaultValue: Boolean = false) {
-    type = PropertyType.CHECKBOX
     this.defaultValue = defaultValue.toString()
+    type = PropertyType.CHECKBOX
+  }
+
+  fun select(vararg options: String) = select(options.toList())
+
+  fun select(options: List<String>) = select(options, options.first())
+
+  fun select(options: List<String>, defaultValue: String) {
+    this.defaultValue = defaultValue
+    this.options = options
+    type = PropertyType.SELECT
   }
 
   fun password(defaultValue: String = "") {
-    type = PropertyType.PASSWORD
     this.defaultValue = defaultValue
+    type = PropertyType.PASSWORD
   }
 
   fun text(defaultValue: String = "") {
-    type = PropertyType.TEXT
     this.defaultValue = defaultValue
+    type = PropertyType.TEXT
   }
 
   fun path(defaultValue: String = "") {
-    type = PropertyType.PATH
     this.defaultValue = defaultValue
+    type = PropertyType.PATH
+    validator = { required(); path() }
   }
 
   fun url(defaultValue: String = "") {
-    type = PropertyType.URL
     this.defaultValue = defaultValue
+    type = PropertyType.URL
+    validator = { required(); url() }
   }
 
-  private fun determineDefaultType() = when {
-    name.endsWith("password", true) -> PropertyType.PASSWORD
-    name.startsWith("enable", true) -> PropertyType.CHECKBOX
-    name.startsWith("disable", true) -> PropertyType.CHECKBOX
-    name.endsWith("enabled", true) -> PropertyType.CHECKBOX
-    name.endsWith("disabled", true) -> PropertyType.CHECKBOX
-    name.endsWith("path", true) -> PropertyType.PATH
-    name.endsWith("url", true) -> PropertyType.URL
-    else -> PropertyType.TEXT
+  fun uri(defaultValue: String = "") {
+    this.defaultValue = defaultValue
+    type = PropertyType.URI
+    validator = { required(); uri() }
   }
 }
 
-enum class PropertyType {
-  TEXT,
-  PASSWORD,
-  CHECKBOX,
-  PATH,
-  URL
-}
 
-class Validator(val value: String) {
-  val errors = mutableListOf<String>()
-
-  fun error(message: String) {
-    errors.add(message)
-  }
-
-  fun hasErrors() = errors.isNotEmpty()
-}

@@ -3,7 +3,9 @@ package com.neva.gradle.fork.config
 import com.neva.gradle.fork.ForkException
 import com.neva.gradle.fork.ForkExtension
 import com.neva.gradle.fork.config.properties.Property
+import com.neva.gradle.fork.config.properties.PropertyDefinition
 import com.neva.gradle.fork.config.properties.PropertyPrompt
+import com.neva.gradle.fork.config.properties.PropertyType
 import com.neva.gradle.fork.config.rule.*
 import com.neva.gradle.fork.gui.PropertyDialog
 import com.neva.gradle.fork.template.TemplateEngine
@@ -16,18 +18,28 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.*
 
-abstract class Config(private val forkExtension: ForkExtension, val name: String) {
+abstract class Config(private val fork: ForkExtension, val name: String) {
 
-  private val prompts = mutableMapOf<String, PropertyPrompt>()
-
-  private val props by lazy { promptFill() }
+  val project = fork.project
 
   private val rules = mutableListOf<Rule>()
 
-  val project = forkExtension.project
+  private val prompts = mutableMapOf<String, PropertyPrompt>()
 
-  val properties: List<Property>
-    get() = this.prompts.values.map { prompt -> forkExtension.propertyDefinitions.getProperty(prompt) }
+  private val promptedProperties by lazy { promptFill() }
+
+  val definedProperties: List<Property>
+    get() {
+      val others = mutableMapOf<String, Property>()
+      prompts.forEach { name, prompt ->
+        val definition = fork.propertyDefinitions.get(prompt.name) ?: PropertyDefinition(prompt.name)
+        val property = Property(others, definition, prompt)
+
+        others[name] = property
+      }
+
+      return others.values.toList()
+    }
 
   abstract val sourcePath: String
 
@@ -71,7 +83,7 @@ abstract class Config(private val forkExtension: ForkExtension, val name: String
   fun promptProp(prop: String, defaultProvider: () -> String): () -> String {
     prompts[prop] = PropertyPrompt(prop, defaultProvider)
 
-    return { props[prop] ?: throw ForkException("Fork prompt property '$prop' not bound.") }
+    return { promptedProperties[prop] ?: throw ForkException("Fork prompt property '$prop' not bound.") }
   }
 
   fun promptProp(prop: String): () -> String {
@@ -87,7 +99,7 @@ abstract class Config(private val forkExtension: ForkExtension, val name: String
   }
 
   fun renderTemplate(template: String): String {
-    return templateEngine.render(template, props)
+    return templateEngine.render(template, promptedProperties)
   }
 
   private fun promptFill(): Map<String, String?> {
@@ -95,9 +107,13 @@ abstract class Config(private val forkExtension: ForkExtension, val name: String
 
     try {
       promptFillPropertiesFile(propsFile)
+      promptPreProcess()
+
       promptFillCommandLine()
       promptFillGui()
+
       promptValidate()
+      promptPostProcess()
     } finally {
       promptSavePropertiesFile(previousPropsFile)
     }
@@ -143,10 +159,26 @@ abstract class Config(private val forkExtension: ForkExtension, val name: String
   }
 
   private fun promptValidate() {
-    val invalidProps = properties.filter(Property::isInvalid).map { it.name }
+    val invalidProps = definedProperties.filter(Property::invalid).map { it.name }
     if (invalidProps.isNotEmpty()) {
-      throw ForkException("Fork cannot be performed, because of missing properties: $invalidProps."
+      throw ForkException("Fork cannot be performed, because of missing or invalid properties: $invalidProps."
         + " Specify them via properties file $propsFile or interactive mode.")
+    }
+  }
+
+  private fun promptPreProcess() {
+    definedProperties.forEach { property ->
+      if (property.type == PropertyType.PASSWORD) {
+        prompts[property.name]?.apply { value = fork.props.encryptor.decrypt(value) }
+      }
+    }
+  }
+
+  private fun promptPostProcess() {
+    definedProperties.forEach { property ->
+      if (property.type == PropertyType.PASSWORD) {
+         prompts[property.name]?.apply { value = fork.props.encryptor.encrypt(value) }
+      }
     }
   }
 
@@ -224,7 +256,7 @@ abstract class Config(private val forkExtension: ForkExtension, val name: String
 
   fun validate() {
     logger.info("Validating $this")
-    logger.debug("Effective properties: $props")
+    logger.debug("Effective properties: $promptedProperties")
     rules.forEach { it.validate() }
   }
 

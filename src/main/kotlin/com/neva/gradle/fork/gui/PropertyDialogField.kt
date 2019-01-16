@@ -1,19 +1,19 @@
 package com.neva.gradle.fork.gui
 
 import com.neva.gradle.fork.config.properties.Property
-import com.neva.gradle.fork.config.properties.Validator
+import com.neva.gradle.fork.config.properties.PropertyValidator
 import java.awt.Color
 import javax.swing.*
 
 class PropertyDialogField(
   private val property: Property,
+  private val dialog: JDialog,
   private val propField: JComponent,
-  private val validationMessageLabel: JLabel,
-  private val dialog: JDialog
+  private val validationMessageLabel: JLabel
 ) {
 
   init {
-    assignPropertyValue()
+    assignValue()
   }
 
   val name: String
@@ -22,8 +22,8 @@ class PropertyDialogField(
   val value: String
     get() = property.value
 
-  fun validateAndDisplayErrors(): Boolean {
-    assignPropertyValue()
+  fun validateAndDisplayErrors() {
+    assignValue()
     val result = property.validate()
     if (result.hasErrors()) {
       displayErrorState(result)
@@ -31,12 +31,14 @@ class PropertyDialogField(
       displayValidState()
     }
     dialog.pack()
-    return result.hasErrors()
   }
 
-  private fun assignPropertyValue() {
+  fun isInvalid() = property.validate().hasErrors()
+
+  fun assignValue() {
     when (propField) {
       is JCheckBox -> property.value = propField.isSelected.toString()
+      is JComboBox<*> -> property.value = propField.selectedItem.toString()
       is JTextField -> property.value = propField.text
     }
   }
@@ -49,7 +51,7 @@ class PropertyDialogField(
     propField.background = null
   }
 
-  private fun displayErrorState(result: Validator) {
+  private fun displayErrorState(result: PropertyValidator) {
     val errorMessage = "<html>${result.errors.joinToString(separator = "<br/>")}</html>"
     validationMessageLabel.apply {
       foreground = ERROR_TEXT_COLOR
@@ -59,7 +61,12 @@ class PropertyDialogField(
   }
 
   companion object {
-    val ERROR_TEXT_COLOR = Color(255, 80, 80)
-    val ERROR_FIELD_COLOR = Color(255, 221, 153)
+
+    val DESCRIPTION_TEXT_COLOR = Color(128, 128, 128)
+
+    val ERROR_TEXT_COLOR = Color(255, 0, 0)
+
+    val ERROR_FIELD_COLOR = Color(255, 240, 240)
+
   }
 }

@@ -47,38 +47,47 @@ class PropertyDialog(private val config: Config) {
     dialog.add(this, "span, wrap")
   }
 
-  private var fields: List<PropertyDialogField> = config.properties
-    .map { property ->
-      val label = JLabel(property.label)
-      dialog.add(label, "align label")
+  @Suppress("unchecked_cast")
+  private var fields: List<PropertyDialogField> = config.definedProperties.map { property ->
+    val label = JLabel(property.label)
+    dialog.add(label, "align label")
 
-      val field: JComponent = when (property.type) {
-        PropertyType.PASSWORD -> JPasswordField(property.value)
-        PropertyType.CHECKBOX -> JCheckBox("", property.value.toBoolean())
-        else -> JTextField(property.value)
-      }
-
-      if (field is JTextField) {
-        field.document.addDocumentListener(object : DocumentListener() {
-          override fun change(e: DocumentEvent) {
-            this@PropertyDialog.update()
-          }
-        })
-        field.addFocusListener(object : FocusListener() {
-          override fun focusGained(e: FocusEvent) {
-            fieldFocused = field
-            this@PropertyDialog.update()
-          }
-        })
-      }
-
-      dialog.add(field, "width 300::, wrap")
-
-      val validationMessage = JLabel()
-      dialog.add(validationMessage, "skip, wrap")
-
-      PropertyDialogField(property, field, validationMessage, dialog)
+    val field: JComponent = when (property.type) {
+      PropertyType.PASSWORD -> JPasswordField(property.value)
+      PropertyType.CHECKBOX -> JCheckBox("", property.value.toBoolean())
+      PropertyType.SELECT -> JComboBox((property.options as List<String>).toTypedArray()).apply { setSelectedItem(property.value) }
+      else -> JTextField(property.value)
     }
+
+    if (field is JTextField) {
+      field.document.addDocumentListener(object : DocumentListener() {
+        override fun change(e: DocumentEvent) {
+          this@PropertyDialog.update()
+        }
+      })
+      field.addFocusListener(object : FocusListener() {
+        override fun focusGained(e: FocusEvent) {
+          fieldFocused = field
+          this@PropertyDialog.update()
+        }
+      })
+    }
+
+    dialog.add(field, "width 300::, wrap")
+
+    val validationMessage = JLabel()
+    dialog.add(validationMessage, "skip, wrap")
+
+    if (property.description.isNotBlank()) {
+      val descriptionHtml = "<html>${property.description.replace("\n", "<br/>")}</html>"
+      val descriptionLabel = JLabel(descriptionHtml).apply {
+        foreground = PropertyDialogField.DESCRIPTION_TEXT_COLOR
+      }
+      dialog.add(descriptionLabel, "skip, wrap")
+    }
+
+    PropertyDialogField(property, dialog, field, validationMessage)
+  }
 
   private var closeButton = JButton().apply {
     text = "Execute"
@@ -110,13 +119,19 @@ class PropertyDialog(private val config: Config) {
 
   fun update() {
     val isFieldSelected = fieldFocused != null
+    validateAllFields()
     closeButton.isEnabled = valid
     pathButton.isEnabled = isFieldSelected
     dialog.isVisible = true
   }
 
+  private fun validateAllFields() {
+    fields.forEach(PropertyDialogField::assignValue)
+    fields.forEach(PropertyDialogField::validateAndDisplayErrors)
+  }
+
   private val valid: Boolean
-    get() = fields.filter(PropertyDialogField::validateAndDisplayErrors).isEmpty()
+    get() = fields.none(PropertyDialogField::isInvalid)
 
   fun centre() {
     val dimension = Toolkit.getDefaultToolkit().screenSize
