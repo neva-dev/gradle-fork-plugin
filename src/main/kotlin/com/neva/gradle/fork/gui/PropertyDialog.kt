@@ -119,13 +119,19 @@ class PropertyDialog(private val config: Config) {
 
   fun update() {
     val isFieldSelected = fieldFocused != null
+    validateAllFields()
     closeButton.isEnabled = valid
     pathButton.isEnabled = isFieldSelected
     dialog.isVisible = true
   }
 
+  private fun validateAllFields() {
+    fields.forEach(PropertyDialogField::assignValue)
+    fields.forEach(PropertyDialogField::validateAndDisplayErrors)
+  }
+
   private val valid: Boolean
-    get() = fields.filter(PropertyDialogField::validateAndDisplayErrors).isEmpty()
+    get() = fields.none(PropertyDialogField::isInvalid)
 
   fun centre() {
     val dimension = Toolkit.getDefaultToolkit().screenSize
