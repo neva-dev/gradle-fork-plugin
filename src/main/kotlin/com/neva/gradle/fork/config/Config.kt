@@ -107,10 +107,13 @@ abstract class Config(private val fork: ForkExtension, val name: String) {
 
     try {
       promptFillPropertiesFile(propsFile)
+      promptPreProcess()
+
       promptFillCommandLine()
       promptFillGui()
+
       promptValidate()
-      promptProcess()
+      promptPostProcess()
     } finally {
       promptSavePropertiesFile(previousPropsFile)
     }
@@ -163,7 +166,15 @@ abstract class Config(private val fork: ForkExtension, val name: String) {
     }
   }
 
-  private fun promptProcess() {
+  private fun promptPreProcess() {
+    definedProperties.forEach { property ->
+      if (property.type == PropertyType.PASSWORD) {
+        prompts[property.name]?.apply { value = fork.props.encryptor.decrypt(value) }
+      }
+    }
+  }
+
+  private fun promptPostProcess() {
     definedProperties.forEach { property ->
       if (property.type == PropertyType.PASSWORD) {
          prompts[property.name]?.apply { value = fork.props.encryptor.encrypt(value) }

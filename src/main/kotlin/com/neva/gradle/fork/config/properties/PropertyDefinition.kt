@@ -6,13 +6,7 @@ import javax.inject.Inject
 
 open class PropertyDefinition @Inject constructor(val name: String) {
 
-  init {
-    if (name.isBlank()) {
-      throw PropertyException("Name of property definition cannot be blank!")
-    }
-  }
-
-  var type: PropertyType = determineDefaultType()
+  var type: PropertyType = PropertyType.TEXT
 
   var options: Any? = null
 
@@ -25,6 +19,24 @@ open class PropertyDefinition @Inject constructor(val name: String) {
   var validator: PropertyValidator.() -> Unit = {
     if (required) {
       required()
+    }
+  }
+
+  init {
+    if (name.isBlank()) {
+      throw PropertyException("Name of property definition cannot be blank!")
+    }
+
+    when {
+      name.endsWith("password", true) -> password()
+      name.startsWith("enable", true) -> checkbox()
+      name.startsWith("disable", true) -> checkbox(true)
+      name.endsWith("enabled", true) -> checkbox()
+      name.endsWith("disabled", true) -> checkbox(true)
+      name.endsWith("path", true) -> path()
+      name.endsWith("url", true) -> url()
+      name.endsWith("uri", true) -> uri()
+      else -> text()
     }
   }
 
@@ -77,18 +89,6 @@ open class PropertyDefinition @Inject constructor(val name: String) {
     this.defaultValue = defaultValue
     type = PropertyType.URI
     validator = { required(); uri() }
-  }
-
-  private fun determineDefaultType() = when {
-    name.endsWith("password", true) -> PropertyType.PASSWORD
-    name.startsWith("enable", true) -> PropertyType.CHECKBOX
-    name.startsWith("disable", true) -> PropertyType.CHECKBOX
-    name.endsWith("enabled", true) -> PropertyType.CHECKBOX
-    name.endsWith("disabled", true) -> PropertyType.CHECKBOX
-    name.endsWith("path", true) -> PropertyType.PATH
-    name.endsWith("url", true) -> PropertyType.URL
-    name.endsWith("uri", true) -> PropertyType.URI
-    else -> PropertyType.TEXT
   }
 }
 
