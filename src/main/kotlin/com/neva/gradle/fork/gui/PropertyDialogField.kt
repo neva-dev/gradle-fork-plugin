@@ -22,7 +22,7 @@ class PropertyDialogField(
   val value: String
     get() = property.value
 
-  fun validateAndDisplayErrors(): Boolean {
+  fun validateAndDisplayErrors() {
     assignValue()
     val result = property.validate()
     if (result.hasErrors()) {
@@ -31,10 +31,11 @@ class PropertyDialogField(
       displayValidState()
     }
     dialog.pack()
-    return result.hasErrors()
   }
 
-  private fun assignValue() {
+  fun isInvalid() = property.validate().hasErrors()
+
+  fun assignValue() {
     when (propField) {
       is JCheckBox -> property.value = propField.isSelected.toString()
       is JComboBox<*> -> property.value = propField.selectedItem.toString()
