@@ -24,6 +24,7 @@ Newcomers of Gradle Build System very often complain about that in Gradle there 
    * [Sample build script](#sample-build-script)
    * [Defining and executing configurations](#defining-and-executing-configurations)
    * [Providing properties](#providing-properties)
+   * [Defining project properties](#defining-project-properties)
    * [Sample output](#sample-output)
 * [License](#license)
 
@@ -128,6 +129,42 @@ Properties can be provided by (order makes precedence):
     ```
   
 4. Mixed approach.
+
+### Defining project properties
+
+Configuring of project properties can be enhanced by providing properties definitions which can be used for property value validation, e.g.:
+```kotlin
+fork {
+    properties {
+        define("enableSomething") { checkbox(defaultValue = true) }
+        define("someUserName") { text(defaultValue = System.getProperty("user.name")) }
+        define("projectGroup") { text(defaultValue = "org.neva") }
+        define("someJvmOpts") {
+            optional()
+            text(defaultValue = "-server -Xmx1024m -XX:MaxPermSize=256M -Djava.awt.headless=true")
+            validator { if (!property.value.startsWith("-")) error("This is not a JVM option!") }
+        }
+    }
+}
+```
+
+#### Property definition
+Property definition can consists of:
+* type specification: `type = TYPE_NAME`
+  * there are five types available: `TEXT` x(default one), `CHECKBOX` (representing boolean), `PASSWORD`, `PATH` & `URL`.
+  * there is default convention of type inference using property name (case insensitive):
+    * ends with "password" -> `PASSWORD`
+    * starts with "enable", "disable" -> `CHECKBOX`
+    * ends with "enabled", "disabled" -> `CHECKBOX`
+    * ends with "url" -> `URL`
+    * ends with "path" -> `PATH`
+    * else -> `TEXT`
+* default value specification: `defaultValue = System.getProperty("user.name")`
+  * if no value would be provided for property `defaultValue` is used
+* declaring property as optional: `optional()`
+  * by default all properties are required
+* specifying custom validator: `validator = {if (!value.startsWith("-")) error("This is not a JVM option!")}`
+  * by default `URL` & `PATH` properties gets basic validation which can be overridden or suppressed: `validator = {}`
 
 ### Sample output
 

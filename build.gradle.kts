@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "com.neva.gradle"
-version = "2.0.1"
+version = "3.0.0"
 description = "Gradle Fork Plugin"
 defaultTasks = listOf("clean", "publishToMavenLocal")
 
@@ -24,6 +24,8 @@ dependencies {
     implementation("org.apache.commons:commons-lang3:3.4")
     implementation("commons-io:commons-io:2.4")
     implementation("commons-validator:commons-validator:1.6")
+    implementation("commons-codec:commons-codec:1.11")
+
     implementation("com.neva.commons:gitignore-file-filter:1.0.0")
     implementation("com.miglayout:miglayout:3.7.4")
     implementation("io.pebbletemplates:pebble:3.0.4")
@@ -44,6 +46,10 @@ gradlePlugin {
         create("fork") {
             id = "com.neva.fork"
             implementationClass = "com.neva.gradle.fork.ForkPlugin"
+        }
+        create("props") {
+            id = "com.neva.fork.props"
+            implementationClass = "com.neva.gradle.fork.PropsPlugin"
         }
     }
 }
