@@ -3,11 +3,11 @@ package com.neva.gradle.fork
 import com.neva.gradle.fork.encryption.Encryption
 import org.gradle.api.Project
 
-open class BaseExtension(val project: Project) {
+open class PropsExtension(private val project: Project) {
 
   internal val encryptor = Encryption.of(project)
 
-  fun property(name: String): String? {
+  fun get(name: String): String? {
     val value = project.findProperty(name)?.toString()
     if (value.isNullOrBlank()) {
       return value
@@ -18,7 +18,7 @@ open class BaseExtension(val project: Project) {
 
   companion object {
 
-    const val NAME = "fork"
+    const val NAME = "props"
 
   }
 

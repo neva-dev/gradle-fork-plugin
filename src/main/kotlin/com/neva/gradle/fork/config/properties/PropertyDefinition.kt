@@ -1,6 +1,7 @@
 package com.neva.gradle.fork.config.properties
 
 import org.gradle.api.Action
+import org.gradle.internal.Actions
 import javax.inject.Inject
 
 open class PropertyDefinition @Inject constructor(val name: String) {
@@ -11,29 +12,33 @@ open class PropertyDefinition @Inject constructor(val name: String) {
     }
   }
 
-  var required: Boolean = true
-
-  var defaultValue: String = ""
-
-  var description = ""
-
-  var validator: (Action<in PropertyValidator>)? = null
-
   var type: PropertyType = determineDefaultType()
 
   var options: Any? = null
+
+  var description = ""
+
+  var defaultValue: String = ""
+
+  var required = true
+
+  var validator: PropertyValidator.() -> Unit = {
+    if (required) {
+      notEmpty()
+    }
+  }
 
   fun optional() {
     required = false
   }
 
-  fun validator(validateAction: Action<in PropertyValidator>) {
-    validator = validateAction
+  fun validator(action: Action<in PropertyValidator>) {
+    validator = { Actions.with(this, action) }
   }
 
   fun checkbox(defaultValue: Boolean = false) {
-    type = PropertyType.CHECKBOX
     this.defaultValue = defaultValue.toString()
+    type = PropertyType.CHECKBOX
   }
 
   fun select(vararg options: String) = select(options.toList())
@@ -41,34 +46,37 @@ open class PropertyDefinition @Inject constructor(val name: String) {
   fun select(options: List<String>) = select(options, options.first())
 
   fun select(options: List<String>, defaultValue: String) {
-    type = PropertyType.SELECT
     this.defaultValue = defaultValue
     this.options = options
+    type = PropertyType.SELECT
   }
 
   fun password(defaultValue: String = "") {
-    type = PropertyType.PASSWORD
     this.defaultValue = defaultValue
+    type = PropertyType.PASSWORD
   }
 
   fun text(defaultValue: String = "") {
-    type = PropertyType.TEXT
     this.defaultValue = defaultValue
+    type = PropertyType.TEXT
   }
 
   fun path(defaultValue: String = "") {
-    type = PropertyType.PATH
     this.defaultValue = defaultValue
+    type = PropertyType.PATH
+    validator = { path() }
   }
 
   fun url(defaultValue: String = "") {
-    type = PropertyType.URL
     this.defaultValue = defaultValue
+    type = PropertyType.URL
+    validator = { url() }
   }
 
   fun uri(defaultValue: String = "") {
-    type = PropertyType.URI
     this.defaultValue = defaultValue
+    type = PropertyType.URI
+    validator = { uri() }
   }
 
   private fun determineDefaultType() = when {

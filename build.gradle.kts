@@ -47,9 +47,9 @@ gradlePlugin {
             id = "com.neva.fork"
             implementationClass = "com.neva.gradle.fork.ForkPlugin"
         }
-        create("base") {
-            id = "com.neva.fork.base"
-            implementationClass = "com.neva.gradle.fork.BasePlugin"
+        create("props") {
+            id = "com.neva.fork.props"
+            implementationClass = "com.neva.gradle.fork.PropsPlugin"
         }
     }
 }

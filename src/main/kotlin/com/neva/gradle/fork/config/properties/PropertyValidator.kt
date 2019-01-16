@@ -1,5 +1,10 @@
 package com.neva.gradle.fork.config.properties
 
+import java.net.MalformedURLException
+import java.net.URL
+import java.nio.file.InvalidPathException
+import java.nio.file.Paths
+
 class PropertyValidator(val property: Property) {
 
   val errors = mutableListOf<String>()
@@ -11,6 +16,18 @@ class PropertyValidator(val property: Property) {
   fun hasErrors() = errors.isNotEmpty()
 
   fun checkRegex(regex: String) = Regex(regex).matches(property.value)
+
+  fun notEmpty() {
+    if (property.value.isEmpty()) {
+      error("Value is required")
+    }
+  }
+
+  fun notBlank() {
+    if (property.value.isBlank()) {
+      error("Should not be blank")
+    }
+  }
 
   fun regex(regex: String) {
     if (!checkRegex(regex)) {
@@ -71,6 +88,34 @@ class PropertyValidator(val property: Property) {
     val otherValue = property.other(otherName).value
     if (otherValue.isNotEmpty() && property.value.contains(otherValue)) {
       error("Should not contain '$otherValue' ($otherName)")
+    }
+  }
+
+  fun uri() {
+    try {
+      URL(property.value)
+    } catch (urlException: MalformedURLException) {
+      try {
+        Paths.get(property.value)
+      } catch (pathException: InvalidPathException) {
+        error("Should be valid URI")
+      }
+    }
+  }
+
+  fun url() {
+    try {
+      URL(property.value)
+    } catch (e: MalformedURLException) {
+      error("Should be valid URL")
+    }
+  }
+
+  fun path() {
+    try {
+      Paths.get(property.value)
+    } catch (e: InvalidPathException) {
+      error("Should be valid path")
     }
   }
 }

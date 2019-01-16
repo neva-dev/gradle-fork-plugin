@@ -48,7 +48,7 @@ class PropertyDialog(private val config: Config) {
   }
 
   @Suppress("unchecked_cast")
-  private var fields: List<PropertyDialogField> = config.properties.map { property ->
+  private var fields: List<PropertyDialogField> = config.definedProperties.map { property ->
     val label = JLabel(property.label)
     dialog.add(label, "align label")
 

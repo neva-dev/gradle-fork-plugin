@@ -11,7 +11,7 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.util.ConfigureUtil
 
-open class ForkExtension(project: Project): BaseExtension(project) {
+open class ForkExtension(val project: Project, val props: PropsExtension) {
 
   @Input
   val configs = mutableListOf<Config>()
