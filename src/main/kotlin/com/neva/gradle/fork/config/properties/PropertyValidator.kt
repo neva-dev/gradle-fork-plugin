@@ -17,6 +17,8 @@ class PropertyValidator(val property: Property) {
 
   fun checkRegex(regex: String) = Regex(regex).matches(property.value)
 
+  fun required() = notEmpty()
+
   fun notEmpty() {
     if (property.value.isEmpty()) {
       error("Value is required")

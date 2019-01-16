@@ -24,7 +24,7 @@ open class PropertyDefinition @Inject constructor(val name: String) {
 
   var validator: PropertyValidator.() -> Unit = {
     if (required) {
-      notEmpty()
+      required()
     }
   }
 
@@ -64,19 +64,19 @@ open class PropertyDefinition @Inject constructor(val name: String) {
   fun path(defaultValue: String = "") {
     this.defaultValue = defaultValue
     type = PropertyType.PATH
-    validator = { path() }
+    validator = { required(); path() }
   }
 
   fun url(defaultValue: String = "") {
     this.defaultValue = defaultValue
     type = PropertyType.URL
-    validator = { url() }
+    validator = { required(); url() }
   }
 
   fun uri(defaultValue: String = "") {
     this.defaultValue = defaultValue
     type = PropertyType.URI
-    validator = { uri() }
+    validator = { required(); uri() }
   }
 
   private fun determineDefaultType() = when {
