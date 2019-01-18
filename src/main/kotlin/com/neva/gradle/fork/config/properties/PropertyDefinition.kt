@@ -16,6 +16,8 @@ open class PropertyDefinition @Inject constructor(val name: String) {
 
   var required = true
 
+  var controller: Property.() -> Unit = {}
+
   var validator: PropertyValidator.() -> Unit = {
     if (required) {
       required()
@@ -30,9 +32,9 @@ open class PropertyDefinition @Inject constructor(val name: String) {
     when {
       name.endsWith("password", true) -> password()
       name.startsWith("enable", true) -> checkbox()
-      name.startsWith("disable", true) -> checkbox(true)
+      name.startsWith("disable", true) -> checkbox()
       name.endsWith("enabled", true) -> checkbox()
-      name.endsWith("disabled", true) -> checkbox(true)
+      name.endsWith("disabled", true) -> checkbox()
       name.endsWith("path", true) -> path()
       name.endsWith("url", true) -> url()
       name.endsWith("uri", true) -> uri()
@@ -42,6 +44,10 @@ open class PropertyDefinition @Inject constructor(val name: String) {
 
   fun optional() {
     required = false
+  }
+
+  fun controller(action: Action<in Property>) {
+    controller = { Actions.with(this, action) }
   }
 
   fun validator(action: Action<in PropertyValidator>) {

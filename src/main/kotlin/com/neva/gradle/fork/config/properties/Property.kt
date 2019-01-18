@@ -1,8 +1,8 @@
 package com.neva.gradle.fork.config.properties
 
 class Property(
-  private val others: Map<String, Property>,
-  private val definition: PropertyDefinition,
+  val context: PropertyContext,
+  val definition: PropertyDefinition,
   private val prompt: PropertyPrompt
 ) {
 
@@ -31,9 +31,27 @@ class Property(
   val invalid: Boolean
     get() = validate().hasErrors()
 
-  fun validate(): PropertyValidator = PropertyValidator(this).apply(definition.validator)
+  var enabled: Boolean = true
 
-  fun other(name: String): Property {
-    return others[name] ?: throw PropertyException("Property named '$name' is not defined.")
+  fun control() = definition.controller(this)
+
+  fun validate(): PropertyValidator = if (enabled) {
+    PropertyValidator(this).apply(definition.validator)
+  } else {
+    PropertyValidator(this)
+  }
+
+  fun toggle() {
+    enabled = !enabled
+  }
+
+  fun toggle(vararg otherNames: String) = toggle(otherNames.toList())
+
+  fun toggle(otherNames: List<String>) = toggle(value.toBoolean(), otherNames)
+
+  fun toggle(flag: Boolean, vararg names: String) = toggle(flag, names.toList())
+
+  fun toggle(flag: Boolean, otherNames: List<String>) {
+    otherNames.forEach { pattern -> context.find(pattern).forEach { it.enabled = flag } }
   }
 }
