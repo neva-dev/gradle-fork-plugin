@@ -15,7 +15,7 @@ class PropertyValidator(val property: Property) {
 
   fun hasErrors() = errors.isNotEmpty()
 
-  fun checkRegex(regex: String) = Regex(regex).matches(property.value)
+  // basic validators
 
   fun required() = notEmpty()
 
@@ -86,12 +86,7 @@ class PropertyValidator(val property: Property) {
     }
   }
 
-  fun notContains(otherName: String) {
-    val otherValue = property.other(otherName).value
-    if (otherValue.isNotEmpty() && property.value.contains(otherValue)) {
-      error("Should not contain '$otherValue' ($otherName)")
-    }
-  }
+  // more strict validators
 
   fun uri() {
     try {
@@ -120,4 +115,53 @@ class PropertyValidator(val property: Property) {
       error("Should be valid path")
     }
   }
+
+  // cross property validators
+
+  fun contains(otherName: String, ignoreCase: Boolean = true) {
+    val otherValue = property.context.get(otherName).value
+    if (otherValue.isNotEmpty() && !property.value.contains(otherValue, ignoreCase)) {
+      error("Should contain '$otherValue' ($otherName)")
+    }
+  }
+
+  fun notContains(otherName: String, ignoreCase: Boolean = true) {
+    val otherValue = property.context.get(otherName).value
+    if (otherValue.isNotEmpty() && property.value.contains(otherValue, ignoreCase)) {
+      error("Should not contain '$otherValue' ($otherName)")
+    }
+  }
+
+  fun startsWith(otherName: String, ignoreCase: Boolean = true) {
+    val otherValue = property.context.get(otherName).value
+    if (otherValue.isNotEmpty() && !property.value.startsWith(otherValue, ignoreCase)) {
+      error("Should start with '$otherValue' ($otherName)")
+    }
+  }
+
+  fun notStartsWith(otherName: String, ignoreCase: Boolean = true) {
+    val otherValue = property.context.get(otherName).value
+    if (otherValue.isNotEmpty() && property.value.startsWith(otherValue, ignoreCase)) {
+      error("Should not start with '$otherValue' ($otherName)")
+    }
+  }
+
+  fun endsWith(otherName: String, ignoreCase: Boolean = true) {
+    val otherValue = property.context.get(otherName).value
+    if (otherValue.isNotEmpty() && !property.value.endsWith(otherValue, ignoreCase)) {
+      error("Should end with '$otherValue' ($otherName)")
+    }
+  }
+
+  fun notEndsWith(otherName: String, ignoreCase: Boolean = true) {
+    val otherValue = property.context.get(otherName).value
+    if (otherValue.isNotEmpty() && property.value.endsWith(otherValue, ignoreCase)) {
+      error("Should not end with '$otherValue' ($otherName)")
+    }
+  }
+
+  // utility methods
+
+  fun checkRegex(regex: String) = Regex(regex).matches(property.value)
+
 }

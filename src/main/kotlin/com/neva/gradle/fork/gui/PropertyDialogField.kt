@@ -22,6 +22,8 @@ class PropertyDialogField(
   val value: String
     get() = property.value
 
+  fun control() = property.control()
+
   fun validateAndDisplayErrors() {
     assignValue()
     val result = property.validate()
@@ -30,6 +32,7 @@ class PropertyDialogField(
     } else {
       displayValidState()
     }
+    propField.isEnabled = property.enabled
     dialog.pack()
   }
 

@@ -133,6 +133,7 @@ class PropertyDialog(private val config: Config) {
 
   private fun validateAllFields() {
     fields.forEach(PropertyDialogField::assignValue)
+    fields.forEach(PropertyDialogField::control)
     fields.forEach(PropertyDialogField::validateAndDisplayErrors)
   }
 

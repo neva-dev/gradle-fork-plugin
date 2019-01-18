@@ -9,7 +9,7 @@ class PropertyDefinitions(val fork: ForkExtension) {
   private val definitions = mutableMapOf<String, PropertyDefinition>()
 
   fun define(name: String, action: Action<in PropertyDefinition>) {
-      definitions += (name to Actions.with(fork.project.objects.newInstance(PropertyDefinition::class.java, name), action))
+    definitions += (name to Actions.with(fork.project.objects.newInstance(PropertyDefinition::class.java, name), action))
   }
 
   fun define(definitions: Map<String, PropertyDefinition.() -> Unit>) {

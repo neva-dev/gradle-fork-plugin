@@ -34,6 +34,13 @@ dependencies {
 }
 
 tasks {
+    register<Jar>("sourcesJar") {
+        classifier = "sources"
+        dependsOn("classes")
+        from(sourceSets["main"].allSource)
+    }
+    named("build") { dependsOn("sourcesJar") }
+    named("publishToMavenLocal") { dependsOn("sourcesJar") }
     withType<KotlinCompile>().configureEach {
         kotlinOptions {
             jvmTarget = "1.8"
@@ -58,6 +65,7 @@ publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
+            artifact(tasks["sourcesJar"])
         }
     }
 }

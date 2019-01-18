@@ -2,14 +2,12 @@ package com.neva.gradle.fork.config
 
 import com.neva.gradle.fork.ForkException
 import com.neva.gradle.fork.ForkExtension
-import com.neva.gradle.fork.config.properties.Property
-import com.neva.gradle.fork.config.properties.PropertyDefinition
-import com.neva.gradle.fork.config.properties.PropertyPrompt
-import com.neva.gradle.fork.config.properties.PropertyType
+import com.neva.gradle.fork.config.properties.*
 import com.neva.gradle.fork.config.rule.*
 import com.neva.gradle.fork.gui.PropertyDialog
 import com.neva.gradle.fork.template.TemplateEngine
 import groovy.lang.Closure
+import org.gradle.api.Action
 import org.gradle.api.file.FileTree
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.GFileUtils
@@ -18,7 +16,7 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.*
 
-abstract class Config(private val fork: ForkExtension, val name: String) {
+abstract class Config(val fork: ForkExtension, val name: String) {
 
   val project = fork.project
 
@@ -31,9 +29,11 @@ abstract class Config(private val fork: ForkExtension, val name: String) {
   val definedProperties: List<Property>
     get() {
       val others = mutableMapOf<String, Property>()
+      val context = PropertyContext(others)
+
       prompts.forEach { name, prompt ->
         val definition = fork.propertyDefinitions.get(prompt.name) ?: PropertyDefinition(prompt.name)
-        val property = Property(others, definition, prompt)
+        val property = Property(context, definition, prompt)
 
         others[name] = property
       }
@@ -241,11 +241,11 @@ abstract class Config(private val fork: ForkExtension, val name: String) {
     rule(CopyTemplateFilesRule(this, files))
   }
 
-  fun action(executor: Closure<*>) {
-    rule(ActionRule(this, Closure.IDENTITY, executor))
+  fun action(executor: Action<in ActionRule>) {
+    rule(ActionRule(this, Action {}, executor))
   }
 
-  fun action(validator: Closure<*>, executor: Closure<*>) {
+  fun action(validator: Action<in ActionRule>, executor: Action<in ActionRule>) {
     rule(ActionRule(this, validator, executor))
   }
 
