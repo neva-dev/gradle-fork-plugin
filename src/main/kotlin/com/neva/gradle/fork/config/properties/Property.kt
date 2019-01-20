@@ -1,9 +1,9 @@
 package com.neva.gradle.fork.config.properties
 
 class Property(
-  val context: PropertyContext,
   val definition: PropertyDefinition,
-  private val prompt: PropertyPrompt
+  private val prompt: PropertyPrompt,
+  private val context: PropertyContext
 ) {
 
   val name: String
@@ -33,12 +33,16 @@ class Property(
 
   var enabled: Boolean = true
 
+  var required: Boolean = definition.required
+
   fun control() = definition.controller(this)
 
-  fun validate(): PropertyValidator = if (enabled) {
-    PropertyValidator(this).apply(definition.validator)
-  } else {
-    PropertyValidator(this)
+  fun validate(): PropertyValidator {
+    return PropertyValidator(this).apply {
+      if (enabled && (required || (!required && value.isNotEmpty()))) {
+        definition.validator(this)
+      }
+    }
   }
 
   fun toggle() {
@@ -52,6 +56,10 @@ class Property(
   fun toggle(flag: Boolean, vararg names: String) = toggle(flag, names.toList())
 
   fun toggle(flag: Boolean, otherNames: List<String>) {
-    otherNames.forEach { pattern -> context.find(pattern).forEach { it.enabled = flag } }
+    otherNames.forEach { pattern -> others(pattern).forEach { property -> property.enabled = flag } }
   }
+
+  fun other(name: String) = context.get(name)
+
+  fun others(pattern: String) = context.find(pattern)
 }

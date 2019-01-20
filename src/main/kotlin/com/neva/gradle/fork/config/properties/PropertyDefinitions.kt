@@ -18,4 +18,6 @@ class PropertyDefinitions(val fork: ForkExtension) {
 
   fun get(name: String): PropertyDefinition? = definitions[name]
 
+  fun indexOf(name: String) = definitions.keys.indexOf(name)
+
 }

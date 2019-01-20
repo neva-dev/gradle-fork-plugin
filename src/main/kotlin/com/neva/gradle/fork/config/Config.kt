@@ -33,12 +33,12 @@ abstract class Config(val fork: ForkExtension, val name: String) {
 
       prompts.forEach { name, prompt ->
         val definition = fork.propertyDefinitions.get(prompt.name) ?: PropertyDefinition(prompt.name)
-        val property = Property(context, definition, prompt)
+        val property = Property(definition, prompt, context)
 
         others[name] = property
       }
 
-      return others.values.toList()
+      return others.values.sortedBy { p -> fork.propertyDefinitions.indexOf(p.name) }.toList()
     }
 
   abstract val sourcePath: String
@@ -135,17 +135,21 @@ abstract class Config(val fork: ForkExtension, val name: String) {
       return
     }
 
-    val fileProps = Properties()
-    fileProps.load(FileInputStream(file))
-    fileProps.forEach { p, v -> prompts[p.toString()]?.value = v.toString() }
+    FileInputStream(file).use { input ->
+      val fileProps = Properties()
+      fileProps.load(input)
+      fileProps.forEach { p, v -> prompts[p.toString()]?.value = v.toString() }
+    }
   }
 
   private fun promptSavePropertiesFile(file: File) {
     GFileUtils.mkdirs(file.parentFile)
 
-    val props = Properties()
-    prompts.values.forEach { prompt -> props[prompt.name] = prompt.valueOrDefault }
-    props.store(FileOutputStream(file), null)
+    FileOutputStream(file).use { output ->
+      val props = Properties()
+      prompts.values.forEach { prompt -> props[prompt.name] = prompt.valueOrDefault }
+      props.store(output, null)
+    }
   }
 
   private fun promptFillGui() {
