@@ -9,7 +9,9 @@ class PropertyDialogField(
   private val property: Property,
   private val dialog: JDialog,
   private val propField: JComponent,
-  private val validationMessageLabel: JLabel
+  private val label: JLabel,
+  private val validationMessageLabel: JLabel,
+  private val descriptionLabel: JLabel
 ) {
 
   init {
@@ -23,6 +25,20 @@ class PropertyDialogField(
     get() = property.value
 
   fun control() = property.control()
+  
+  fun toggle(flag: Boolean) {
+    if (flag) {
+      propField.isVisible = true
+      label.isVisible = true
+      validationMessageLabel.isVisible = true
+      descriptionLabel.isVisible = true
+    } else {
+      propField.isVisible = false
+      label.isVisible = false
+      validationMessageLabel.isVisible = false
+      descriptionLabel.isVisible = false
+    }
+  }
 
   fun validateAndDisplayErrors() {
     assignValue()
@@ -32,7 +48,7 @@ class PropertyDialogField(
     } else {
       displayValidState()
     }
-    propField.isEnabled = property.enabled
+    toggle(property.enabled)
     dialog.pack()
   }
 

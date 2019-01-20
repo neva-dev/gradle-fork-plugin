@@ -84,15 +84,13 @@ class PropertyDialog(private val config: Config) {
     val validationMessage = JLabel()
     dialog.add(validationMessage, "skip, wrap")
 
-    if (property.description.isNotBlank()) {
-      val descriptionHtml = "<html>${property.description.replace("\n", "<br/>")}</html>"
-      val descriptionLabel = JLabel(descriptionHtml).apply {
-        foreground = PropertyDialogField.DESCRIPTION_TEXT_COLOR
-      }
-      dialog.add(descriptionLabel, "skip, wrap")
+    val descriptionHtml = "<html>${property.description.replace("\n", "<br/>")}</html>"
+    val descriptionLabel = JLabel(descriptionHtml).apply {
+      foreground = PropertyDialogField.DESCRIPTION_TEXT_COLOR
     }
+    dialog.add(descriptionLabel, "skip, wrap")
 
-    PropertyDialogField(property, dialog, field, validationMessage)
+    PropertyDialogField(property, dialog, field, label, validationMessage, descriptionLabel)
   }
 
   private var closeButton = JButton().apply {
