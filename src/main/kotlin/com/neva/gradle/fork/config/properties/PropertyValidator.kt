@@ -15,13 +15,11 @@ class PropertyValidator(val property: Property) {
 
   fun hasErrors() = errors.isNotEmpty()
 
-  fun checkRegex(regex: String) = Regex(regex).matches(property.value)
-
-  fun required() = notEmpty()
+  // basic validators
 
   fun notEmpty() {
     if (property.value.isEmpty()) {
-      error("Value is required")
+      error("Should not be empty")
     }
   }
 
@@ -86,38 +84,92 @@ class PropertyValidator(val property: Property) {
     }
   }
 
-  fun notContains(otherName: String) {
-    val otherValue = property.other(otherName).value
-    if (otherValue.isNotEmpty() && property.value.contains(otherValue)) {
-      error("Should not contain '$otherValue' ($otherName)")
-    }
-  }
+  // more strict validators
 
   fun uri() {
-    try {
-      URL(property.value)
-    } catch (urlException: MalformedURLException) {
-      try {
-        Paths.get(property.value)
-      } catch (pathException: InvalidPathException) {
-        error("Should be valid URI")
+    if (!checkUrl()) {
+      if (!checkPath()) {
+        error("Should be valid uri")
       }
     }
   }
 
   fun url() {
-    try {
-      URL(property.value)
-    } catch (e: MalformedURLException) {
-      error("Should be valid URL")
+    if (!checkUrl()) {
+      error("Should be valid url")
     }
   }
 
   fun path() {
-    try {
-      Paths.get(property.value)
-    } catch (e: InvalidPathException) {
+    if (!checkPath()) {
       error("Should be valid path")
     }
   }
+
+  // cross property validators
+
+  fun contains(otherName: String, ignoreCase: Boolean = true) {
+    val otherValue = property.other(otherName).value
+    if (otherValue.isNotEmpty() && !property.value.contains(otherValue, ignoreCase)) {
+      error("Should contain '$otherValue' ($otherName)")
+    }
+  }
+
+  fun notContains(otherName: String, ignoreCase: Boolean = true) {
+    val otherValue = property.other(otherName).value
+    if (otherValue.isNotEmpty() && property.value.contains(otherValue, ignoreCase)) {
+      error("Should not contain '$otherValue' ($otherName)")
+    }
+  }
+
+  fun startsWith(otherName: String, ignoreCase: Boolean = true) {
+    val otherValue = property.other(otherName).value
+    if (otherValue.isNotEmpty() && !property.value.startsWith(otherValue, ignoreCase)) {
+      error("Should start with '$otherValue' ($otherName)")
+    }
+  }
+
+  fun notStartsWith(otherName: String, ignoreCase: Boolean = true) {
+    val otherValue = property.other(otherName).value
+    if (otherValue.isNotEmpty() && property.value.startsWith(otherValue, ignoreCase)) {
+      error("Should not start with '$otherValue' ($otherName)")
+    }
+  }
+
+  fun endsWith(otherName: String, ignoreCase: Boolean = true) {
+    val otherValue = property.other(otherName).value
+    if (otherValue.isNotEmpty() && !property.value.endsWith(otherValue, ignoreCase)) {
+      error("Should end with '$otherValue' ($otherName)")
+    }
+  }
+
+  fun notEndsWith(otherName: String, ignoreCase: Boolean = true) {
+    val otherValue = property.other(otherName).value
+    if (otherValue.isNotEmpty() && property.value.endsWith(otherValue, ignoreCase)) {
+      error("Should not end with '$otherValue' ($otherName)")
+    }
+  }
+
+  // utility methods
+  
+  fun checkRegex(regex: String, value: String = property.value) = Regex(regex).matches(value)
+
+  fun checkTrimmingSpaces(value: String = property.value): Boolean {
+    return value == value.trim()
+  }
+
+  fun checkUrl(value: String = property.value) = checkTrimmingSpaces() && try {
+    URL(value)
+    true
+  } catch (e: MalformedURLException) {
+    false
+  }
+
+  fun checkPath(value: String = property.value) = checkTrimmingSpaces() && try {
+    Paths.get(value)
+    true
+  } catch (e: InvalidPathException) {
+    false
+  }
+
 }

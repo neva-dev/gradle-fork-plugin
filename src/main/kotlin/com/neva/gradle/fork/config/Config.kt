@@ -2,14 +2,12 @@ package com.neva.gradle.fork.config
 
 import com.neva.gradle.fork.ForkException
 import com.neva.gradle.fork.ForkExtension
-import com.neva.gradle.fork.config.properties.Property
-import com.neva.gradle.fork.config.properties.PropertyDefinition
-import com.neva.gradle.fork.config.properties.PropertyPrompt
-import com.neva.gradle.fork.config.properties.PropertyType
+import com.neva.gradle.fork.config.properties.*
 import com.neva.gradle.fork.config.rule.*
 import com.neva.gradle.fork.gui.PropertyDialog
 import com.neva.gradle.fork.template.TemplateEngine
 import groovy.lang.Closure
+import org.gradle.api.Action
 import org.gradle.api.file.FileTree
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.GFileUtils
@@ -18,7 +16,10 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.*
 
-abstract class Config(private val fork: ForkExtension, val name: String) {
+/**
+ * Represents set of rules that are using properties to customize files (rename files / dirs, update content etc).
+ */
+abstract class Config(val fork: ForkExtension, val name: String) {
 
   val project = fork.project
 
@@ -28,18 +29,7 @@ abstract class Config(private val fork: ForkExtension, val name: String) {
 
   private val promptedProperties by lazy { promptFill() }
 
-  val definedProperties: List<Property>
-    get() {
-      val others = mutableMapOf<String, Property>()
-      prompts.forEach { name, prompt ->
-        val definition = fork.propertyDefinitions.get(prompt.name) ?: PropertyDefinition(prompt.name)
-        val property = Property(others, definition, prompt)
-
-        others[name] = property
-      }
-
-      return others.values.toList()
-    }
+  val definedProperties: List<Property> by lazy { propsDefine() }
 
   abstract val sourcePath: String
 
@@ -80,14 +70,14 @@ abstract class Config(private val fork: ForkExtension, val name: String) {
     return if (!value.isBlank()) value.toBoolean() else true
   }
 
-  fun promptProp(prop: String, defaultProvider: () -> String): () -> String {
+  fun promptProp(prop: String, defaultProvider: () -> String?): () -> String {
     prompts[prop] = PropertyPrompt(prop, defaultProvider)
 
     return { promptedProperties[prop] ?: throw ForkException("Fork prompt property '$prop' not bound.") }
   }
 
   fun promptProp(prop: String): () -> String {
-    return promptProp(prop)
+    return promptProp(prop) { null }
   }
 
   fun promptTemplate(template: String): () -> String {
@@ -100,6 +90,20 @@ abstract class Config(private val fork: ForkExtension, val name: String) {
 
   fun renderTemplate(template: String): String {
     return templateEngine.render(template, promptedProperties)
+  }
+
+  private fun propsDefine(): List<Property> {
+    val others = mutableMapOf<String, Property>()
+    val context = PropertyContext(others)
+
+    prompts.forEach { name, prompt ->
+      val definition = fork.propertyDefinitions.get(prompt.name) ?: PropertyDefinition(prompt.name)
+      val property = Property(definition, prompt, context)
+
+      others[name] = property
+    }
+
+    return others.values.sortedBy { p -> fork.propertyDefinitions.indexOf(p.name) }.toList()
   }
 
   private fun promptFill(): Map<String, String?> {
@@ -135,17 +139,21 @@ abstract class Config(private val fork: ForkExtension, val name: String) {
       return
     }
 
-    val fileProps = Properties()
-    fileProps.load(FileInputStream(file))
-    fileProps.forEach { p, v -> prompts[p.toString()]?.value = v.toString() }
+    FileInputStream(file).use { input ->
+      val fileProps = Properties()
+      fileProps.load(input)
+      fileProps.forEach { p, v -> prompts[p.toString()]?.value = v.toString() }
+    }
   }
 
   private fun promptSavePropertiesFile(file: File) {
     GFileUtils.mkdirs(file.parentFile)
 
-    val props = Properties()
-    prompts.values.forEach { prompt -> props[prompt.name] = prompt.valueOrDefault }
-    props.store(FileOutputStream(file), null)
+    FileOutputStream(file).use { output ->
+      val props = Properties()
+      prompts.values.forEach { prompt -> props[prompt.name] = prompt.valueOrDefault }
+      props.store(output, null)
+    }
   }
 
   private fun promptFillGui() {
@@ -241,11 +249,11 @@ abstract class Config(private val fork: ForkExtension, val name: String) {
     rule(CopyTemplateFilesRule(this, files))
   }
 
-  fun action(executor: Closure<*>) {
-    rule(ActionRule(this, Closure.IDENTITY, executor))
+  fun action(executor: Action<in ActionRule>) {
+    rule(ActionRule(this, Action {}, executor))
   }
 
-  fun action(validator: Closure<*>, executor: Closure<*>) {
+  fun action(validator: Action<in ActionRule>, executor: Action<in ActionRule>) {
     rule(ActionRule(this, validator, executor))
   }
 
@@ -266,7 +274,7 @@ abstract class Config(private val fork: ForkExtension, val name: String) {
   }
 
   override fun toString(): String {
-    return "Config(name=$name)"
+    return "Config(name='$name')"
   }
 
   companion object {

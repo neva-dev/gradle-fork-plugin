@@ -12,13 +12,16 @@ class CopyTemplateFilesRule(config: Config, private val files: Map<String, Strin
     registerPromptsForTemplateFiles()
   }
 
+  private fun findTemplateFile(templateName: String): File {
+    val pebFile = File(config.templateDir, "$templateName.peb")
+    val regularFile = File(config.templateDir, templateName)
+    return listOf(pebFile, regularFile).firstOrNull { it.exists() }
+      ?: throw ForkException("Fork template file does not exist: $pebFile")
+  }
+
   private fun registerPromptsForTemplateFiles() {
     files.keys.forEach { templateName ->
-      val templateFile = File(config.templateDir, templateName)
-      if (!templateFile.exists()) {
-        throw ForkException("Fork template file does not exist: $templateFile")
-      }
-
+      val templateFile = findTemplateFile(templateName)
       val template = FileHandler(config, templateFile).read()
 
       config.promptTemplate(template)
@@ -31,7 +34,7 @@ class CopyTemplateFilesRule(config: Config, private val files: Map<String, Strin
 
   private fun copyAndExpandTemplateFiles() {
     files.forEach { templateName, targetName ->
-      val templateFile = File(config.templateDir, templateName)
+      val templateFile = findTemplateFile(templateName)
       val targetFile = File(config.targetDir, targetName)
 
       FileHandler(config, templateFile).copy(targetFile).perform()

@@ -4,9 +4,7 @@ import com.neva.gradle.fork.config.Config
 import com.neva.gradle.fork.config.properties.PropertyType
 import net.miginfocom.swing.MigLayout
 import java.awt.Toolkit
-import java.awt.event.FocusEvent
-import java.awt.event.WindowAdapter
-import java.awt.event.WindowEvent
+import java.awt.event.*
 import javax.swing.*
 import javax.swing.event.DocumentEvent
 
@@ -59,18 +57,26 @@ class PropertyDialog(private val config: Config) {
       else -> JTextField(property.value)
     }
 
-    if (field is JTextField) {
-      field.document.addDocumentListener(object : DocumentListener() {
-        override fun change(e: DocumentEvent) {
-          this@PropertyDialog.update()
-        }
-      })
-      field.addFocusListener(object : FocusListener() {
-        override fun focusGained(e: FocusEvent) {
-          fieldFocused = field
-          this@PropertyDialog.update()
-        }
-      })
+    when (field) {
+      is JTextField -> {
+        field.document.addDocumentListener(object : DocumentListener() {
+          override fun change(e: DocumentEvent) {
+            this@PropertyDialog.update()
+          }
+        })
+        field.addFocusListener(object : FocusListener() {
+          override fun focusGained(e: FocusEvent) {
+            fieldFocused = field
+            this@PropertyDialog.update()
+          }
+        })
+      }
+      is JCheckBox -> {
+        field.addItemListener(ItemListener { this@PropertyDialog.update() })
+      }
+      is JComboBox<*> -> {
+        field.addActionListener(ActionListener { this@PropertyDialog.update() })
+      }
     }
 
     dialog.add(field, "width 300::, wrap")
@@ -127,6 +133,7 @@ class PropertyDialog(private val config: Config) {
 
   private fun validateAllFields() {
     fields.forEach(PropertyDialogField::assignValue)
+    fields.forEach(PropertyDialogField::control)
     fields.forEach(PropertyDialogField::validateAndDisplayErrors)
   }
 

@@ -1,9 +1,13 @@
 package com.neva.gradle.fork.config.properties
 
+/**
+ * Represents prompted property bound with its definition.
+ * Can interact with other properties using common context.
+ */
 class Property(
-  private val others: Map<String, Property>,
-  private val definition: PropertyDefinition,
-  private val prompt: PropertyPrompt
+  val definition: PropertyDefinition,
+  private val prompt: PropertyPrompt,
+  private val context: PropertyContext
 ) {
 
   val name: String
@@ -31,9 +35,44 @@ class Property(
   val invalid: Boolean
     get() = validate().hasErrors()
 
-  fun validate(): PropertyValidator = PropertyValidator(this).apply(definition.validator)
+  var enabled: Boolean = true
 
-  fun other(name: String): Property {
-    return others[name] ?: throw PropertyException("Property named '$name' is not defined.")
+  var required: Boolean = definition.required
+
+  fun control() = definition.controller(this)
+
+  fun validate(): PropertyValidator {
+    return PropertyValidator(this).apply {
+      if (enabled && (required || (!required && value.isNotEmpty()))) {
+        definition.validator(this)
+      }
+    }
+  }
+
+  fun toggle() {
+    enabled = !enabled
+  }
+
+  fun toggle(vararg names: String) = toggle(names.toList())
+
+  fun toggle(names: List<String>) = toggle(value.toBoolean(), names)
+
+  fun toggle(flag: Boolean, vararg names: String) = toggle(flag, names.toList())
+
+  fun toggle(flag: Boolean, patterns: List<String>) {
+    for (pattern in patterns) {
+      val others = others(pattern)
+      for (property in others) {
+        property.enabled = flag
+      }
+    }
+  }
+
+  fun other(name: String) = context.get(name)
+
+  fun others(pattern: String) = context.find(pattern)
+
+  override fun toString(): String {
+    return "Property(name=$name, type=$type, value=$value)"
   }
 }

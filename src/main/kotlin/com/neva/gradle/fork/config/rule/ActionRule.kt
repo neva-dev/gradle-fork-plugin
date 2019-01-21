@@ -3,21 +3,21 @@ package com.neva.gradle.fork.config.rule
 import com.neva.gradle.fork.ForkException
 import com.neva.gradle.fork.config.AbstractRule
 import com.neva.gradle.fork.config.Config
-import groovy.lang.Closure
-import org.gradle.util.ConfigureUtil
+import org.gradle.api.Action
+import org.gradle.internal.Actions
 
 class ActionRule(
   config: Config,
-  private val validator: Closure<*>,
-  private val executor: Closure<*>
+  private val validator: Action<in ActionRule>,
+  private val executor: Action<in ActionRule>
 ) : AbstractRule(config) {
 
   override fun validate() {
-    ConfigureUtil.configure(validator, this)
+    Actions.with(this, validator)
   }
 
   override fun execute() {
-    ConfigureUtil.configure(executor, this)
+    Actions.with(this, executor)
   }
 
   fun fail(message: String) {
