@@ -4,6 +4,9 @@ import org.gradle.api.Action
 import org.gradle.internal.Actions
 import javax.inject.Inject
 
+/**
+ * Represents rich property definition (adds extra information to pure prompt like type, description, validator etc).
+ */
 open class PropertyDefinition @Inject constructor(val name: String) {
 
   var type: PropertyType = PropertyType.TEXT

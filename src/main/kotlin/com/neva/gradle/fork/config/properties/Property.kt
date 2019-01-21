@@ -1,5 +1,9 @@
 package com.neva.gradle.fork.config.properties
 
+/**
+ * Represents prompted property bound with its definition.
+ * Can interact with other properties using common context.
+ */
 class Property(
   val definition: PropertyDefinition,
   private val prompt: PropertyPrompt,
@@ -49,17 +53,26 @@ class Property(
     enabled = !enabled
   }
 
-  fun toggle(vararg otherNames: String) = toggle(otherNames.toList())
+  fun toggle(vararg names: String) = toggle(names.toList())
 
-  fun toggle(otherNames: List<String>) = toggle(value.toBoolean(), otherNames)
+  fun toggle(names: List<String>) = toggle(value.toBoolean(), names)
 
   fun toggle(flag: Boolean, vararg names: String) = toggle(flag, names.toList())
 
-  fun toggle(flag: Boolean, otherNames: List<String>) {
-    otherNames.forEach { pattern -> others(pattern).forEach { property -> property.enabled = flag } }
+  fun toggle(flag: Boolean, patterns: List<String>) {
+    for (pattern in patterns) {
+      val others = others(pattern)
+      for (property in others) {
+        property.enabled = flag
+      }
+    }
   }
 
   fun other(name: String) = context.get(name)
 
   fun others(pattern: String) = context.find(pattern)
+
+  override fun toString(): String {
+    return "Property(name=$name, type=$type, value=$value)"
+  }
 }

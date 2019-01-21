@@ -26,20 +26,7 @@ abstract class Config(val fork: ForkExtension, val name: String) {
 
   private val promptedProperties by lazy { promptFill() }
 
-  val definedProperties: List<Property>
-    get() {
-      val others = mutableMapOf<String, Property>()
-      val context = PropertyContext(others)
-
-      prompts.forEach { name, prompt ->
-        val definition = fork.propertyDefinitions.get(prompt.name) ?: PropertyDefinition(prompt.name)
-        val property = Property(definition, prompt, context)
-
-        others[name] = property
-      }
-
-      return others.values.sortedBy { p -> fork.propertyDefinitions.indexOf(p.name) }.toList()
-    }
+  val definedProperties: List<Property> by lazy { propsDefine() }
 
   abstract val sourcePath: String
 
@@ -100,6 +87,20 @@ abstract class Config(val fork: ForkExtension, val name: String) {
 
   fun renderTemplate(template: String): String {
     return templateEngine.render(template, promptedProperties)
+  }
+
+  private fun propsDefine(): List<Property> {
+    val others = mutableMapOf<String, Property>()
+    val context = PropertyContext(others)
+
+    prompts.forEach { name, prompt ->
+      val definition = fork.propertyDefinitions.get(prompt.name) ?: PropertyDefinition(prompt.name)
+      val property = Property(definition, prompt, context)
+
+      others[name] = property
+    }
+
+    return others.values.sortedBy { p -> fork.propertyDefinitions.indexOf(p.name) }.toList()
   }
 
   private fun promptFill(): Map<String, String?> {
@@ -270,7 +271,7 @@ abstract class Config(val fork: ForkExtension, val name: String) {
   }
 
   override fun toString(): String {
-    return "Config(name=$name)"
+    return "Config(name='$name')"
   }
 
   companion object {
