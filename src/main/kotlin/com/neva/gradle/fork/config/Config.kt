@@ -70,14 +70,14 @@ abstract class Config(val fork: ForkExtension, val name: String) {
     return if (!value.isBlank()) value.toBoolean() else true
   }
 
-  fun promptProp(prop: String, defaultProvider: () -> String): () -> String {
+  fun promptProp(prop: String, defaultProvider: () -> String?): () -> String {
     prompts[prop] = PropertyPrompt(prop, defaultProvider)
 
     return { promptedProperties[prop] ?: throw ForkException("Fork prompt property '$prop' not bound.") }
   }
 
   fun promptProp(prop: String): () -> String {
-    return promptProp(prop)
+    return promptProp(prop) { null }
   }
 
   fun promptTemplate(template: String): () -> String {
