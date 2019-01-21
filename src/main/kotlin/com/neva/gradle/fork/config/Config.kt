@@ -16,6 +16,9 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.*
 
+/**
+ * Represents set of rules that are using properties to customize files (rename files / dirs, update content etc).
+ */
 abstract class Config(val fork: ForkExtension, val name: String) {
 
   val project = fork.project
