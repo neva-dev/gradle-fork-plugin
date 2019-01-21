@@ -8,6 +8,9 @@ class PropertyDefinitions(val fork: ForkExtension) {
 
   private val definitions = mutableMapOf<String, PropertyDefinition>()
 
+  val all: List<PropertyDefinition>
+    get() = definitions.values.toList()
+
   fun define(name: String, action: Action<in PropertyDefinition>) {
     definitions += (name to Actions.with(fork.project.objects.newInstance(PropertyDefinition::class.java, name), action))
   }
@@ -17,5 +20,7 @@ class PropertyDefinitions(val fork: ForkExtension) {
   }
 
   fun get(name: String): PropertyDefinition? = definitions[name]
+
+  fun indexOf(name: String) = definitions.keys.indexOf(name)
 
 }

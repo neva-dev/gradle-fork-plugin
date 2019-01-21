@@ -65,7 +65,7 @@ class PropertyDialogField(
 
   companion object {
 
-    val DESCRIPTION_TEXT_COLOR = Color(128, 128, 128)
+    val DESCRIPTION_TEXT_COLOR = Color(0, 0, 128)
 
     val ERROR_TEXT_COLOR = Color(255, 0, 0)
 

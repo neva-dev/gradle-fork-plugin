@@ -4,6 +4,9 @@ import org.gradle.api.Action
 import org.gradle.internal.Actions
 import javax.inject.Inject
 
+/**
+ * Represents rich property definition (adds extra information to pure prompt like type, description, validator etc).
+ */
 open class PropertyDefinition @Inject constructor(val name: String) {
 
   var type: PropertyType = PropertyType.TEXT
@@ -18,11 +21,7 @@ open class PropertyDefinition @Inject constructor(val name: String) {
 
   var controller: Property.() -> Unit = {}
 
-  var validator: PropertyValidator.() -> Unit = {
-    if (required) {
-      required()
-    }
-  }
+  var validator: PropertyValidator.() -> Unit = { notBlank() }
 
   init {
     if (name.isBlank()) {
@@ -82,19 +81,19 @@ open class PropertyDefinition @Inject constructor(val name: String) {
   fun path(defaultValue: String = "") {
     this.defaultValue = defaultValue
     type = PropertyType.PATH
-    validator = { required(); path() }
+    validator = { notBlank(); path() }
   }
 
   fun url(defaultValue: String = "") {
     this.defaultValue = defaultValue
     type = PropertyType.URL
-    validator = { required(); url() }
+    validator = { notBlank(); url() }
   }
 
   fun uri(defaultValue: String = "") {
     this.defaultValue = defaultValue
     type = PropertyType.URI
-    validator = { required(); uri() }
+    validator = { notBlank(); uri() }
   }
 }
 
