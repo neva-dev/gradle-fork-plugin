@@ -100,7 +100,7 @@ internal class Encryption private constructor(private val ecipher: Cipher, priva
 
     internal fun of(project: Project): Encryption {
       return of((project.findProperty("fork.encryption.passphrase")?.toString()
-        ?: project.rootProject.name).toCharArray())
+        ?: "<<Default passphrase to encrypt passwords!>>").toCharArray())
     }
   }
 
