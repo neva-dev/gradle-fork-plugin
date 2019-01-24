@@ -39,7 +39,7 @@ buildscript {
       maven { url  "https://dl.bintray.com/neva-dev/maven-public" }
   }
   dependencies {
-      classpath 'com.neva.gradle:fork-plugin:1.0.8'
+      classpath 'com.neva.gradle:fork-plugin:3.0.1'
   }
 }
 
@@ -59,9 +59,11 @@ fork {
                 "example": "{{projectName}}",
         ])
     }
-    inPlaceConfig 'setup', {
-        copyTemplateFile("setup.properties")
+    /*
+    inPlaceConfig 'properties', {
+        copyTemplateFile("gradle/fork/gradle.properties.peb")
     }
+    */
 }
 ```
 
