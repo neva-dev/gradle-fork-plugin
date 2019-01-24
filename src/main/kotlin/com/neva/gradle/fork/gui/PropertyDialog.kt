@@ -106,7 +106,9 @@ class PropertyDialog(private val config: Config) {
     dialog.add(this, "span, south, wrap")
   }
 
-  private val fileChooser = JFileChooser()
+  private val fileChooser = JFileChooser().apply {
+    fileSelectionMode = JFileChooser.FILES_AND_DIRECTORIES
+  }
 
   private var fieldFocused: JTextField? = null
 

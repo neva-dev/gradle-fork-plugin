@@ -48,7 +48,7 @@ class TemplateEngine(val project: Project) {
       }
     }
 
-    return result
+    return result.map { it.trim() }
   }
 
   companion object {
