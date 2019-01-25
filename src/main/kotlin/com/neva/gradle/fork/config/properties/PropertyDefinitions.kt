@@ -23,4 +23,12 @@ class PropertyDefinitions(val fork: ForkExtension) {
 
   fun indexOf(name: String) = definitions.keys.indexOf(name)
 
+  // utility functions for e.g default values
+
+  fun pathTo(path: String, normalize: Boolean = true): String {
+    return fork.project.rootProject.file(path).absolutePath.run {
+      if (normalize) this.replace("\\", "/") else this
+    }
+  }
+
 }
