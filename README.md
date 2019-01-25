@@ -18,6 +18,8 @@ Newcomers of Gradle Build System very often complain about that in Gradle there 
   * From business perspective, plugin allows to automate rebranding at code level (perform massive renaming, repackaging).
   * Maintenance of real / working example projects is probably easier than maintaining archetypes (there is no need to regenerate project every time to prove that archetype is working properly).
 
+Plugin is also useful for **generating** *gradle.properties* file in a **user-friendly way.
+
 ## Table of Contents
 
 * [Usage](#usage)
@@ -47,7 +49,7 @@ buildscript {
 apply plugin: 'com.neva.fork'
 
 fork {
-    config /* 'default', */ { 
+    config /* 'default', */ { // project forking configuration
         cloneFiles()
         moveFiles([
                 "/com/company/app/example": "/{{projectGroup|substitute('.', '/')}}/{{projectName}}",
@@ -60,8 +62,11 @@ fork {
                 "example": "{{projectName}}",
         ])
     }
+    config 'copy', {
+        cloneFiles()
+    }
     /*
-    inPlaceConfig 'properties', {
+    inPlaceConfig 'properties', { // predefined configuration for interactively generating 'gradle.properties' file
         copyTemplateFile("gradle/fork/gradle.properties.peb")
     }
     */
@@ -70,28 +75,43 @@ fork {
 
 ### Defining and executing configurations
 
-Fork plugin allows to have multiple fork configurations defined. In above sample build script, there are 2 configurations defined:
+Fork plugin allows to have multiple fork configurations defined. In above sample build script, there are 3 configurations defined:
 
 1. Configuration *default* with the purpose of creating a new project based on existing one. In detail, it will:
+    * Prompt to fill or update all variables detected in rules like `moveFiles`, `replaceContents` and occurrences of variables in text files.
     * Copy all project files respecting filtering defined in *.gitignore* files.
     * Rename directories using rules with properties injecting.
     * Replace contents using rules with properties injecting.
-2. Configuration *setup* with the purpose of creating initial configuration before building project. In detail, it will:
-    * Generate from template a file containing user specific properties (like repository credentials etc).
+    
+   Executable by command line (both equivalents, task *props* just runs *properties* configuration / is an alias):
+   
+   ```bash
+   gradlew props
+   gradlew fork -Pfork.config=properties
+   ```
+    
+2. Predefined configuration named *properties* with the purpose of creating initial configuration before building project (generating *gradle.properties* file). In detail, it will:
+    * Prompt to fill or update all variables detected in template file located at path *gradle/fork/gradle.properties.peb*.
+    * Combine prompted variable values with template file to finally save a file containing user specific properties (like repository credentials etc). 
+    
+    Executable by command line (both equivalents, configuration named *default* can be skipped):
+    
+    ```bash
+    gradlew fork
+    gradlew fork -Pfork.config=default
+    ```
+    
+3. Additional configuration named *copy* just for demonstrating purpose (which is only copying files / not updating them)
 
-To determine which configurations should be executed, command line parameter could be used:
+    ```bash
+    gradlew fork -Pfork.config=copy
+    ```
+
+If there will be any more additional named configurations defined, it is possible to execute them all or only matching wildcard patterns (comma delimited):
 
 ```bash
-gradlew fork -Pfork.config=setup
 gradlew fork -Pfork.config=*
 gradlew fork -Pfork.config=no-search,no-auth
-```
-
-When parameter is skipped, then only *default* configuration will be executed. 
-
-```bash
-gradlew fork 
-gradlew fork -Pfork.config=default
 ```
 
 ### Providing properties
@@ -172,7 +192,7 @@ Property definition can consists of:
 #### Password encryption
 By default passwords are kept plain text in `gradle.properties` file - which can be problematic when you have to input there your private passwords, etc. 
 
-That's why Fork plugin by default encrypts all `PASSWORD` properties (those which name ends with "password" or marked explicitly as password in their definition `password()`). This way generated `gradle.property` file wont ever again contain any password plaintext.
+That's why Gradle Fork Plugin by default encrypts all `PASSWORD` properties (those which name ends with "password" or marked explicitly as password in their definition `password()`). This way generated `gradle.properties` file wont ever again contain any password plaintext.
 
 To get access to this encrypted password in our build configuration simply apply `com.neva.fork.props` plugin:
 
@@ -181,14 +201,16 @@ import com.neva.gradle.fork.PropsExtension
 
 allprojects {
     plugins.apply("com.neva.fork.props")
+    
+    val props = the<PropsExtension>()
 
     repositories {
         jcenter()
         maven {
             url = uri("https://nexus.company.com/content/groups/private")
             credentials {
-                username = the<PropsExtension>().get("nexus.user")
-                password = the<PropsExtension>().get("nexus.password")
+                username = props.get("nexus.user")
+                password = props.get("nexus.password")
             }
         }
     }
