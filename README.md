@@ -66,7 +66,7 @@ fork {
                 "example": "{{projectName}}",
         ])
     }
-    config 'copy', {
+    config 'copy', { // additional configuration, for demo purpose
         cloneFiles()
     }
     /*
