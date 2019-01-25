@@ -65,6 +65,12 @@ fork {
                 "Example": "{{projectLabel}}",
                 "example": "{{projectName}}",
         ])
+        
+//      textFiles = [
+//          "**/*.gradle", "**/*.xml", "**/*.properties", "**/*.js", "**/*.json", "**/*.css", "**/*.scss",
+//          "**/*.java", "**/*.kt", "**/*.kts", "**/*.groovy", "**/*.html", "**/*.jsp"
+//      ]
+        
     }
     config 'copy', { // additional configuration, for demo purpose
         cloneFiles()
