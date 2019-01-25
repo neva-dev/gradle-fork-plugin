@@ -9,6 +9,10 @@
 
 **Project generator based on live archetypes** (example projects).
 
+**Interactive gradle.properties file generator** (user-friendly / by GUI dialog).
+
+- - -
+
 Newcomers of Gradle Build System very often complain about that in Gradle there is no Maven's archetype like mechanism OOTB. This plugin tries to fill that gap.
 
 **Assumptions**
