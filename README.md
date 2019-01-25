@@ -46,7 +46,7 @@ buildscript {
       maven { url  "https://dl.bintray.com/neva-dev/maven-public" }
   }
   dependencies {
-      classpath 'com.neva.gradle:fork-plugin:3.0.4'
+      classpath 'com.neva.gradle:fork-plugin:3.0.5'
   }
 }
 
@@ -148,7 +148,7 @@ Properties can be provided by (order makes precedence):
 2. Each property defined separately as command line parameter:
 
     ```bash
-    gradlew fork -PprojectName=sample -PprojectLabel=Sample -PtargetPath=../sample -Ppackage=com.neva.app.sample
+    gradlew fork -PforkProp.projectName=sample -PforkProp.projectLabel=Sample -PforkProp.targetPath=../sample -PforkProp.package=com.neva.app.sample
     ```
 
 3. GUI / properties dialog

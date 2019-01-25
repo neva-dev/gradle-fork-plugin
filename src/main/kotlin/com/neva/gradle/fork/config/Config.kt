@@ -127,7 +127,7 @@ abstract class Config(val fork: ForkExtension, val name: String) {
 
   private fun promptFillCommandLine() {
     prompts.keys.forEach { prop ->
-      val cmdProp = project.properties[prop]
+      val cmdProp = project.properties["forkProp.$prop"]
       if (cmdProp is String) {
         prompts[prop]?.value = cmdProp
       }
