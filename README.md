@@ -186,7 +186,7 @@ fork {
 #### Property definition
 Property definition can consists of:
 * type specification: `type = TYPE_NAME`
-  * there are six types available: `TEXT` (default one), `CHECKBOX` (representing boolean), `PASSWORD` (encrypted by default), `SELECT` (list of options), `PATH` & `URL`.
+  * there are six types available: `TEXT` (default one), `CHECKBOX` (representing boolean), `PASSWORD` (always encrypted), `SELECT` (list of options), `PATH` & `URL`.
   * there is default convention of type inference using property name (case insensitive):
     * ends with "password" -> `PASSWORD`
     * starts with "enable", "disable" -> `CHECKBOX`
@@ -202,27 +202,25 @@ Property definition can consists of:
   * by default `URL` & `PATH` properties gets basic validation which can be overridden or suppressed: `validator = {}`
   
 #### Password encryption
-By default passwords are kept plain text in `gradle.properties` file - which can be problematic when you have to input there your private passwords, etc. 
+Passwords kept as plaintext in `gradle.properties` file can be problematic especially when you have to input there your private password ;-). 
 
-That's why Gradle Fork Plugin by default encrypts all `PASSWORD` properties (those which name ends with "password" or marked explicitly as password in their definition `password()`). This way generated `gradle.properties` file wont ever again contain any password plaintext.
+That's why Gradle Fork Plugin by default encrypts all `PASSWORD` properties (those which name ends with "password" or marked explicitly as password in their definition using `password()`). This way generated `gradle.properties` file wont ever again contain any password plaintext.
 
-To get access to this encrypted password in our build configuration simply apply `com.neva.fork.props` plugin:
+To access this encrypted password in our build configuration simply apply `com.neva.fork.props` plugin and read from the `PropsExtension`:
 
 ```kotlin
 import com.neva.gradle.fork.PropsExtension
 
 allprojects {
     plugins.apply("com.neva.fork.props")
-    
-    val props = the<PropsExtension>()
 
     repositories {
         jcenter()
         maven {
             url = uri("https://nexus.company.com/content/groups/private")
             credentials {
-                username = props.get("nexus.user")
-                password = props.get("nexus.password")
+                username = the<PropsExtension>().get("nexus.user")
+                password = the<PropsExtension>().get("nexus.password")
             }
         }
     }
