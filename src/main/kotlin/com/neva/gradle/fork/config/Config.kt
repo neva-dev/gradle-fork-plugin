@@ -121,8 +121,8 @@ abstract class Config(val fork: ForkExtension, val name: String) {
       promptFillGui()
 
       promptValidate()
-      promptPostProcess()
     } finally {
+      promptPostProcess()
       promptSavePropertiesFile(previousPropsFile)
     }
 
