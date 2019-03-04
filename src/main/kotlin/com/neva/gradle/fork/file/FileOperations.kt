@@ -27,8 +27,9 @@ object FileOperations {
   }
 
   fun amend(file: File, amender: (String) -> String) {
-    val source = amender(read(file))
-    write(file, source)
+    val source = read(file)
+    val target = amender(source)
+    write(file, target)
   }
 
 }

@@ -7,7 +7,7 @@ import org.gradle.api.Action
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.util.PatternSet
 
-class EachFileRule(config: Config, val action: Action<in FileHandler>) : AbstractRule(config) {
+class EachFilesRule(config: Config, val action: Action<in FileHandler>) : AbstractRule(config) {
 
   val filter = PatternSet()
 
@@ -25,7 +25,7 @@ class EachFileRule(config: Config, val action: Action<in FileHandler>) : Abstrac
   }
 
   override fun toString(): String {
-    return "EachFileRule()"
+    return "EachFilesRule()"
   }
 
 }

@@ -20,10 +20,14 @@ class Property(
     get() = prompt.valueOrDefault ?: definition.defaultValue
 
   val label: String
-    get() = if (definition.required) {
-      "${prompt.label}*"
-    } else {
-      prompt.label
+    get() {
+      val text = definition.label ?: prompt.label
+
+      return if (definition.required) {
+        "$text*"
+      } else {
+        text
+      }
     }
 
   val type: PropertyType = definition.type

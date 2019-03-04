@@ -31,18 +31,20 @@ class PropertyDialog(private val config: Config) {
   }
 
   private var pathButton = JButton().apply {
-    text = "Pick a path"
-    addActionListener {
-      if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-        fieldFocused!!.document.insertString(
-          fieldFocused!!.caretPosition,
-          fileChooser.selectedFile.absolutePath.replace("\\", "/"),
-          null
-        )
+    if (config.definedProperties.any { it.type == PropertyType.PATH || it.type == PropertyType.URI }) {
+      text = "Pick a path"
+      addActionListener {
+        if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+          fieldFocused!!.document.insertString(
+            fieldFocused!!.caretPosition,
+            fileChooser.selectedFile.absolutePath.replace("\\", "/"),
+            null
+          )
+        }
       }
-    }
 
-    dialog.add(this, "span, wrap")
+      dialog.add(this, "span, wrap")
+    }
   }
 
   @Suppress("unchecked_cast")
@@ -127,6 +129,7 @@ class PropertyDialog(private val config: Config) {
 
   fun update() {
     val isFieldSelected = fieldFocused != null
+
     validateAllFields()
     closeButton.isEnabled = valid
     pathButton.isEnabled = isFieldSelected

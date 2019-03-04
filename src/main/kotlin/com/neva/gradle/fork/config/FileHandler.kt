@@ -57,8 +57,13 @@ class FileHandler(val config: Config, val file: File) {
 
   fun amend(amender: (String) -> String): FileHandler {
     actions += {
-      logger.info("Amending file $file")
-      FileOperations.amend(file, amender)
+      val source = FileOperations.read(file)
+      val target = amender(source)
+
+      if (source != target) {
+        logger.info("Amended file $file")
+        FileOperations.write(file, target)
+      }
     }
 
     return this
@@ -95,6 +100,8 @@ class FileHandler(val config: Config, val file: File) {
 
     return this
   }
+
+  fun render(template: String): String = config.renderTemplate(template)
 
   override fun toString(): String {
     return file.toString()

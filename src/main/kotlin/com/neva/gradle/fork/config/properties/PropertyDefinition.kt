@@ -13,11 +13,15 @@ open class PropertyDefinition @Inject constructor(val name: String) {
 
   var options: Any? = null
 
+  var label: String? = null
+
   var description = ""
 
   var defaultValue: String = ""
 
   var required = true
+
+  var dynamic = false
 
   var controller: Property.() -> Unit = {}
 
@@ -43,6 +47,10 @@ open class PropertyDefinition @Inject constructor(val name: String) {
 
   fun optional() {
     required = false
+  }
+
+  fun dynamic() {
+    dynamic = true
   }
 
   fun controller(action: Action<in Property>) {

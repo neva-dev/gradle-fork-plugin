@@ -50,6 +50,10 @@ abstract class Config(val fork: ForkExtension, val name: String) {
     "**/*.java", "**/*.kt", "**/*.kts", "**/*.groovy", "**/*.html", "**/*.jsp"
   )
 
+  var textIgnoredFiles = mutableListOf(
+    "**/.gradle/*", "**/build/*", "**/node_modules/*", "**/.git/*"
+  )
+
   var templateDir: File = project.file("gradle/fork")
 
   val templateEngine = TemplateEngine(project)
@@ -93,6 +97,8 @@ abstract class Config(val fork: ForkExtension, val name: String) {
   private fun propsDefine(): List<Property> {
     val others = mutableMapOf<String, Property>()
     val context = PropertyContext(others)
+
+    fork.propertyDefinitions.all.filter { it.dynamic }.forEach { promptProp(it.name) }
 
     prompts.forEach { name, prompt ->
       val definition = fork.propertyDefinitions.get(prompt.name) ?: PropertyDefinition(prompt.name)
@@ -183,12 +189,12 @@ abstract class Config(val fork: ForkExtension, val name: String) {
   private fun promptPostProcess() {
     definedProperties.forEach { property ->
       if (property.type == PropertyType.PASSWORD) {
-         prompts[property.name]?.apply { value = fork.props.encryptor.encrypt(value) }
+        prompts[property.name]?.apply { value = fork.props.encryptor.encrypt(value) }
       }
     }
   }
 
-  private fun <T: Rule> rule(rule: T, configurer: Action<in T>) {
+  private fun <T : Rule> rule(rule: T, configurer: Action<in T>) {
     rules += rule.apply { configurer.execute(this) }
   }
 
@@ -212,30 +218,48 @@ abstract class Config(val fork: ForkExtension, val name: String) {
     rule(MoveFilesRule(this, movements.mapValues { promptTemplate(it.value) }))
   }
 
-  fun replaceContents(replacements: Map<String, String>, configurer: Action<in ReplaceContentsRule>) {
+  fun replaceTexts(replacements: Map<String, String>) {
+    replaceTexts(replacements, Action {
+      it.filter.include(textFiles)
+      it.filter.exclude(textIgnoredFiles)
+    })
+  }
+
+  fun replaceTexts(replacements: Map<String, String>, configurer: Action<in ReplaceContentsRule>) {
     rule(ReplaceContentsRule(this, replacements.mapValues { promptTemplate(it.value) }), configurer)
   }
 
-  fun replaceContents(replacements: Map<String, String>, filterInclude: String) {
-    replaceContents(replacements, listOf(filterInclude))
+  fun replaceText(search: String, replace: String) {
+    replaceTexts(mapOf(search to replace))
   }
 
-  fun replaceContent(search: String, replace: String) {
-    replaceContents(mapOf(search to replace))
+  fun eachFiles(action: Action<in FileHandler>) {
+    rule(EachFilesRule(this, action))
   }
 
-  fun eachFile(action: Action<in FileHandler>) {
-    rule(EachFileRule(this, action))
+  fun eachFiles(action: Action<in FileHandler>, options: Action<in EachFilesRule>) {
+    rule(EachFilesRule(this, action), options)
   }
 
-  fun replaceContents(replacements: Map<String, String>) {
-    replaceContents(replacements, textFiles)
+  fun replaceContents(replacements: Map<String, String>) = replaceTexts(replacements)
+
+  fun replaceContent(search: String, replace: String) = replaceText(search, replace)
+
+  fun eachTextFiles(action: Action<in FileHandler>) {
+    eachTextFiles(textFiles, textIgnoredFiles, action)
   }
 
-  fun replaceContents(replacements: Map<String, String>, filterIncludes: Iterable<String>) {
-    val rule = ReplaceContentsRule(this, replacements.mapValues { promptTemplate(it.value) })
-    rule.filter.include(filterIncludes)
-    rule(rule)
+  fun eachTextFiles(pattern: String, action: Action<in FileHandler>) = eachTextFiles(listOf(pattern), action)
+
+  fun eachTextFiles(patterns: List<String>, action: Action<in FileHandler>) {
+    eachTextFiles(patterns, textIgnoredFiles, action)
+  }
+
+  fun eachTextFiles(includes: List<String>, excludes: List<String>, action: Action<in FileHandler>) {
+    eachFiles(action, Action {
+      it.filter.include(includes)
+      it.filter.exclude(excludes)
+    })
   }
 
   fun copyTemplateFile(templateName: String) {
