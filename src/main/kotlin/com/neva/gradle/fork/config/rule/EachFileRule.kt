@@ -2,13 +2,12 @@ package com.neva.gradle.fork.config.rule
 
 import com.neva.gradle.fork.config.AbstractRule
 import com.neva.gradle.fork.config.Config
+import com.neva.gradle.fork.config.FileHandler
 import org.gradle.api.Action
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.util.PatternSet
 
-class ReplaceContentsRule(config: Config, replacements: Map<String, () -> String>) : AbstractRule(config) {
-
-  private val replacements by lazy { replacements.mapValues { it.value() } }
+class EachFileRule(config: Config, val action: Action<in FileHandler>) : AbstractRule(config) {
 
   val filter = PatternSet()
 
@@ -17,7 +16,7 @@ class ReplaceContentsRule(config: Config, replacements: Map<String, () -> String
 
   override fun execute() {
     visitFiles(targetTree) { fileHandler, _ ->
-      replacements.forEach { search, replace -> fileHandler.replace(search, replace) }
+      action.execute(fileHandler)
     }
   }
 
@@ -26,7 +25,7 @@ class ReplaceContentsRule(config: Config, replacements: Map<String, () -> String
   }
 
   override fun toString(): String {
-    return "ReplaceContentsRule(replacements=$replacements)"
+    return "EachFileRule()"
   }
 
 }

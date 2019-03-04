@@ -1,6 +1,5 @@
 package com.neva.gradle.fork.config.rule
 
-import com.neva.gradle.fork.ForkException
 import com.neva.gradle.fork.config.AbstractRule
 import com.neva.gradle.fork.config.Config
 import com.neva.gradle.fork.config.FileHandler
@@ -12,19 +11,20 @@ class CopyTemplateFilesRule(config: Config, private val files: Map<String, Strin
     registerPromptsForTemplateFiles()
   }
 
-  private fun findTemplateFile(templateName: String): File {
+  private fun findTemplateFile(templateName: String): File? {
     val pebFile = File(config.templateDir, "$templateName.peb")
     val regularFile = File(config.templateDir, templateName)
     return listOf(pebFile, regularFile).firstOrNull { it.exists() }
-      ?: throw ForkException("Fork template file does not exist: $pebFile")
   }
 
   private fun registerPromptsForTemplateFiles() {
     files.keys.forEach { templateName ->
       val templateFile = findTemplateFile(templateName)
-      val template = FileHandler(config, templateFile).read()
+      if (templateFile != null) {
+        val template = FileHandler(config, templateFile).read()
 
-      config.promptTemplate(template)
+        config.promptTemplate(template)
+      }
     }
   }
 
@@ -35,10 +35,14 @@ class CopyTemplateFilesRule(config: Config, private val files: Map<String, Strin
   private fun copyAndExpandTemplateFiles() {
     files.forEach { templateName, targetName ->
       val templateFile = findTemplateFile(templateName)
-      val targetFile = File(config.targetDir, targetName)
+      if (templateFile != null) {
+        val targetFile = File(config.targetDir, targetName)
 
-      FileHandler(config, templateFile).copy(targetFile).perform()
-      FileHandler(config, targetFile).expand()
+        FileHandler(config, templateFile).copy(targetFile).perform()
+        FileHandler(config, targetFile).expand()
+      } else {
+        logger.warn("Fork template file does not exist: $templateName")
+      }
     }
   }
 

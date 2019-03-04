@@ -4,12 +4,10 @@ import com.neva.gradle.fork.config.Config
 import com.neva.gradle.fork.config.InPlaceConfig
 import com.neva.gradle.fork.config.SourceTargetConfig
 import com.neva.gradle.fork.config.properties.PropertyDefinitions
-import groovy.lang.Closure
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
-import org.gradle.util.ConfigureUtil
 
 open class ForkExtension(val project: Project, val props: PropsExtension) {
 
@@ -24,27 +22,15 @@ open class ForkExtension(val project: Project, val props: PropsExtension) {
       ?: throw ForkException("Fork configuration '$name' is yet not defined.")
   }
 
-  fun config(configurer: Closure<*>) {
-    config { ConfigureUtil.configure(configurer, this) }
-  }
-
-  fun config(configurer: Config.() -> Unit) {
+  fun config(configurer: Action<in SourceTargetConfig>) {
     config(SourceTargetConfig(this, Config.NAME_DEFAULT), configurer)
   }
 
-  fun config(name: String, configurer: Closure<*>) {
-    config(name) { ConfigureUtil.configure(configurer, this) }
-  }
-
-  fun config(name: String, configurer: Config.() -> Unit) {
+  fun config(name: String, configurer: Action<in SourceTargetConfig>) {
     config(SourceTargetConfig(this, name), configurer)
   }
 
-  fun inPlaceConfig(name: String, configurer: Closure<*>) {
-    inPlaceConfig(name) { ConfigureUtil.configure(configurer, this) }
-  }
-
-  fun inPlaceConfig(name: String, configurer: Config.() -> Unit) {
+  fun inPlaceConfig(name: String, configurer: Action<in InPlaceConfig>) {
     config(InPlaceConfig(this, name), configurer)
   }
 
@@ -52,9 +38,8 @@ open class ForkExtension(val project: Project, val props: PropsExtension) {
     action.execute(propertyDefinitions)
   }
 
-  private fun config(config: Config, configurer: Config.() -> Unit) {
-    config.apply(configurer)
-    configs += config
+  private fun <T : Config>config(config: T, configurer: Action<in T>) {
+    configs += config.apply { configurer.execute(this) }
   }
 
   companion object {

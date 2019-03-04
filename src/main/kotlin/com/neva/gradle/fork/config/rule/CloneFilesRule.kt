@@ -4,10 +4,9 @@ import com.neva.commons.gitignore.GitIgnore
 import com.neva.gradle.fork.ForkException
 import com.neva.gradle.fork.config.AbstractRule
 import com.neva.gradle.fork.config.Config
-import groovy.lang.Closure
+import org.gradle.api.Action
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.util.PatternSet
-import org.gradle.util.ConfigureUtil
 import java.io.File
 
 class CloneFilesRule(config: Config) : AbstractRule(config) {
@@ -63,8 +62,8 @@ class CloneFilesRule(config: Config) : AbstractRule(config) {
     }
   }
 
-  fun filter(closure: Closure<*>) {
-    ConfigureUtil.configure(closure, filter)
+  fun filter(options: Action<in PatternSet>) {
+    options.execute(filter)
   }
 
   override fun toString(): String {

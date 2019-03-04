@@ -6,10 +6,8 @@ import com.neva.gradle.fork.config.properties.*
 import com.neva.gradle.fork.config.rule.*
 import com.neva.gradle.fork.gui.PropertyDialog
 import com.neva.gradle.fork.template.TemplateEngine
-import groovy.lang.Closure
 import org.gradle.api.Action
 import org.gradle.api.file.FileTree
-import org.gradle.util.ConfigureUtil
 import org.gradle.util.GFileUtils
 import java.io.File
 import java.io.FileInputStream
@@ -190,9 +188,8 @@ abstract class Config(val fork: ForkExtension, val name: String) {
     }
   }
 
-  private fun rule(rule: Rule, configurer: Closure<*>) {
-    ConfigureUtil.configure(configurer, rule)
-    rules += rule
+  private fun <T: Rule> rule(rule: T, configurer: Action<in T>) {
+    rules += rule.apply { configurer.execute(this) }
   }
 
   private fun rule(rule: Rule) {
@@ -203,7 +200,7 @@ abstract class Config(val fork: ForkExtension, val name: String) {
     rule(CloneFilesRule(this))
   }
 
-  fun cloneFiles(configurer: Closure<*>) {
+  fun cloneFiles(configurer: Action<in CloneFilesRule>) {
     rule(CloneFilesRule(this), configurer)
   }
 
@@ -215,7 +212,7 @@ abstract class Config(val fork: ForkExtension, val name: String) {
     rule(MoveFilesRule(this, movements.mapValues { promptTemplate(it.value) }))
   }
 
-  fun replaceContents(replacements: Map<String, String>, configurer: Closure<*>) {
+  fun replaceContents(replacements: Map<String, String>, configurer: Action<in ReplaceContentsRule>) {
     rule(ReplaceContentsRule(this, replacements.mapValues { promptTemplate(it.value) }), configurer)
   }
 
@@ -225,6 +222,10 @@ abstract class Config(val fork: ForkExtension, val name: String) {
 
   fun replaceContent(search: String, replace: String) {
     replaceContents(mapOf(search to replace))
+  }
+
+  fun eachFile(action: Action<in FileHandler>) {
+    rule(EachFileRule(this, action))
   }
 
   fun replaceContents(replacements: Map<String, String>) {
