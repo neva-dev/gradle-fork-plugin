@@ -21,7 +21,7 @@ internal class Encryption private constructor(private val ecipher: Cipher, priva
   private fun decode(string: String): ByteArray = BASE64.decode(string)
 
   fun encrypt(text: String?): String? {
-    if (text.isNullOrBlank()) {
+    if (text.isNullOrBlank() || isEncrypted(text)) {
       return text
     }
 
