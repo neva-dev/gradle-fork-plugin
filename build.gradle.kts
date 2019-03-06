@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("java-gradle-plugin")
     id("org.jetbrains.kotlin.jvm") version "1.3.10"
+    id("net.researchgate.release") version "2.6.0"
     id("com.jfrog.bintray") version "1.8.4"
     id("maven-publish")
 }
@@ -39,12 +40,23 @@ tasks {
         dependsOn("classes")
         from(sourceSets["main"].allSource)
     }
-    named("build") { dependsOn("sourcesJar") }
-    named("publishToMavenLocal") { dependsOn("sourcesJar") }
+
+    named("build") { 
+        dependsOn("sourcesJar")
+    }
+
+    named("publishToMavenLocal") { 
+        dependsOn("sourcesJar")
+    }
+    
     withType<KotlinCompile>().configureEach {
         kotlinOptions {
             jvmTarget = "1.8"
         }
+    }
+    
+    named("afterReleaseBuild") {
+        dependsOn("bintrayUpload")
     }
 }
 
