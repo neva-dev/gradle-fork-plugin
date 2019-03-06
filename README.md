@@ -95,41 +95,38 @@ fork {
 
 Fork plugin allows to have multiple fork configurations defined. In above sample build script, there are 3 configurations defined:
 
-1. Configuration *default* with the purpose of creating a new project based on existing one. In detail, it will:
+1. Configuration *fork* with the purpose of creating a new project based on existing one. In detail, it will:
     * Prompt to fill or update all variables detected in rules like `moveFiles`, `replaceContents` and occurrences of variables in text files.
     * Copy all project files respecting filtering defined in *.gitignore* files.
     * Rename directories using rules with properties injecting.
     * Replace contents using rules with properties injecting.
     
-   Executable by command line (both equivalents, task *props* just runs *properties* configuration / is an alias):
+   Executable by command line:
    
    ```bash
-   gradlew props
-   gradlew fork -Pfork.config=properties
+   gradlew fork
    ```
     
-2. Predefined configuration named *properties* with the purpose of creating initial configuration before building project (generating *gradle.properties* file). In detail, it will:
+2. Predefined configuration named *props* with the purpose of creating initial configuration before building project (generating *gradle.properties* file). In detail, it will:
     * Prompt to fill or update all variables detected in template file located at path *gradle/fork/gradle.properties.peb*.
     * Combine prompted variable values with template file to finally save a file containing user specific properties (like repository credentials etc). 
     
-    Executable by command line (both equivalents, configuration named *default* can be skipped):
+    Executable by command line:
     
     ```bash
-    gradlew fork
-    gradlew fork -Pfork.config=default
+    gradlew props
     ```
     
 3. Additional configuration named *copy* just for demonstrating purpose (which is only copying files / not updating them)
 
     ```bash
-    gradlew fork -Pfork.config=copy
+    gradlew copy
     ```
 
-If there will be any more additional named configurations defined, it is possible to execute them all or only matching wildcard patterns (comma delimited):
+Each configuration defines their own task with same name. So that it is possible to execute more than one configuration, e.g:
 
 ```bash
-gradlew fork -Pfork.config=*
-gradlew fork -Pfork.config=no-search,no-auth
+gradlew copyStuff renameOther
 ```
 
 ### Providing properties

@@ -303,8 +303,8 @@ abstract class Config(val fork: ForkExtension, val name: String) {
   }
 
   companion object {
-    const val NAME_DEFAULT = "default"
-    const val NAME_PROPERTIES = "properties"
+    const val NAME_DEFAULT = "fork"
+    const val NAME_PROPERTIES = "props"
   }
 
 }

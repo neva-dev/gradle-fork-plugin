@@ -4,42 +4,42 @@ import com.neva.gradle.fork.config.Config
 import com.neva.gradle.fork.config.InPlaceConfig
 import com.neva.gradle.fork.config.SourceTargetConfig
 import com.neva.gradle.fork.config.properties.PropertyDefinitions
+import com.neva.gradle.fork.tasks.ConfigTask
 import org.gradle.api.Action
 import org.gradle.api.Project
-import org.gradle.api.tasks.Input
+import org.gradle.api.UnknownTaskException
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.TaskProvider
 
 open class ForkExtension(val project: Project, val props: PropsExtension) {
-
-  @Input
-  val configs = mutableListOf<Config>()
 
   @Internal
   val propertyDefinitions = PropertyDefinitions(this)
 
-  fun config(name: String): Config {
-    return configs.find { it.name == name }
-      ?: throw ForkException("Fork configuration '$name' is yet not defined.")
+  fun config(configurer: Action<in SourceTargetConfig>) = config(Config.NAME_DEFAULT, configurer)
+
+  fun config(name: String, configurer: Action<in SourceTargetConfig>): TaskProvider<ConfigTask> {
+    return try {
+      project.tasks.named(name, ConfigTask::class.java) { configurer.execute(it.config as SourceTargetConfig) }
+    } catch (e: UnknownTaskException) {
+      project.tasks.register(name, ConfigTask::class.java, SourceTargetConfig(this, name)).apply {
+        configure { configurer.execute(it.config as SourceTargetConfig) }
+      }
+    }
   }
 
-  fun config(configurer: Action<in SourceTargetConfig>) {
-    config(SourceTargetConfig(this, Config.NAME_DEFAULT), configurer)
-  }
-
-  fun config(name: String, configurer: Action<in SourceTargetConfig>) {
-    config(SourceTargetConfig(this, name), configurer)
-  }
-
-  fun inPlaceConfig(name: String, configurer: Action<in InPlaceConfig>) {
-    config(InPlaceConfig(this, name), configurer)
+  fun inPlaceConfig(name: String, configurer: Action<in InPlaceConfig>): TaskProvider<ConfigTask> {
+    return try {
+      project.tasks.named(name, ConfigTask::class.java) { configurer.execute(it.config as InPlaceConfig) }
+    } catch (e: UnknownTaskException) {
+      project.tasks.register(name, ConfigTask::class.java, InPlaceConfig(this, name)).apply {
+        configure { configurer.execute(it.config as InPlaceConfig) }
+      }
+    }
   }
 
   fun properties(action: Action<in PropertyDefinitions>) {
     action.execute(propertyDefinitions)
-  }
-
-  private fun <T : Config>config(config: T, configurer: Action<in T>) {
-    configs += config.apply { configurer.execute(this) }
   }
 
   companion object {

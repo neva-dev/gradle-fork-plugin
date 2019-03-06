@@ -12,7 +12,7 @@ import javax.swing.event.DocumentEvent
 class PropertyDialog(private val config: Config) {
 
   private val dialog = JDialog().apply {
-    title = "Fork properties for config '${config.name}'"
+    title = "Properties for configuration '${config.name}'"
     layout = MigLayout(
       "insets 10 10 10 10",
       "[fill,grow][fill,grow]",

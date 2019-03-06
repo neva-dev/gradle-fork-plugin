@@ -1,7 +1,7 @@
 package com.neva.gradle.fork
 
-import com.neva.gradle.fork.tasks.Fork
-import com.neva.gradle.fork.tasks.Props
+import com.neva.gradle.fork.config.Config
+import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
@@ -16,13 +16,23 @@ open class ForkPlugin : Plugin<Project> {
     with(project) {
       plugins.apply(PropsPlugin::class.java)
 
-      extensions.create(
+      // Register fork DSL API
+      val extension = extensions.create(
         ForkExtension.NAME, ForkExtension::class.java,
         project, project.extensions.getByType(PropsExtension::class.java)
       )
 
-      tasks.register(Fork.NAME, Fork::class.java)
-      tasks.register(Props.NAME, Props::class.java)
+      // Predefine configurations
+      extension.apply {
+        config(Config.NAME_DEFAULT, Action {}).configure {
+          it.description = "Generates new project basing on itself."
+        }
+        inPlaceConfig(Config.NAME_PROPERTIES, Action {
+          it.copyTemplateFile("gradle.properties")
+        }).configure {
+          it.description = "Generates user specific 'gradle.properties' file basing on template and prompted values."
+        }
+      }
     }
   }
 
