@@ -9,7 +9,13 @@
 
 **Project generator based on live archetypes** (example projects).
 
+![Props Dialog](docs/fork-dialog.png)
+
 **Interactive gradle.properties file generator** (user-friendly / by GUI dialog).
+
+![Props Dialog](docs/props-dialog.png)
+
+<sub>Both screenshots come from [Gradle AEM Multi](https://github.com/Cognifide/gradle-aem-multi) (example usage).</sub>
 
 - - -
 
