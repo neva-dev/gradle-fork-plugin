@@ -155,7 +155,7 @@ abstract class Config(val fork: ForkExtension, val name: String) {
 
     FileOutputStream(file).use { output ->
       val props = Properties()
-      prompts.values.forEach { prompt -> props[prompt.name] = prompt.valueOrDefault }
+      prompts.values.forEach { prompt -> prompt.valueOrDefault?.also { props[prompt.name] = it } }
       props.store(output, null)
     }
   }

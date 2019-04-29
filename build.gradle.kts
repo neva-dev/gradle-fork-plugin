@@ -9,7 +9,6 @@ plugins {
 }
 
 group = "com.neva.gradle"
-version = "3.1.1"
 description = "Gradle Fork Plugin"
 defaultTasks = listOf("clean", "publishToMavenLocal")
 
@@ -89,7 +88,7 @@ bintray {
     with(pkg) {
         repo = "maven-public"
         name = "gradle-fork-plugin"
-        userOrg = "cognifide"
+        userOrg = "neva-dev"
         setLicenses("Apache-2.0")
         vcsUrl = "https://github.com/neva-dev/gradle-fork-plugin.git"
         setLabels("gradle", "archetype", "template")
