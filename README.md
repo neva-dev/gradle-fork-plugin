@@ -34,6 +34,8 @@ Newcomers of Gradle Build System very often complain about that in Gradle there 
 
 Plugin is also useful for **generating** *gradle.properties* file in a **user-friendly way.
 
+You liked or used plugin? Don't forget to **star this project** on GitHub :)
+
 ## Table of Contents
 
 * [Usage](#usage)
