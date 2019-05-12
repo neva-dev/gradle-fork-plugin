@@ -15,7 +15,11 @@
 
 ![Props Dialog](docs/props-dialog.png)
 
-<sub>Both screenshots come from [Gradle AEM Multi](https://github.com/Cognifide/gradle-aem-multi) (example usage).</sub>
+Both screenshots come from [Gradle AEM Multi](https://github.com/Cognifide/gradle-aem-multi) (example usage).
+Related project specific configuration:
+
+* [Forking configuration](https://github.com/Cognifide/gradle-aem-multi/blob/master/gradle/fork.gradle.kts) (aka for generating project from archetype)
+* [Template file](https://github.com/Cognifide/gradle-aem-multi/blob/master/gradle/fork/gradle.properties.peb) for *gradle.properties*
 
 - - -
 
