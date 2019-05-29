@@ -15,7 +15,11 @@
 
 ![Props Dialog](docs/props-dialog.png)
 
-<sub>Both screenshots come from [Gradle AEM Multi](https://github.com/Cognifide/gradle-aem-multi) (example usage).</sub>
+Both screenshots come from [Gradle AEM Multi](https://github.com/Cognifide/gradle-aem-multi) (example usage).
+Related project specific configuration:
+
+* [Forking configuration](https://github.com/Cognifide/gradle-aem-multi/blob/master/gradle/fork.gradle.kts) (aka for generating project from archetype)
+* [Template file](https://github.com/Cognifide/gradle-aem-multi/blob/master/gradle/fork/gradle.properties.peb) for *gradle.properties*
 
 - - -
 
@@ -29,6 +33,8 @@ Newcomers of Gradle Build System very often complain about that in Gradle there 
   * Maintenance of real / working example projects is probably easier than maintaining archetypes (there is no need to regenerate project every time to prove that archetype is working properly).
 
 Plugin is also useful for **generating** *gradle.properties* file in a **user-friendly way.
+
+You liked or used plugin? Don't forget to **star this project** on GitHub :)
 
 ## Table of Contents
 
