@@ -1,7 +1,6 @@
 package com.neva.gradle.fork.config.properties
 
-import java.net.MalformedURLException
-import java.net.URL
+import org.apache.commons.validator.routines.UrlValidator
 import java.nio.file.InvalidPathException
 import java.nio.file.Paths
 
@@ -158,18 +157,17 @@ class PropertyValidator(val property: Property) {
     return value == value.trim()
   }
 
-  fun checkUrl(value: String = property.value) = checkTrimmingSpaces() && try {
-    URL(value)
-    true
-  } catch (e: MalformedURLException) {
-    false
-  }
+  fun checkUrl(value: String = property.value) = checkTrimmingSpaces() && URL_VALIDATOR.isValid(value)
 
   fun checkPath(value: String = property.value) = checkTrimmingSpaces() && try {
     Paths.get(value)
     true
   } catch (e: InvalidPathException) {
     false
+  }
+
+  companion object {
+    val URL_VALIDATOR = UrlValidator(UrlValidator.ALLOW_ALL_SCHEMES.or(UrlValidator.ALLOW_LOCAL_URLS))
   }
 
 }
