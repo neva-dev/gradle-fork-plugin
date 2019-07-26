@@ -8,12 +8,12 @@ import javax.swing.*
 class PropertyDialogField(
   private val property: Property,
   private val dialog: JDialog,
-  private val propField: JComponent,
+  private val component: JComponent,
   private val validationMessageLabel: JLabel
 ) {
 
   init {
-    assignValue()
+    sync()
   }
 
   val name: String
@@ -22,27 +22,47 @@ class PropertyDialogField(
   val value: String
     get() = property.value
 
-  fun control() = property.control()
+  fun control() {
+    property.control()
+  }
 
-  fun validateAndDisplayErrors() {
-    assignValue()
+  fun render() {
+    when (component) {
+      is JCheckBox -> {
+        if (component.isSelected != property.value.toBoolean()) {
+          component.isSelected = property.value.toBoolean()
+        }
+
+      }
+      is JComboBox<*> -> {
+        if (component.selectedItem != property.value) {
+          component.selectedItem = property.value
+        }
+      }
+      is JTextField -> {
+        if (component.text != property.value) {
+          component.text = property.value
+        }
+      }
+    }
+
     val result = property.validate()
     if (result.hasErrors()) {
       displayErrorState(result)
     } else {
       displayValidState()
     }
-    propField.isEnabled = property.enabled
+    component.isEnabled = property.enabled
     dialog.pack()
   }
 
   fun isInvalid() = property.validate().hasErrors()
 
-  fun assignValue() {
-    when (propField) {
-      is JCheckBox -> property.value = propField.isSelected.toString()
-      is JComboBox<*> -> property.value = propField.selectedItem.toString()
-      is JTextField -> property.value = propField.text
+  fun sync() {
+    when (component) {
+      is JCheckBox -> property.value = component.isSelected.toString()
+      is JComboBox<*> -> property.value = component.selectedItem.toString()
+      is JTextField -> property.value = component.text
     }
   }
 
@@ -51,7 +71,7 @@ class PropertyDialogField(
       foreground = null
       text = null
     }
-    propField.background = null
+    component.background = null
   }
 
   private fun displayErrorState(result: PropertyValidator) {
@@ -60,7 +80,7 @@ class PropertyDialogField(
       foreground = ERROR_TEXT_COLOR
       text = errorMessage
     }
-    propField.background = ERROR_FIELD_COLOR
+    component.background = ERROR_FIELD_COLOR
   }
 
   companion object {

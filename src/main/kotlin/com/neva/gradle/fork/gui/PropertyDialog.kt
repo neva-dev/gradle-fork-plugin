@@ -63,21 +63,21 @@ class PropertyDialog(private val config: Config) {
       is JTextField -> {
         field.document.addDocumentListener(object : DocumentListener() {
           override fun change(e: DocumentEvent) {
-            this@PropertyDialog.update()
+            this@PropertyDialog.render()
           }
         })
         field.addFocusListener(object : FocusListener() {
           override fun focusGained(e: FocusEvent) {
             fieldFocused = field
-            this@PropertyDialog.update()
+            this@PropertyDialog.render()
           }
         })
       }
       is JCheckBox -> {
-        field.addItemListener(ItemListener { this@PropertyDialog.update() })
+        field.addItemListener(ItemListener { this@PropertyDialog.render() })
       }
       is JComboBox<*> -> {
-        field.addActionListener(ActionListener { this@PropertyDialog.update() })
+        field.addActionListener(ActionListener { this@PropertyDialog.render() })
       }
     }
 
@@ -120,26 +120,23 @@ class PropertyDialog(private val config: Config) {
     dialog.apply {
       pack()
       centre()
-      update()
+      render()
     }
   }
 
   val props: Map<String, String>
     get() = fields.fold(mutableMapOf()) { r, e -> r[e.name] = e.value;r }
 
-  fun update() {
-    val isFieldSelected = fieldFocused != null
+  fun render() {
+    fields.forEach { it.sync() }
+    fields.forEach { it.control() }
+    SwingUtilities.invokeLater {
+      fields.forEach { it.render() }
+    }
 
-    validateAllFields()
     closeButton.isEnabled = valid
-    pathButton.isEnabled = isFieldSelected
+    pathButton.isEnabled = fieldFocused != null
     dialog.isVisible = true
-  }
-
-  private fun validateAllFields() {
-    fields.forEach(PropertyDialogField::assignValue)
-    fields.forEach(PropertyDialogField::control)
-    fields.forEach(PropertyDialogField::validateAndDisplayErrors)
   }
 
   private val valid: Boolean
