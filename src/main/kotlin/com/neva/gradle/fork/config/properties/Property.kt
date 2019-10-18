@@ -5,9 +5,9 @@ package com.neva.gradle.fork.config.properties
  * Can interact with other properties using common context.
  */
 class Property(
-  val definition: PropertyDefinition,
-  private val prompt: PropertyPrompt,
-  private val context: PropertyContext
+    val definition: PropertyDefinition,
+    private val prompt: PropertyPrompt,
+    private val context: PropertyContext
 ) {
 
   val name: String
@@ -43,11 +43,13 @@ class Property(
 
   var required: Boolean = definition.required
 
+  val optionalWithValue: Boolean get() = (!required && value.isNotEmpty())
+
   fun control() = definition.controller(this)
 
   fun validate(): PropertyValidator {
     return PropertyValidator(this).apply {
-      if (enabled && (required || (!required && value.isNotEmpty()))) {
+      if (enabled && (required || optionalWithValue)) {
         definition.validator(this)
       }
     }

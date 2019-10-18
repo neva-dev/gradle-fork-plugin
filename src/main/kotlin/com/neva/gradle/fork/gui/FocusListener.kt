@@ -12,5 +12,4 @@ abstract class FocusListener : Base {
   override fun focusGained(e: FocusEvent) {
     // intentionally empty
   }
-
 }

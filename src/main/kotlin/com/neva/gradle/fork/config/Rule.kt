@@ -8,5 +8,4 @@ interface Rule {
   fun validate()
 
   fun execute()
-
 }

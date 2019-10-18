@@ -27,5 +27,4 @@ class EachFilesRule(config: Config, val action: Action<in FileHandler>) : Abstra
   override fun toString(): String {
     return "EachFilesRule()"
   }
-
 }

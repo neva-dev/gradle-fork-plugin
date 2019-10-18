@@ -69,5 +69,4 @@ class CloneFilesRule(config: Config) : AbstractRule(config) {
   override fun toString(): String {
     return "CloneFilesRule(gitIgnores=$gitIgnores)"
   }
-
 }

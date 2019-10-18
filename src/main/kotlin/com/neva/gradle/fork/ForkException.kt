@@ -7,5 +7,4 @@ open class ForkException : GradleException {
   constructor(message: String) : super(message)
 
   constructor(message: String, e: Throwable) : super(message, e)
-
 }

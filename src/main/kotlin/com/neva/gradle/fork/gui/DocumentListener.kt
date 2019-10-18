@@ -3,7 +3,7 @@ package com.neva.gradle.fork.gui
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener as Base
 
-abstract class DocumentListener : Base  {
+abstract class DocumentListener : Base {
 
   override fun changedUpdate(e: DocumentEvent) {
     change(e)
@@ -18,5 +18,4 @@ abstract class DocumentListener : Base  {
   }
 
   abstract fun change(e: DocumentEvent)
-
 }

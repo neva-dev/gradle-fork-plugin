@@ -15,5 +15,4 @@ class SourceTargetConfig(forkExtension: ForkExtension, name: String) : Config(fo
   override val targetPath: String by lazy(promptProp("targetPath") {
     File(project.rootDir.parentFile, "${project.rootDir.name}-fork").absolutePath
   })
-
 }

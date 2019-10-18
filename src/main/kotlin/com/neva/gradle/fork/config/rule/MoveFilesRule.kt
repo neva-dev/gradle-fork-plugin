@@ -57,5 +57,4 @@ class MoveFilesRule(config: Config, movements: Map<String, () -> String>) : Abst
   override fun toString(): String {
     return "MoveFilesRule(movements=$movements)"
   }
-
 }

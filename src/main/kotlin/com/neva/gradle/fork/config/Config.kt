@@ -17,6 +17,7 @@ import java.util.*
 /**
  * Represents set of rules that are using properties to customize files (rename files / dirs, update content etc).
  */
+@Suppress("TooManyFunctions")
 abstract class Config(val fork: ForkExtension, val name: String) {
 
   val project = fork.project
@@ -173,8 +174,8 @@ abstract class Config(val fork: ForkExtension, val name: String) {
   private fun promptValidate() {
     val invalidProps = definedProperties.filter(Property::invalid).map { it.name }
     if (invalidProps.isNotEmpty()) {
-      throw ForkException("Fork cannot be performed, because of missing or invalid properties: $invalidProps."
-        + " Specify them via properties file $propsFile or interactive mode.")
+      throw ForkException("Fork cannot be performed, because of missing or invalid properties: $invalidProps." +
+        " Specify them via properties file $propsFile or interactive mode.")
     }
   }
 
@@ -306,5 +307,4 @@ abstract class Config(val fork: ForkExtension, val name: String) {
     const val NAME_DEFAULT = "fork"
     const val NAME_PROPERTIES = "props"
   }
-
 }

@@ -28,5 +28,4 @@ class ReplaceContentsRule(config: Config, replacements: Map<String, () -> String
   override fun toString(): String {
     return "ReplaceContentsRule(replacements=$replacements)"
   }
-
 }

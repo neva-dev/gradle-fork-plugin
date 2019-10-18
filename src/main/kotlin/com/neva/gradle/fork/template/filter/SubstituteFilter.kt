@@ -26,5 +26,4 @@ class SubstituteFilter : Filter {
   override fun getArgumentNames(): List<String>? {
     return listOf("search", "replace")
   }
-
 }

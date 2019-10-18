@@ -27,7 +27,7 @@ class FileHandler(val config: Config, val file: File) {
   }
 
   fun move(target: File): FileHandler {
-    actions += action@ {
+    actions += action@{
       if (!file.exists()) {
         logger.debug("File to be moved does not exist: $file")
         return@action
@@ -106,5 +106,4 @@ class FileHandler(val config: Config, val file: File) {
   override fun toString(): String {
     return file.toString()
   }
-
 }

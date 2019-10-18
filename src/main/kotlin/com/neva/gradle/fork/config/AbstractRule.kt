@@ -37,5 +37,4 @@ abstract class AbstractRule(val config: Config) : Rule {
   fun visitFiles(tree: FileTree, callback: (FileHandler, FileVisitDetails) -> Unit) {
     visitTree(tree, { !it.isDirectory }, callback)
   }
-
 }

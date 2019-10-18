@@ -49,7 +49,5 @@ open class ForkExtension(val project: Project, val props: PropsExtension) {
     fun of(project: Project): ForkExtension {
       return project.extensions.getByType(ForkExtension::class.java)
     }
-
   }
-
 }

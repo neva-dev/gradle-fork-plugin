@@ -104,5 +104,3 @@ open class PropertyDefinition @Inject constructor(val name: String) {
     validator = { notBlank(); uri() }
   }
 }
-
-

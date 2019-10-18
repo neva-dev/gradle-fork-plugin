@@ -17,5 +17,4 @@ open class ConfigTask @Inject constructor(@Internal val config: Base) : DefaultT
   fun evaluate() {
     config.evaluate()
   }
-
 }

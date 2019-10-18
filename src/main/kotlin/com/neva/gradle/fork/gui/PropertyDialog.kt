@@ -1,13 +1,14 @@
 package com.neva.gradle.fork.gui
 
+import com.neva.gradle.fork.ForkException
 import com.neva.gradle.fork.config.Config
 import com.neva.gradle.fork.config.properties.PropertyType
 import net.miginfocom.swing.MigLayout
+import java.awt.HeadlessException
 import java.awt.Toolkit
 import java.awt.event.*
 import javax.swing.*
 import javax.swing.event.DocumentEvent
-
 
 class PropertyDialog(private val config: Config) {
 
@@ -125,7 +126,7 @@ class PropertyDialog(private val config: Config) {
   }
 
   val props: Map<String, String>
-    get() = fields.fold(mutableMapOf()) { r, e -> r[e.name] = e.value;r }
+    get() = fields.fold(mutableMapOf()) { r, e -> r[e.name] = e.value; r }
 
   fun render() {
     fields.forEach { it.sync() }
@@ -152,12 +153,20 @@ class PropertyDialog(private val config: Config) {
 
   companion object {
 
-    fun make(config: Config): PropertyDialog {
+    private const val TROUBLESHOOTING = "Please run 'sh gradlew --stop' then try again.\n" +
+      "Ultimately run command with '--no-daemon' option."
+
+    @Suppress("TooGenericExceptionCaught")
+    fun make(config: Config): PropertyDialog = try {
       val laf = UIManager.getLookAndFeel()
       UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
       val dialog = PropertyDialog(config)
       UIManager.setLookAndFeel(laf)
-      return dialog
+      dialog
+    } catch (e: HeadlessException) {
+      throw ForkException("Fork properties GUI dialog cannot be opened in headless mode!\n$TROUBLESHOOTING")
+    } catch (e: Exception) {
+      throw ForkException("Fork properties GUI dialog cannot be opened!\n$TROUBLESHOOTING", e)
     }
   }
 }

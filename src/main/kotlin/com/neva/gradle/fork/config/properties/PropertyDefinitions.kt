@@ -30,5 +30,4 @@ class PropertyDefinitions(val fork: ForkExtension) {
       if (normalize) this.replace("\\", "/") else this
     }
   }
-
 }

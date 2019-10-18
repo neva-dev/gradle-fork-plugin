@@ -17,5 +17,4 @@ open class PropsPlugin : Plugin<Project> {
       extensions.create(PropsExtension.NAME, PropsExtension::class.java, project)
     }
   }
-
 }

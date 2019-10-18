@@ -6,10 +6,10 @@ import java.awt.Color
 import javax.swing.*
 
 class PropertyDialogField(
-  private val property: Property,
-  private val dialog: JDialog,
-  private val component: JComponent,
-  private val validationMessageLabel: JLabel
+    private val property: Property,
+    private val dialog: JDialog,
+    private val component: JComponent,
+    private val validationMessageLabel: JLabel
 ) {
 
   init {
@@ -32,7 +32,6 @@ class PropertyDialogField(
         if (component.isSelected != property.value.toBoolean()) {
           component.isSelected = property.value.toBoolean()
         }
-
       }
       is JComboBox<*> -> {
         if (component.selectedItem != property.value) {
@@ -90,6 +89,5 @@ class PropertyDialogField(
     val ERROR_TEXT_COLOR = Color(255, 0, 0)
 
     val ERROR_FIELD_COLOR = Color(255, 240, 240)
-
   }
 }

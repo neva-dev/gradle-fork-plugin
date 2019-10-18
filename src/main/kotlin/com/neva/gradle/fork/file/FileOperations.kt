@@ -31,7 +31,6 @@ object FileOperations {
     val target = amender(source)
     write(file, target)
   }
-
 }
 
 /**

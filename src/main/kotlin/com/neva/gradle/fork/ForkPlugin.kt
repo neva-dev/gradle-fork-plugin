@@ -35,5 +35,4 @@ open class ForkPlugin : Plugin<Project> {
       }
     }
   }
-
 }

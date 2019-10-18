@@ -10,5 +10,4 @@ class InPlaceConfig(forkExtension: ForkExtension, name: String) : Config(forkExt
   override val sourcePath: String by lazy { project.projectDir.absolutePath }
 
   override val targetPath: String by lazy { sourcePath }
-
 }

@@ -19,7 +19,5 @@ open class PropsExtension(private val project: Project) {
   companion object {
 
     const val NAME = "props"
-
   }
-
 }

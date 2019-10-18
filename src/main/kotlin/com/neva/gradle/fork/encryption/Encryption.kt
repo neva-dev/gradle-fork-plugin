@@ -20,6 +20,7 @@ internal class Encryption private constructor(private val ecipher: Cipher, priva
 
   private fun decode(string: String): ByteArray = BASE64.decode(string)
 
+  @Suppress("TooGenericExceptionCaught")
   fun encrypt(text: String?): String? {
     if (text.isNullOrBlank() || isEncrypted(text)) {
       return text
@@ -38,6 +39,7 @@ internal class Encryption private constructor(private val ecipher: Cipher, priva
     return FilenameUtils.wildcardMatch(text, "{*=}")
   }
 
+  @Suppress("TooGenericExceptionCaught")
   fun decrypt(text: String?): String? {
     if (text.isNullOrBlank() || !isEncrypted(text)) {
       return text
@@ -59,6 +61,7 @@ internal class Encryption private constructor(private val ecipher: Cipher, priva
 
     private val CHARSET = "UTF8"
 
+    @Suppress("MagicNumber")
     internal fun of(passphrase: CharArray): Encryption {
       // define a salt to prevent dictionary attacks (ideally, the salt would be
       // regenerated each time and stored alongside the encrypted text)
@@ -103,5 +106,4 @@ internal class Encryption private constructor(private val ecipher: Cipher, priva
         ?: "<<Default passphrase to encrypt passwords!>>").toCharArray())
     }
   }
-
 }

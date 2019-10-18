@@ -7,9 +7,9 @@ import org.gradle.api.Action
 import org.gradle.internal.Actions
 
 class ActionRule(
-  config: Config,
-  private val validator: Action<in ActionRule>,
-  private val executor: Action<in ActionRule>
+    config: Config,
+    private val validator: Action<in ActionRule>,
+    private val executor: Action<in ActionRule>
 ) : AbstractRule(config) {
 
   override fun validate() {
@@ -27,5 +27,4 @@ class ActionRule(
   override fun toString(): String {
     return "ActionRule()"
   }
-
 }

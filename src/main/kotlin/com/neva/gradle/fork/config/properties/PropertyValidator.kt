@@ -150,7 +150,7 @@ class PropertyValidator(val property: Property) {
   }
 
   // utility methods
-  
+
   fun checkRegex(regex: String, value: String = property.value) = Regex(regex).matches(value)
 
   fun checkTrimmingSpaces(value: String = property.value): Boolean {
@@ -169,5 +169,4 @@ class PropertyValidator(val property: Property) {
   companion object {
     val URL_VALIDATOR = UrlValidator(UrlValidator.ALLOW_ALL_SCHEMES.or(UrlValidator.ALLOW_LOCAL_URLS))
   }
-
 }

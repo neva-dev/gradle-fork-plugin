@@ -10,5 +10,4 @@ class PropertyContext(private val properties: Map<String, Property>) {
   fun find(pattern: String): List<Property> = properties.filter {
     FilenameUtils.wildcardMatch(it.key, pattern)
   }.map { it.value }
-
 }
