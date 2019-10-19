@@ -10,6 +10,7 @@ plugins {
     id("com.jfrog.bintray")
     id("com.gradle.plugin-publish")
     id("maven-publish")
+    id("com.github.breadmoirai.github-release")
 }
 
 group = "com.neva.gradle"
@@ -137,4 +138,14 @@ bintray {
     }
     publish = (project.findProperty("bintray.publish") ?: "true").toString().toBoolean()
     override = (project.findProperty("bintray.override") ?: "false").toString().toBoolean()
+}
+
+githubRelease {
+    owner("neva-dev")
+    token((project.findProperty("github.token") ?: "").toString())
+    tagName(project.version.toString())
+    releaseAssets(project.fileTree("build/libs") { include("**/${project.name}-${project.version}*.jar") })
+    draft((project.findProperty("github.draft") ?: "false").toString().toBoolean())
+    prerelease((project.findProperty("github.prerelease") ?: "false").toString().toBoolean())
+    overwrite((project.findProperty("github.override") ?: "false").toString().toBoolean())
 }
