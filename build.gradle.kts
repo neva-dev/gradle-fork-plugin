@@ -71,7 +71,7 @@ tasks {
     }
 
     named("afterReleaseBuild") {
-        dependsOn("bintrayUpload", "publishPlugins")
+        dependsOn("bintrayUpload", "publishPlugins", "githubRelease")
     }
     named("updateVersion") {
         enabled = false
