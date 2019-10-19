@@ -142,6 +142,7 @@ bintray {
 
 githubRelease {
     owner("neva-dev")
+    repo("gradle-fork-plugin")
     token((project.findProperty("github.token") ?: "").toString())
     tagName(project.version.toString())
     releaseAssets(project.fileTree("build/libs") { include("**/${project.name}-${project.version}*.jar") })
