@@ -45,16 +45,6 @@ open class ForkExtension(val project: Project, val props: PropsExtension) {
     action.execute(propertyDefinitions)
   }
 
-  @Internal
-  val propertyFiles = mutableListOf(
-    project.file("gradle.user.properties"),
-    project.file("gradle.fork.properties")
-  )
-
-  fun loadProperties() {
-    propertyFiles.filter { it.exists() }.forEach { loadProperties(it) }
-  }
-
   fun loadProperties(file: File) {
     Properties().apply {
       load(file.bufferedReader())
