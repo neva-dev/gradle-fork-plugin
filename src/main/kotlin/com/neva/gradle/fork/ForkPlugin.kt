@@ -28,10 +28,11 @@ open class ForkPlugin : Plugin<Project> {
           it.description = "Generates new project basing on itself."
         }
         inPlaceConfig(Config.NAME_PROPERTIES, Action {
-          it.copyTemplateFile("gradle.properties")
+          it.copyTemplateFile("gradle.user.properties")
         }).configure {
           it.description = "Generates user specific 'gradle.properties' file basing on template and prompted values."
         }
+        loadProperties("gradle.user.properties")
       }
     }
   }
