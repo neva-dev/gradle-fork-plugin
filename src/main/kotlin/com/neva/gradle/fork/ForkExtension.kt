@@ -15,6 +15,8 @@ import java.util.*
 
 open class ForkExtension(val project: Project, val props: PropsExtension) {
 
+  private val logger = project.logger
+
   fun config(configurer: Action<in SourceTargetConfig>) = config(Config.NAME_DEFAULT, configurer)
 
   fun config(name: String, configurer: Action<in SourceTargetConfig>): TaskProvider<ConfigTask> {
@@ -46,6 +48,12 @@ open class ForkExtension(val project: Project, val props: PropsExtension) {
   }
 
   fun loadProperties(file: File) {
+    if (!file.exists()) {
+      return
+    }
+
+    logger.info("Loading properties from file '$file'")
+
     Properties().apply {
       load(file.bufferedReader())
     }.forEach { name, value ->
