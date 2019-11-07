@@ -32,6 +32,7 @@ open class ForkPlugin : Plugin<Project> {
         }).configure {
           it.description = "Generates user specific 'gradle.properties' file basing on template and prompted values."
         }
+        loadProperties()
       }
     }
   }

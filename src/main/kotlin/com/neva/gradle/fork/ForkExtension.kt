@@ -10,11 +10,10 @@ import org.gradle.api.Project
 import org.gradle.api.UnknownTaskException
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskProvider
+import java.io.File
+import java.util.*
 
 open class ForkExtension(val project: Project, val props: PropsExtension) {
-
-  @Internal
-  val propertyDefinitions = PropertyDefinitions(this)
 
   fun config(configurer: Action<in SourceTargetConfig>) = config(Config.NAME_DEFAULT, configurer)
 
@@ -38,9 +37,33 @@ open class ForkExtension(val project: Project, val props: PropsExtension) {
     }
   }
 
+  @Internal
+  val propertyDefinitions = PropertyDefinitions(this)
+
+
   fun properties(action: Action<in PropertyDefinitions>) {
     action.execute(propertyDefinitions)
   }
+
+  @Internal
+  val propertyFiles = mutableListOf(
+    project.file("gradle.user.properties"),
+    project.file("gradle.fork.properties")
+  )
+
+  fun loadProperties() {
+    propertyFiles.filter { it.exists() }.forEach { loadProperties(it) }
+  }
+
+  fun loadProperties(file: File) {
+    Properties().apply {
+      load(file.bufferedReader())
+    }.forEach { name, value ->
+      project.extensions.extraProperties.set(name.toString(), value)
+    }
+  }
+
+  fun loadProperties(path: String) = loadProperties(project.file(path))
 
   companion object {
 
