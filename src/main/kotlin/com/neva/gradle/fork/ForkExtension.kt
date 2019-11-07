@@ -42,7 +42,6 @@ open class ForkExtension(val project: Project, val props: PropsExtension) {
   @Internal
   val propertyDefinitions = PropertyDefinitions(this)
 
-
   fun properties(action: Action<in PropertyDefinitions>) {
     action.execute(propertyDefinitions)
   }
