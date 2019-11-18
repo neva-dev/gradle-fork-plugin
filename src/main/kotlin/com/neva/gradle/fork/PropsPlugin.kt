@@ -14,7 +14,10 @@ open class PropsPlugin : Plugin<Project> {
 
   override fun apply(project: Project) {
     with(project) {
-      extensions.create(PropsExtension.NAME, PropsExtension::class.java, project)
+      PropsExtension(project).apply {
+        extensions.add(PropsExtension.NAME, this)
+        extensions.add(PropsExtension.ALIAS, this)
+      }
     }
   }
 }
