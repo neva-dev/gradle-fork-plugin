@@ -29,14 +29,14 @@ internal class Encryption private constructor(private val ecipher: Cipher, priva
     try {
       val utf8 = text.toByteArray(charset(CHARSET))
       val enc = ecipher.doFinal(utf8)
-      return "{${encode(enc)}}"
+      return "{$FORK_PASSWORD_PREFIX${encode(enc)}}"
     } catch (e: Exception) {
       throw ForkException("Encryption failed", e)
     }
   }
 
   private fun isEncrypted(text: String): Boolean {
-    return FilenameUtils.wildcardMatch(text, "{*=}")
+    return FilenameUtils.wildcardMatch(text, "{$FORK_PASSWORD_PREFIX*=}")
   }
 
   @Suppress("TooGenericExceptionCaught")
@@ -46,7 +46,7 @@ internal class Encryption private constructor(private val ecipher: Cipher, priva
     }
 
     try {
-      val raw = text.removeSurrounding("{", "}")
+      val raw = text.removeSurrounding("{$FORK_PASSWORD_PREFIX", "}")
       val dec = decode(raw)
       val utf8 = dcipher.doFinal(dec)
       return String(utf8, charset(CHARSET))
@@ -60,6 +60,8 @@ internal class Encryption private constructor(private val ecipher: Cipher, priva
     private val BASE64 = org.apache.commons.codec.binary.Base64(0, byteArrayOf('\r'.toByte(), '\n'.toByte()), false)
 
     private val CHARSET = "UTF8"
+
+    private const val FORK_PASSWORD_PREFIX = "fp:"
 
     @Suppress("MagicNumber")
     internal fun of(passphrase: CharArray): Encryption {
