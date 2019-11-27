@@ -19,7 +19,7 @@ Both screenshots come from [Gradle AEM Multi](https://github.com/Cognifide/gradl
 Related project specific configuration:
 
 * [Forking configuration](https://github.com/Cognifide/gradle-aem-multi/blob/master/gradle/fork.gradle.kts) (aka for generating project from archetype)
-* [Template file](https://github.com/Cognifide/gradle-aem-multi/blob/master/gradle/fork/gradle.properties.peb) for *gradle.properties*
+* [Template file](https://github.com/Cognifide/gradle-aem-multi/blob/master/gradle/fork/gradle.user.properties.peb) for *gradle.user.properties*
 
 - - -
 
@@ -32,7 +32,7 @@ Newcomers of Gradle Build System very often complain about that in Gradle there 
   * From business perspective, plugin allows to automate rebranding at code level (perform massive renaming, repackaging).
   * Maintenance of real / working example projects is probably easier than maintaining archetypes (there is no need to regenerate project every time to prove that archetype is working properly).
 
-Plugin is also useful for **generating** *gradle.properties* file in a **user-friendly way.
+Plugin is also useful for **generating** *gradle.user.properties* file in a **user-friendly way.
 
 You liked or used plugin? Don't forget to **star this project** on GitHub :)
 
@@ -90,8 +90,8 @@ fork {
         cloneFiles()
     }
     /*
-    inPlaceConfig 'properties', { // predefined configuration for interactively generating 'gradle.properties' file
-        copyTemplateFile("gradle/fork/gradle.properties.peb")
+    inPlaceConfig 'properties', { // predefined configuration for interactively generating 'gradle.user.properties' file
+        copyTemplateFile("gradle/fork/gradle.user.properties.peb")
     }
     */
 }
@@ -113,8 +113,8 @@ Fork plugin allows to have multiple fork configurations defined. In above sample
    gradlew fork
    ```
     
-2. Predefined configuration named *props* with the purpose of creating initial configuration before building project (generating *gradle.properties* file). In detail, it will:
-    * Prompt to fill or update all variables detected in template file located at path *gradle/fork/gradle.properties.peb*.
+2. Predefined configuration named *props* with the purpose of creating initial configuration before building project (generating *gradle.user.properties* file). In detail, it will:
+    * Prompt to fill or update all variables detected in template file located at path *gradle/fork/gradle.user.properties.peb*.
     * Combine prompted variable values with template file to finally save a file containing user specific properties (like repository credentials etc). 
     
     Executable by command line:
@@ -211,11 +211,11 @@ Property definition can consists of:
   * by default `URL` & `PATH` properties gets basic validation which can be overridden or suppressed: `validator = {}`
   
 #### Password encryption
-Passwords kept as plaintext in `gradle.properties` file can be problematic especially when you have to input there your private password ;-). 
+Passwords kept as plaintext in `gradle.user.properties` file can be problematic especially when you have to input there your private password ;-). 
 
-That's why Gradle Fork Plugin by default encrypts all `PASSWORD` properties (those which name ends with "password" or marked explicitly as password in their definition using `password()`). This way generated `gradle.properties` file wont ever again contain any password plaintext.
+That's why Gradle Fork Plugin by default encrypts all `PASSWORD` properties (those which name ends with "password" or marked explicitly as password in their definition using `password()`). This way generated `gradle.user.properties` file wont ever again contain any password plaintext.
 
-To access this encrypted password in our build configuration simply apply `com.neva.fork.props` plugin and read from the `PropsExtension`:
+Passwords are automatically dencrypted and available via standard Gradle method `project.findProperty()` when plugin `com.neva.fork.props` is applied.
 
 ```kotlin
 import com.neva.gradle.fork.PropsExtension
@@ -251,11 +251,11 @@ Replacing 'com.company.aem.example' with 'com.neva.aem.sample' in file C:\Users\
 Replacing 'example' with 'sample' in file C:\Users\krystian.panek\Projects\sample\app\common\src\main\content\META-INF\vault\filter.xml
 </pre>
 
-Then such forked project could be saved in VCS and each developer after cloning it could perform a setup very easily using command `gradlew props` to provide credentials to e.g Maven repositories, deployment servers etc before running application build that requires such data to be specified in *gradle.properties* file.
+Then such forked project could be saved in VCS and each developer after cloning it could perform a setup very easily using command `gradlew props` to provide credentials to e.g Maven repositories, deployment servers etc before running application build that requires such data to be specified in *gradle.user.properties* file.
 
 <pre>
-Copying file from C:\Users\krystian.panek\Projects\sample\gradle\fork\gradle.properties to C:\Users\krystian.panek\Projects\sample\gradle.properties
-Expanding properties in file C:\Users\krystian.panek\Projects\sample\gradle.properties
+Copying file from C:\Users\krystian.panek\Projects\sample\gradle\fork\gradle.user.properties to C:\Users\krystian.panek\Projects\sample\gradle.user.properties
+Expanding properties in file C:\Users\krystian.panek\Projects\sample\gradle.user.properties
 </pre>
 
 ## License
