@@ -47,6 +47,18 @@ class FileHandler(val config: Config, val file: File) {
     return this
   }
 
+  fun remove(): FileHandler {
+    actions += action@{
+      if (file.exists()) {
+        logger.info("Removing file $file")
+
+        FileUtils.deleteQuietly(file)
+      }
+    }
+
+    return this
+  }
+
   fun read(): String {
     return FileOperations.read(file)
   }

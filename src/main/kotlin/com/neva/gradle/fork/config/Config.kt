@@ -234,6 +234,10 @@ abstract class Config(val fork: ForkExtension, val name: String) {
     replaceTexts(mapOf(search to replace))
   }
 
+  fun removeText(removal: String) = removeTexts(listOf(removal))
+
+  fun removeTexts(removals: List<String>) = replaceTexts(removals.map { it to "" }.toMap())
+
   fun eachFiles(action: Action<in FileHandler>) {
     rule(EachFilesRule(this, action))
   }
@@ -247,20 +251,26 @@ abstract class Config(val fork: ForkExtension, val name: String) {
   fun replaceContent(search: String, replace: String) = replaceText(search, replace)
 
   fun eachTextFiles(action: Action<in FileHandler>) {
-    eachTextFiles(textFiles, textIgnoredFiles, action)
+    eachFiles(textFiles, textIgnoredFiles, action)
   }
 
   fun eachTextFiles(pattern: String, action: Action<in FileHandler>) = eachTextFiles(listOf(pattern), action)
 
   fun eachTextFiles(patterns: List<String>, action: Action<in FileHandler>) {
-    eachTextFiles(patterns, textIgnoredFiles, action)
+    eachFiles(patterns, textIgnoredFiles, action)
   }
 
-  fun eachTextFiles(includes: List<String>, excludes: List<String>, action: Action<in FileHandler>) {
+  fun eachFiles(includes: List<String>, excludes: List<String>, action: Action<in FileHandler>) {
     eachFiles(action, Action {
       it.filter.include(includes)
       it.filter.exclude(excludes)
     })
+  }
+
+  fun removeFile(path: String) = removeFiles(listOf(path))
+
+  fun removeFiles(includes: List<String>, excludes: List<String> = listOf()) {
+    eachFiles(includes, excludes, Action { it.remove() })
   }
 
   fun copyTemplateFile(templateName: String) {
