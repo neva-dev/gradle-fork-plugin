@@ -47,6 +47,18 @@ class FileHandler(val config: Config, val file: File) {
     return this
   }
 
+  fun remove(): FileHandler {
+    actions += action@{
+      if (file.exists()) {
+        logger.info("Removing file $file")
+
+        FileUtils.deleteQuietly(file)
+      }
+    }
+
+    return this
+  }
+
   fun read(): String {
     return FileOperations.read(file)
   }
@@ -72,7 +84,19 @@ class FileHandler(val config: Config, val file: File) {
   fun replace(search: String, replace: String): FileHandler {
     val content = read()
     if (content.contains(search)) {
-      logger.info("Replacing '$search' with '$replace' in file $file")
+      if (search.contains("\n") || replace.contains("\n")) {
+        if (replace.isEmpty()) {
+          logger.info("Removing from file $file content:\n$search")
+        } else {
+          logger.info("Replacing content of file $file\nSearch:\n$search\nReplace:\n$replace")
+        }
+      } else {
+        if (replace.isEmpty()) {
+          logger.info("Removing from file $file content '$search'")
+        } else {
+          logger.info("Replacing '$search' with '${replace.ifBlank { "<empty>" }}' in file $file")
+        }
+      }
 
       val updatedContent = content.replace(search, replace)
       write(updatedContent)

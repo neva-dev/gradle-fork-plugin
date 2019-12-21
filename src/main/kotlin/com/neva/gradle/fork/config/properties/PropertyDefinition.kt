@@ -19,6 +19,8 @@ open class PropertyDefinition @Inject constructor(val name: String) {
 
   var defaultValue: String = ""
 
+  var enabled = true
+
   var required = true
 
   var dynamic = false

@@ -39,7 +39,7 @@ class Property(
   val invalid: Boolean
     get() = validate().hasErrors()
 
-  var enabled: Boolean = true
+  var enabled: Boolean = definition.enabled
 
   var required: Boolean = definition.required
 

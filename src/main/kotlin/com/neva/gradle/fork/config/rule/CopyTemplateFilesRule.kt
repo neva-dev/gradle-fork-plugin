@@ -33,7 +33,7 @@ class CopyTemplateFilesRule(config: Config, private val files: Map<String, Strin
   }
 
   private fun copyAndExpandTemplateFiles() {
-    files.forEach { templateName, targetName ->
+    files.forEach { (templateName, targetName) ->
       val templateFile = findTemplateFile(templateName)
       if (templateFile != null) {
         val targetFile = File(config.targetDir, targetName)
