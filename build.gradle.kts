@@ -73,8 +73,11 @@ tasks {
     named("afterReleaseBuild") {
         dependsOn("bintrayUpload", "publishPlugins")
     }
-    named("release") {
-        finalizedBy("githubRelease")
+    register("fullRelease") {
+        dependsOn("release", "githubRelease")
+    }
+    named("githubRelease") {
+        mustRunAfter("release")
     }
 }
 
