@@ -2,7 +2,6 @@ package com.neva.gradle.fork.config.rule
 
 import com.neva.gradle.fork.config.AbstractRule
 import com.neva.gradle.fork.config.Config
-import com.neva.gradle.fork.file.FileOperations
 import java.io.File
 
 class MoveFilesRule(config: Config, movements: Map<String, () -> String>) : AbstractRule(config) {
