@@ -269,8 +269,15 @@ abstract class Config(val fork: ForkExtension, val name: String) {
 
   fun removeFile(path: String) = removeFiles(listOf(path))
 
-  fun removeFiles(includes: List<String>, excludes: List<String> = listOf()) {
+  fun removeFiles(includes: List<String>, excludes: List<String> = listOf(), cleanEmptyDirs: Boolean = true) {
     eachFiles(includes, excludes, Action { it.remove() })
+    if (cleanEmptyDirs) {
+      removeEmptyDirs()
+    }
+  }
+
+  fun removeEmptyDirs() {
+    action(Action { it.removeEmptyDirs() })
   }
 
   fun copyTemplateFile(templateName: String) {
