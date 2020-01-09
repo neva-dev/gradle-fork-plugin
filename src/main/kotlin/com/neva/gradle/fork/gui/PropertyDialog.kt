@@ -15,7 +15,7 @@ class PropertyDialog(private val config: Config) {
   private val dialog = JDialog().apply {
     title = "Properties for configuration '${config.name}'"
     layout = MigLayout(
-      "insets 10 10 10 10",
+      "insets 0 0 0 0",
       "[fill,grow][fill,grow]",
       "[fill,grow]"
     )
@@ -48,10 +48,24 @@ class PropertyDialog(private val config: Config) {
     }
   }
 
+  private var tabPane = JTabbedPane().apply {
+    dialog.add(this)
+  }
+
+  private var tab = JPanel().apply {
+    layout = MigLayout(
+      "insets 10 10 10 10",
+      "[fill,grow][fill,grow]",
+      "[fill,grow]"
+    )
+
+    tabPane.addTab("General", this)
+  }
+
   @Suppress("unchecked_cast")
   private var fields: List<PropertyDialogField> = config.definedProperties.map { property ->
     val label = JLabel(property.label)
-    dialog.add(label, "align label")
+    tab.add(label, "align label")
 
     val field: JComponent = when (property.type) {
       PropertyType.PASSWORD -> JPasswordField(property.value)
@@ -82,17 +96,17 @@ class PropertyDialog(private val config: Config) {
       }
     }
 
-    dialog.add(field, "width 300::, wrap")
+    tab.add(field, "width 300::, wrap")
 
     val validationMessage = JLabel()
-    dialog.add(validationMessage, "skip, wrap")
+    tab.add(validationMessage, "skip, wrap")
 
     if (property.description.isNotBlank()) {
       val descriptionHtml = "<html>${property.description.replace("\n", "<br/>")}</html>"
       val descriptionLabel = JLabel(descriptionHtml).apply {
         foreground = PropertyDialogField.DESCRIPTION_TEXT_COLOR
       }
-      dialog.add(descriptionLabel, "skip, wrap")
+      tab.add(descriptionLabel, "skip, wrap")
     }
 
     PropertyDialogField(property, dialog, field, validationMessage)
@@ -152,6 +166,12 @@ class PropertyDialog(private val config: Config) {
   }
 
   companion object {
+
+    private val LAYOUT = MigLayout(
+      "insets 10 10 10 10",
+      "[fill,grow][fill,grow]",
+      "[fill,grow]"
+    )
 
     private const val TROUBLESHOOTING = "Please run 'sh gradlew --stop' then try again.\n" +
       "Ultimately run command with '--no-daemon' option."
