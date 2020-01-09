@@ -75,7 +75,9 @@ fork {
         
 //      executableFiles = [
 //          "**/*.sh",
-//          "**/*.bat"
+//          "**/*.bat",
+//          "**/gradlew",
+//          "**/mvnw"
 //      ]
 
         // rules:
