@@ -4,6 +4,7 @@ import com.neva.gradle.fork.file.FileOperations
 import org.apache.commons.io.FileUtils
 import java.io.File
 import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import java.nio.file.attribute.PosixFilePermission
 
 class FileHandler(val config: Config, val file: File) {
@@ -17,7 +18,7 @@ class FileHandler(val config: Config, val file: File) {
       logger.info("Copying file from $file to $target")
 
       target.parentFile.mkdirs()
-      FileUtils.copyFile(file, target)
+      Files.copy(file.toPath(), target.toPath(), StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING)
     }
 
     return this
