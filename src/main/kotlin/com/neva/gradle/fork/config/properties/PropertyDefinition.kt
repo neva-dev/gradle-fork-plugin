@@ -13,11 +13,13 @@ open class PropertyDefinition @Inject constructor(val name: String) {
 
   var options: Any? = null
 
-  var label: String? = null
+  var label = labelFromName(name)
 
   var description = ""
 
   var defaultValue: String = ""
+
+  var group: String? = null
 
   var enabled = true
 
@@ -104,5 +106,51 @@ open class PropertyDefinition @Inject constructor(val name: String) {
     this.defaultValue = defaultValue
     type = PropertyType.URI
     validator = { notBlank(); uri() }
+  }
+
+  companion object {
+
+    fun labelFromName(name: String) = upperUnderscore(name).split("_").joinToString(" ") {
+      it.toLowerCase().capitalize()
+    }
+
+    /**
+     * @see <https://stackoverflow.com/a/50837880>
+     */
+    private fun upperUnderscore(name: String): String {
+      val result = StringBuffer()
+      var begin = true
+      var lastUppercase = false
+
+      for (i in name.indices) {
+        val ch = name[i]
+        lastUppercase = if (Character.isUpperCase(ch)) { // is start?
+          if (begin) {
+            result.append(ch)
+          } else {
+            if (lastUppercase) { // test if end of acronym
+              if (i + 1 < name.length) {
+                val next = name[i + 1]
+                if (Character.isUpperCase(next)) { // acronym continues
+                  result.append(ch)
+                } else { // end of acronym
+                  result.append('_').append(ch)
+                }
+              } else { // acronym continues
+                result.append(ch)
+              }
+            } else { // last was lowercase, insert _
+              result.append('_').append(ch)
+            }
+          }
+          true
+        } else {
+          result.append(Character.toUpperCase(ch))
+          false
+        }
+        begin = false
+      }
+      return result.toString()
+    }
   }
 }

@@ -11,12 +11,22 @@ class PropertyDefinitions(val fork: ForkExtension) {
   val all: List<PropertyDefinition>
     get() = definitions.values.toList()
 
-  fun define(name: String, action: Action<in PropertyDefinition>) {
-    definitions += (name to Actions.with(fork.project.objects.newInstance(PropertyDefinition::class.java, name), action))
+  fun define(name: String, action: Action<in PropertyDefinition>): PropertyDefinition {
+    val definition = Actions.with(fork.project.objects.newInstance(PropertyDefinition::class.java, name), action)
+    definitions += name to definition
+    return definition
   }
 
-  fun define(definitions: Map<String, PropertyDefinition.() -> Unit>) {
-    definitions.forEach { name, options -> define(name, Action { options(it) }) }
+  fun define(definitions: Map<String, PropertyDefinition.() -> Unit>): List<PropertyDefinition> {
+    return definitions.map { (name, options) -> define(name, Action { options(it) }) }
+  }
+
+  fun define(group: String, definitions: Map<String, PropertyDefinition.() -> Unit>): List<PropertyDefinition> {
+    return define(Action { it.group = group }, definitions)
+  }
+
+  fun define(commonDefinition: Action<in PropertyDefinition>, definitions: Map<String, PropertyDefinition.() -> Unit>): List<PropertyDefinition> {
+    return define(definitions).apply { forEach { commonDefinition.execute(it) } }
   }
 
   fun get(name: String): PropertyDefinition? = definitions[name]
