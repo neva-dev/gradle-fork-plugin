@@ -8,7 +8,6 @@ import com.neva.gradle.fork.gui.PropertyDialog
 import com.neva.gradle.fork.template.TemplateEngine
 import org.gradle.api.Action
 import org.gradle.api.file.FileTree
-import org.gradle.util.GFileUtils
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -49,6 +48,13 @@ abstract class Config(val fork: ForkExtension, val name: String) {
   var textFiles = mutableListOf(
     "**/*.gradle", "**/*.xml", "**/*.properties", "**/*.js", "**/*.json", "**/*.css", "**/*.scss",
     "**/*.java", "**/*.kt", "**/*.kts", "**/*.groovy", "**/*.html", "**/*.jsp"
+  )
+
+  var executableFiles = mutableListOf(
+    "**/*.sh",
+    "**/*.bat",
+    "**/gradlew",
+    "**/mvnw"
   )
 
   var textIgnoredFiles = mutableListOf(
@@ -152,7 +158,7 @@ abstract class Config(val fork: ForkExtension, val name: String) {
   }
 
   private fun promptSavePropertiesFile(file: File) {
-    GFileUtils.mkdirs(file.parentFile)
+    file.parentFile.mkdirs()
 
     FileOutputStream(file).use { output ->
       val props = Properties()
@@ -290,6 +296,10 @@ abstract class Config(val fork: ForkExtension, val name: String) {
 
   fun copyTemplateFiles(files: Map<String, String>) {
     rule(CopyTemplateFilesRule(this, files))
+  }
+
+  fun makeFilesExecutable(includes: List<String> = executableFiles, excludes: List<String> = listOf()) {
+    eachFiles(includes, excludes, Action { it.makeExecutable() })
   }
 
   fun action(executor: Action<in ActionRule>) {
