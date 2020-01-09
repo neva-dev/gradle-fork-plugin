@@ -143,9 +143,10 @@ class PropertyValidator(val property: Property) {
   }
 
   fun notEndsWith(otherName: String, ignoreCase: Boolean = true) {
-    val otherValue = property.other(otherName).value
+    val other = property.other(otherName)
+    val otherValue = other.value
     if (otherValue.isNotEmpty() && property.value.endsWith(otherValue, ignoreCase)) {
-      error("Should not end with '$otherValue' ($otherName)")
+      error("Should not end with '$otherValue' (${other.label})")
     }
   }
 

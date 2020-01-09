@@ -4,16 +4,18 @@ import com.neva.gradle.fork.ForkException
 import com.neva.gradle.fork.config.Config
 import com.neva.gradle.fork.config.properties.PropertyType
 import net.miginfocom.swing.MigLayout
+import java.awt.Container
 import java.awt.HeadlessException
 import java.awt.Toolkit
 import java.awt.event.*
 import javax.swing.*
 import javax.swing.event.DocumentEvent
 
+
 class PropertyDialog(private val config: Config) {
 
   private val dialog = JDialog().apply {
-    title = "Properties for configuration '${config.name}'"
+    title = "Configuration '${config.name}'"
     layout = MigLayout(
       "insets 10 10 10 10",
       "[fill,grow][fill,grow]",
@@ -48,10 +50,33 @@ class PropertyDialog(private val config: Config) {
     }
   }
 
+  private val tabPane by lazy {
+    JTabbedPane().apply {
+      dialog.add(this, "span, wrap")
+    }
+  }
+
+  private var tabs = config.definedProperties.fold(mutableMapOf<String, JPanel>(), { result, property ->
+    property.definition.group?.let { group -> result.computeIfAbsent(group) { addTab(group) } }
+    result
+  })
+
+  private fun addTab(group: String) = JPanel().apply {
+      layout = MigLayout(
+        "insets 10 10 10 10",
+        "[fill,grow][fill,grow]",
+        "[fill,fill]"
+      )
+
+      tabPane.addTab(group, this)
+    }
+
   @Suppress("unchecked_cast")
   private var fields: List<PropertyDialogField> = config.definedProperties.map { property ->
     val label = JLabel(property.label)
-    dialog.add(label, "align label")
+    val container: Container = tabs[property.definition.group] ?: dialog
+
+    container.add(label, "align label")
 
     val field: JComponent = when (property.type) {
       PropertyType.PASSWORD -> JPasswordField(property.value)
@@ -82,17 +107,17 @@ class PropertyDialog(private val config: Config) {
       }
     }
 
-    dialog.add(field, "width 300::, wrap")
+    container.add(field, "width 300::, wrap")
 
     val validationMessage = JLabel()
-    dialog.add(validationMessage, "skip, wrap")
+    container.add(validationMessage, "skip, wrap")
 
     if (property.description.isNotBlank()) {
       val descriptionHtml = "<html>${property.description.replace("\n", "<br/>")}</html>"
       val descriptionLabel = JLabel(descriptionHtml).apply {
         foreground = PropertyDialogField.DESCRIPTION_TEXT_COLOR
       }
-      dialog.add(descriptionLabel, "skip, wrap")
+      container.add(descriptionLabel, "skip, wrap")
     }
 
     PropertyDialogField(property, dialog, field, validationMessage)
@@ -106,7 +131,7 @@ class PropertyDialog(private val config: Config) {
       }
     }
 
-    dialog.add(this, "span, south, wrap")
+    dialog.add(this, "span, wrap")
   }
 
   private val fileChooser = JFileChooser().apply {
