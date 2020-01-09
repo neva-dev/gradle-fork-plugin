@@ -2,8 +2,10 @@ package com.neva.gradle.fork.config
 
 import com.neva.gradle.fork.file.FileOperations
 import org.apache.commons.io.FileUtils
-import org.gradle.util.GFileUtils
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+import java.nio.file.attribute.PosixFilePermission
 
 class FileHandler(val config: Config, val file: File) {
 
@@ -15,8 +17,8 @@ class FileHandler(val config: Config, val file: File) {
     actions += {
       logger.info("Copying file from $file to $target")
 
-      GFileUtils.parentMkdirs(target)
-      FileUtils.copyFile(file, target)
+      target.parentFile.mkdirs()
+      Files.copy(file.toPath(), target.toPath(), StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING)
     }
 
     return this
@@ -40,7 +42,7 @@ class FileHandler(val config: Config, val file: File) {
 
       logger.info("Moving file from $file to $target")
 
-      GFileUtils.parentMkdirs(target)
+      target.parentFile.mkdirs()
       FileUtils.moveFile(file, target)
     }
 
@@ -103,6 +105,15 @@ class FileHandler(val config: Config, val file: File) {
     }
 
     return this
+  }
+
+  fun makeExecutable() {
+    logger.info("Making file executable $file")
+
+    Files.setPosixFilePermissions(file.toPath(), Files.getPosixFilePermissions(file.toPath()) + setOf(
+      PosixFilePermission.OWNER_EXECUTE,
+      PosixFilePermission.GROUP_EXECUTE
+    ))
   }
 
   fun perform(): FileHandler {

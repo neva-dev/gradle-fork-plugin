@@ -72,7 +72,14 @@ fork {
 //          "**/*.gradle", "**/*.xml", "**/*.properties", "**/*.js", "**/*.json", "**/*.css", "**/*.scss",
 //          "**/*.java", "**/*.kt", "**/*.kts", "**/*.groovy", "**/*.html", "**/*.jsp"
 //      ]
-    
+        
+//      executableFiles = [
+//          "**/*.sh",
+//          "**/*.bat",
+//          "**/gradlew",
+//          "**/mvnw"
+//      ]
+
         // rules:
         cloneFiles()
         moveFiles([
