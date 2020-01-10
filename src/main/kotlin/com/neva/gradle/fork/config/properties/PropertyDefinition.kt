@@ -117,6 +117,7 @@ open class PropertyDefinition @Inject constructor(val name: String) {
     /**
      * @see <https://stackoverflow.com/a/50837880>
      */
+    @Suppress("ComplexMethod", "NestedBlockDepth")
     private fun upperUnderscore(name: String): String {
       val result = StringBuffer()
       var begin = true
