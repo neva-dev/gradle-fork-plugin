@@ -11,7 +11,6 @@ import java.awt.event.*
 import javax.swing.*
 import javax.swing.event.DocumentEvent
 
-
 class PropertyDialog(private val config: Config) {
 
   private val dialog = JDialog().apply {
