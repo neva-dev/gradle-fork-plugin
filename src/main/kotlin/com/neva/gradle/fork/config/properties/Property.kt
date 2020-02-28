@@ -21,7 +21,7 @@ class Property(
 
   val label: String
     get() {
-      val text = definition.label ?: prompt.label
+      val text = definition.label
 
       return if (definition.required) {
         "$text*"

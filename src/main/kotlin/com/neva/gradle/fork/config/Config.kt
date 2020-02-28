@@ -65,6 +65,14 @@ abstract class Config(val fork: ForkExtension, val name: String) {
 
   val templateEngine = TemplateEngine(project)
 
+  fun findTemplateFile(templateName: String): File? {
+    val pebFile = templateDir.resolve("$templateName.peb")
+    val regularFile = templateDir.resolve(templateName)
+    return listOf(pebFile, regularFile).firstOrNull { it.exists() }
+  }
+
+  fun getTargetFile(targetName: String) = targetDir.resolve(targetName)
+
   var propsFile = project.file(project.properties.getOrElse("fork.properties") { "fork.properties" } as String)
 
   private val previousPropsFile = File(project.buildDir, "fork/config/$name.properties")

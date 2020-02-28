@@ -1,6 +1,7 @@
 package com.neva.gradle.fork
 
 import com.neva.gradle.fork.config.Config
+import com.neva.gradle.fork.tasks.ConfigTask
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -24,15 +25,17 @@ open class ForkPlugin : Plugin<Project> {
 
       // Predefine configurations
       extension.apply {
-        config(Config.NAME_DEFAULT, Action {}).configure {
-          it.description = "Generates new project basing on itself."
+        config(Config.NAME_DEFAULT).apply {
+          project.tasks.register(Config.NAME_DEFAULT, ConfigTask::class.java) {
+            it.description = "Generates new project basing on itself."
+          }
         }
-        inPlaceConfig(Config.NAME_PROPERTIES, Action {
-          it.copyTemplateFile("gradle.user.properties")
-        }).configure {
+
+        properties(Config.NAME_PROPERTIES, "gradle.user.properties", Action {
           it.description = "Generates user specific 'gradle.properties' file basing on template and prompted values."
-        }
-        loadProperties("gradle.user.properties")
+        }, Action {
+          it.description = "Requires having generated user specific 'gradle.properties' file."
+        })
       }
     }
   }

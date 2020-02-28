@@ -7,9 +7,9 @@ import com.neva.gradle.fork.config.properties.PropertyDefinitions
 import com.neva.gradle.fork.tasks.ConfigTask
 import org.gradle.api.Action
 import org.gradle.api.Project
-import org.gradle.api.UnknownTaskException
+import org.gradle.api.Task
 import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.TaskProvider
+import org.gradle.internal.Actions
 import java.io.File
 import java.util.*
 
@@ -17,33 +17,45 @@ open class ForkExtension(val project: Project, val props: PropsExtension) {
 
   private val logger = project.logger
 
-  fun config(configurer: Action<in SourceTargetConfig>) = config(Config.NAME_DEFAULT, configurer)
+  private val configs = mutableMapOf<String, Config>()
 
-  fun config(name: String, configurer: Action<in SourceTargetConfig>): TaskProvider<ConfigTask> {
-    return try {
-      project.tasks.named(name, ConfigTask::class.java) { configurer.execute(it.config as SourceTargetConfig) }
-    } catch (e: UnknownTaskException) {
-      project.tasks.register(name, ConfigTask::class.java, SourceTargetConfig(this, name)).apply {
-        configure { configurer.execute(it.config as SourceTargetConfig) }
-      }
-    }
+
+  fun config(name: String = Config.NAME_DEFAULT, configurer: Action<in SourceTargetConfig> = Actions.doNothing()): Config {
+    return configs.getOrPut(name) { SourceTargetConfig(this, name) }.apply { configurer.execute(this as SourceTargetConfig) }
   }
 
-  fun inPlaceConfig(name: String, configurer: Action<in InPlaceConfig>): TaskProvider<ConfigTask> {
-    return try {
-      project.tasks.named(name, ConfigTask::class.java) { configurer.execute(it.config as InPlaceConfig) }
-    } catch (e: UnknownTaskException) {
-      project.tasks.register(name, ConfigTask::class.java, InPlaceConfig(this, name)).apply {
-        configure { configurer.execute(it.config as InPlaceConfig) }
-      }
-    }
-  }
+  fun inPlaceConfig(name: String, configurer: Action<in InPlaceConfig> = Actions.doNothing()) = configs.getOrPut(name) { InPlaceConfig(this, name) }.apply { configurer.execute(this as InPlaceConfig) }
+
+  fun props(configurer: Action<in InPlaceConfig> = Actions.doNothing()) = inPlaceConfig(Config.NAME_PROPERTIES, configurer)
 
   @Internal
   val propertyDefinitions = PropertyDefinitions(this)
 
   fun properties(action: Action<in PropertyDefinitions>) {
     action.execute(propertyDefinitions)
+  }
+
+  fun properties(
+    configName: String,
+    filePath: String,
+    generateOptions: Action<in Task> = Actions.doNothing(),
+    requireOptions: Action<in Task> = Actions.doNothing()
+  ) {
+    props(Action { c ->
+      c.copyTemplateFile(filePath)
+
+      project.tasks.register(configName, ConfigTask::class.java, c as Config).configure(generateOptions)
+      project.tasks.register("require${configName.capitalize()}") {
+        it.doLast {
+          if (!c.getTargetFile(filePath).exists()) {
+            throw ForkException("Required properties file '$filePath' does not exist!\n" +
+              "Run task '$configName' to generate it interactively.")
+          }
+        }
+      }.configure(requireOptions)
+    })
+
+    loadProperties(filePath)
   }
 
   fun loadProperties(file: File) {

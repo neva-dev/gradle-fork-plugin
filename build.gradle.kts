@@ -20,7 +20,7 @@ defaultTasks("clean", "publishToMavenLocal")
 repositories {
     mavenLocal()
     jcenter()
-    maven { url = uri("https://dl.bintray.com/neva-dev/maven-public") }
+    maven("https://dl.bintray.com/neva-dev/maven-public")
 }
 
 dependencies {
