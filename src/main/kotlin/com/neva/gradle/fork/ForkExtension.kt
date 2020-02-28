@@ -55,8 +55,14 @@ open class ForkExtension(val project: Project, val props: PropsExtension) {
 
     Properties().apply {
       load(file.bufferedReader())
-    }.forEach { name, value ->
-      project.extensions.extraProperties.set(name.toString(), props.encryptor.decrypt(value as String?))
+    }.forEach { n, v ->
+      val name = n.toString()
+      val value = props.encryptor.decrypt(v as String)!!
+
+      when {
+        name.startsWith("systemProp.") -> System.setProperty(name, value)
+        else -> project.extensions.extraProperties.set(name, value)
+      }
     }
   }
 

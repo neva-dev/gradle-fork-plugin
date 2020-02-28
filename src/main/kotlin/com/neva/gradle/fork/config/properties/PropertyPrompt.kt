@@ -17,7 +17,4 @@ class PropertyPrompt(val name: String, private val defaultProvider: () -> String
       null
     }
   }
-
-  val label: String
-    get() = name
 }
