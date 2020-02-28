@@ -10,8 +10,7 @@ class Property(
     private val context: PropertyContext
 ) {
 
-  val name: String
-    get() = prompt.name
+  val name: String get() = prompt.name
 
   var value: String
     set(newValue) {
@@ -21,7 +20,7 @@ class Property(
 
   val label: String
     get() {
-      val text = definition.label ?: prompt.label
+      val text = definition.label
 
       return if (definition.required) {
         "$text*"
@@ -78,7 +77,5 @@ class Property(
 
   fun others(pattern: String) = context.find(pattern)
 
-  override fun toString(): String {
-    return "Property(name=$name, type=$type, value=$value)"
-  }
+  override fun toString(): String = "Property(name=$name, type=$type, value=$value)"
 }

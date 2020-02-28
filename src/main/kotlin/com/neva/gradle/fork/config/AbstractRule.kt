@@ -16,7 +16,11 @@ abstract class AbstractRule(val config: Config) : Rule {
     // nothing to do
   }
 
-  fun visitTree(tree: FileTree, condition: (FileVisitDetails) -> Boolean, callback: (FileHandler, FileVisitDetails) -> Unit) {
+  fun visitTree(
+      tree: FileTree,
+      condition: (FileVisitDetails) -> Boolean,
+      callback: (FileHandler, FileVisitDetails) -> Unit
+  ) {
     val actions = mutableListOf<() -> Unit>()
     tree.visitAll { fileDetail ->
       if (condition(fileDetail)) {
