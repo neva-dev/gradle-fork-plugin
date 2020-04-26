@@ -59,7 +59,7 @@ internal class Encryption private constructor(private val ecipher: Cipher, priva
 
     private val BASE64 = org.apache.commons.codec.binary.Base64(0, byteArrayOf('\r'.toByte(), '\n'.toByte()), false)
 
-    private val CHARSET = "UTF8"
+    private const val CHARSET = "UTF8"
 
     @Suppress("MagicNumber")
     internal fun of(passphrase: CharArray): Encryption {

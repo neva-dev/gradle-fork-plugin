@@ -65,10 +65,14 @@ open class ForkExtension(val project: Project, val props: PropsExtension) {
 
     logger.info("Loading properties from file '$file'")
 
-    Properties().apply {
-      load(file.bufferedReader())
-    }.forEach { name, value ->
-      project.extensions.extraProperties.set(name.toString(), props.encryptor.decrypt(value as String?))
+    Properties().apply { load(file.bufferedReader()) }.forEach { n, v ->
+      val name = n.toString()
+      val value = props.encryptor.decrypt(v as String)!!
+
+      when {
+        name.startsWith(SYSTEM_PROP_PREFIX) -> System.setProperty(name.substringAfter(SYSTEM_PROP_PREFIX), value)
+        else -> project.extensions.extraProperties.set(name, value)
+      }
     }
   }
 
@@ -77,6 +81,8 @@ open class ForkExtension(val project: Project, val props: PropsExtension) {
   companion object {
 
     const val NAME = "fork"
+
+    const val SYSTEM_PROP_PREFIX = "systemProp."
 
     fun of(project: Project): ForkExtension {
       return project.extensions.getByType(ForkExtension::class.java)

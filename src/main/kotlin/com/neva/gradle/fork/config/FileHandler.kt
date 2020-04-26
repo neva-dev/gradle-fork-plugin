@@ -28,6 +28,7 @@ class FileHandler(val config: Config, val file: File) {
     return move(File(targetPath))
   }
 
+  @Suppress("ReturnCount")
   fun move(target: File): FileHandler {
     actions += action@{
       if (!file.exists()) {
