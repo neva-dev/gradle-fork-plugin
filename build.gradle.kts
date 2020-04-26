@@ -20,20 +20,19 @@ defaultTasks("clean", "publishToMavenLocal")
 repositories {
     mavenLocal()
     jcenter()
-    maven("https://dl.bintray.com/neva-dev/maven-public")
 }
 
 dependencies {
     implementation(gradleApi())
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.3.10")
-    implementation("org.apache.commons:commons-lang3:3.4")
-    implementation("commons-io:commons-io:2.4")
+    implementation("org.apache.commons:commons-lang3:3.10")
+    implementation("commons-io:commons-io:2.6")
     implementation("commons-validator:commons-validator:1.6")
-    implementation("commons-codec:commons-codec:1.11")
+    implementation("commons-codec:commons-codec:1.14")
 
     implementation("com.neva.commons:gitignore-file-filter:1.0.0")
     implementation("com.miglayout:miglayout:3.7.4")
-    implementation("io.pebbletemplates:pebble:3.0.4")
+    implementation("io.pebbletemplates:pebble:3.1.2")
 
     testImplementation("junit:junit:4.12")
 
