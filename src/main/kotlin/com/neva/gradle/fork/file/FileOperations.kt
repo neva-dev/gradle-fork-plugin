@@ -10,17 +10,13 @@ import java.nio.file.Paths
 
 object FileOperations {
 
-  fun isDirEmpty(dir: File): Boolean {
-    return dir.exists() && isDirEmpty(Paths.get(dir.absolutePath))
-  }
+  fun isDirEmpty(dir: File): Boolean = dir.exists() && isDirEmpty(Paths.get(dir.absolutePath))
 
   fun isDirEmpty(dir: Path): Boolean {
     Files.newDirectoryStream(dir).use { dirStream -> return !dirStream.iterator().hasNext() }
   }
 
-  fun read(file: File): String {
-    return file.inputStream().bufferedReader().use { it.readText() }
-  }
+  fun read(file: File): String = file.inputStream().use { it.bufferedReader().readText() }
 
   fun write(file: File, content: String) {
     file.printWriter().use { it.print(content) }

@@ -11,15 +11,9 @@ class CopyTemplateFilesRule(config: Config, private val files: Map<String, Strin
     registerPromptsForTemplateFiles()
   }
 
-  private fun findTemplateFile(templateName: String): File? {
-    val pebFile = File(config.templateDir, "$templateName.peb")
-    val regularFile = File(config.templateDir, templateName)
-    return listOf(pebFile, regularFile).firstOrNull { it.exists() }
-  }
-
   private fun registerPromptsForTemplateFiles() {
     files.keys.forEach { templateName ->
-      val templateFile = findTemplateFile(templateName)
+      val templateFile = config.findTemplateFile(templateName)
       if (templateFile != null) {
         val template = FileHandler(config, templateFile).read()
 
@@ -34,9 +28,9 @@ class CopyTemplateFilesRule(config: Config, private val files: Map<String, Strin
 
   private fun copyAndExpandTemplateFiles() {
     files.forEach { (templateName, targetName) ->
-      val templateFile = findTemplateFile(templateName)
+      val templateFile = config.findTemplateFile(templateName)
       if (templateFile != null) {
-        val targetFile = File(config.targetDir, targetName)
+        val targetFile = config.getTargetFile(targetName)
 
         FileHandler(config, templateFile).copy(targetFile).perform()
         FileHandler(config, targetFile).expand()

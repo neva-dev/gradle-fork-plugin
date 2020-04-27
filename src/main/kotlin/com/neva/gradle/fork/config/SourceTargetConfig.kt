@@ -6,7 +6,7 @@ import java.io.File
 /**
  * Represents a set of action (configuration) that operates on files copied from one path to another.
  */
-class SourceTargetConfig(forkExtension: ForkExtension, name: String) : Config(forkExtension, name) {
+open class SourceTargetConfig(forkExtension: ForkExtension, name: String) : Config(forkExtension, name) {
 
   override val sourcePath: String by lazy(promptProp("sourcePath") {
     project.projectDir.absolutePath

@@ -31,19 +31,15 @@ abstract class Config(val fork: ForkExtension, val name: String) {
 
   abstract val sourcePath: String
 
-  val sourceDir: File
-    get() = File(sourcePath)
+  val sourceDir: File get() = File(sourcePath)
 
-  val sourceTree: FileTree
-    get() = project.fileTree(sourcePath)
+  val sourceTree: FileTree get() = project.fileTree(sourcePath)
 
   abstract val targetPath: String
 
-  val targetDir: File
-    get() = File(targetPath)
+  val targetDir: File get() = File(targetPath)
 
-  val targetTree: FileTree
-    get() = project.fileTree(targetPath)
+  val targetTree: FileTree get() = project.fileTree(targetPath)
 
   var textFiles = mutableListOf(
     "**/*.gradle", "**/*.xml", "**/*.properties", "**/*.js", "**/*.json", "**/*.css", "**/*.scss",
@@ -65,6 +61,14 @@ abstract class Config(val fork: ForkExtension, val name: String) {
 
   val templateEngine = TemplateEngine(project)
 
+  fun findTemplateFile(templateName: String): File? {
+    val pebFile = templateDir.resolve("$templateName.peb")
+    val regularFile = templateDir.resolve(templateName)
+    return listOf(pebFile, regularFile).firstOrNull { it.exists() }
+  }
+
+  fun getTargetFile(targetName: String) = targetDir.resolve(targetName)
+
   var propsFile = project.file(project.properties.getOrElse("fork.properties") { "fork.properties" } as String)
 
   private val previousPropsFile = File(project.buildDir, "fork/config/$name.properties")
@@ -85,9 +89,7 @@ abstract class Config(val fork: ForkExtension, val name: String) {
     return { promptedProperties[prop] ?: throw ForkException("Fork prompt property '$prop' not bound.") }
   }
 
-  fun promptProp(prop: String): () -> String {
-    return promptProp(prop) { null }
-  }
+  fun promptProp(prop: String): () -> String = promptProp(prop) { null }
 
   fun promptTemplate(template: String): () -> String {
     templateEngine.parse(template).forEach { prop ->
@@ -97,9 +99,7 @@ abstract class Config(val fork: ForkExtension, val name: String) {
     return { renderTemplate(template) }
   }
 
-  fun renderTemplate(template: String): String {
-    return templateEngine.render(template, promptedProperties)
-  }
+  fun renderTemplate(template: String) = templateEngine.render(template, promptedProperties)
 
   private fun propsDefine(): List<Property> {
     val others = mutableMapOf<String, Property>()
@@ -107,7 +107,7 @@ abstract class Config(val fork: ForkExtension, val name: String) {
 
     fork.propertyDefinitions.all.filter { it.dynamic }.forEach { promptProp(it.name) }
 
-    prompts.forEach { name, prompt ->
+    prompts.forEach { (name, prompt) ->
       val definition = fork.propertyDefinitions.get(prompt.name) ?: PropertyDefinition(prompt.name)
       val property = Property(definition, prompt, context)
 
@@ -326,12 +326,10 @@ abstract class Config(val fork: ForkExtension, val name: String) {
     rules.forEach { it.execute() }
   }
 
-  override fun toString(): String {
-    return "Config(name='$name')"
-  }
+  override fun toString(): String = "Config(name='$name')"
 
   companion object {
-    const val NAME_DEFAULT = "fork"
+    const val NAME_FORK = "fork"
     const val NAME_PROPERTIES = "props"
   }
 }

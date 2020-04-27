@@ -4,12 +4,15 @@ import com.neva.gradle.fork.config.Config
 import com.neva.gradle.fork.config.InPlaceConfig
 import com.neva.gradle.fork.config.SourceTargetConfig
 import com.neva.gradle.fork.config.properties.PropertyDefinitions
+import com.neva.gradle.fork.tasks.RequirePropertiesTask
 import com.neva.gradle.fork.tasks.ConfigTask
+import com.neva.gradle.fork.tasks.ForkTask
+import com.neva.gradle.fork.tasks.PropertiesTask
 import org.gradle.api.Action
 import org.gradle.api.Project
-import org.gradle.api.UnknownTaskException
+import org.gradle.api.Task
 import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.TaskProvider
+import org.gradle.internal.Actions
 import java.io.File
 import java.util.*
 
@@ -17,27 +20,14 @@ open class ForkExtension(val project: Project, val props: PropsExtension) {
 
   private val logger = project.logger
 
-  fun config(configurer: Action<in SourceTargetConfig>) = config(Config.NAME_DEFAULT, configurer)
+  private val configs = mutableMapOf<String, Config>()
 
-  fun config(name: String, configurer: Action<in SourceTargetConfig>): TaskProvider<ConfigTask> {
-    return try {
-      project.tasks.named(name, ConfigTask::class.java) { configurer.execute(it.config as SourceTargetConfig) }
-    } catch (e: UnknownTaskException) {
-      project.tasks.register(name, ConfigTask::class.java, SourceTargetConfig(this, name)).apply {
-        configure { configurer.execute(it.config as SourceTargetConfig) }
-      }
-    }
+
+  fun config(name: String = Config.NAME_FORK, configurer: Action<in SourceTargetConfig> = Actions.doNothing()): Config {
+    return configs.getOrPut(name) { SourceTargetConfig(this, name) }.apply { configurer.execute(this as SourceTargetConfig) }
   }
 
-  fun inPlaceConfig(name: String, configurer: Action<in InPlaceConfig>): TaskProvider<ConfigTask> {
-    return try {
-      project.tasks.named(name, ConfigTask::class.java) { configurer.execute(it.config as InPlaceConfig) }
-    } catch (e: UnknownTaskException) {
-      project.tasks.register(name, ConfigTask::class.java, InPlaceConfig(this, name)).apply {
-        configure { configurer.execute(it.config as InPlaceConfig) }
-      }
-    }
-  }
+  fun inPlaceConfig(name: String, configurer: Action<in InPlaceConfig> = Actions.doNothing()) = configs.getOrPut(name) { InPlaceConfig(this, name) }.apply { configurer.execute(this as InPlaceConfig) }
 
   @Internal
   val propertyDefinitions = PropertyDefinitions(this)
@@ -53,7 +43,7 @@ open class ForkExtension(val project: Project, val props: PropsExtension) {
 
     logger.info("Loading properties from file '$file'")
 
-    Properties().apply { load(file.bufferedReader()) }.forEach { n, v ->
+    Properties().apply { file.inputStream().use { load(it.bufferedReader()) } }.forEach { n, v ->
       val name = n.toString()
       val value = props.encryptor.decrypt(v as String)!!
 
@@ -66,9 +56,26 @@ open class ForkExtension(val project: Project, val props: PropsExtension) {
 
   fun loadProperties(path: String) = loadProperties(project.file(path))
 
+  // Defining config and task at same time
+
+  fun useForking(configName: String, options: Config.() -> Unit = {}) = config(Config.NAME_FORK).apply {
+    project.tasks.register(configName, ForkTask::class.java, this)
+    options()
+  }
+
+  fun useProperties(configName: String, filePath: String) = inPlaceConfig(configName).apply {
+    copyTemplateFile(filePath)
+    loadProperties(filePath)
+
+    project.tasks.register(name, PropertiesTask::class.java, this)
+    project.tasks.register("require${name.capitalize()}", RequirePropertiesTask::class.java, this, filePath)
+  }
+
   companion object {
 
     const val NAME = "fork"
+
+    const val TASK_GROUP = "fork"
 
     const val SYSTEM_PROP_PREFIX = "systemProp."
 
