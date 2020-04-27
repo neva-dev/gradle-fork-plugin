@@ -3,7 +3,6 @@ package com.neva.gradle.fork.tasks
 import com.neva.gradle.fork.ForkException
 import com.neva.gradle.fork.ForkExtension
 import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import javax.inject.Inject
 import com.neva.gradle.fork.config.Config

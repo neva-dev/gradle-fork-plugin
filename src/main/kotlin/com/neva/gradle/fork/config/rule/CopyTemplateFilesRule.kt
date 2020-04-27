@@ -3,7 +3,6 @@ package com.neva.gradle.fork.config.rule
 import com.neva.gradle.fork.config.AbstractRule
 import com.neva.gradle.fork.config.Config
 import com.neva.gradle.fork.config.FileHandler
-import java.io.File
 
 class CopyTemplateFilesRule(config: Config, private val files: Map<String, String>) : AbstractRule(config) {
 
