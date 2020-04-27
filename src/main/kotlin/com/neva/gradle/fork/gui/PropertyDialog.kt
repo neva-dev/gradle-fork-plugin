@@ -32,23 +32,6 @@ class PropertyDialog(private val config: Config) {
     })
   }
 
-  private var pathButton = JButton().apply {
-    if (config.definedProperties.any { it.type == PropertyType.PATH || it.type == PropertyType.URI }) {
-      text = "Pick a path"
-      addActionListener {
-        if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-          fieldFocused!!.document.insertString(
-            fieldFocused!!.caretPosition,
-            fileChooser.selectedFile.absolutePath.replace("\\", "/"),
-            null
-          )
-        }
-      }
-
-      dialog.add(this, "span, wrap")
-    }
-  }
-
   private val tabPane by lazy {
     JTabbedPane().apply {
       dialog.add(this, "span, wrap")
@@ -120,6 +103,23 @@ class PropertyDialog(private val config: Config) {
     }
 
     PropertyDialogField(property, dialog, field, validationMessage)
+  }
+
+  private var pathButton = JButton().apply {
+    if (config.definedProperties.any { it.type == PropertyType.PATH || it.type == PropertyType.URI }) {
+      text = "Pick a path"
+      addActionListener {
+        if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+          fieldFocused!!.document.insertString(
+            fieldFocused!!.caretPosition,
+            fileChooser.selectedFile.absolutePath.replace("\\", "/"),
+            null
+          )
+        }
+      }
+
+      dialog.add(this)
+    }
   }
 
   private var closeButton = JButton().apply {
