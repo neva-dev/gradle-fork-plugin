@@ -43,7 +43,7 @@ open class ForkExtension(val project: Project, val props: PropsExtension) {
 
     logger.info("Loading properties from file '$file'")
 
-    Properties().apply { load(file.bufferedReader()) }.forEach { n, v ->
+    Properties().apply { file.inputStream().use { load(it.bufferedReader()) } }.forEach { n, v ->
       val name = n.toString()
       val value = props.encryptor.decrypt(v as String)!!
 
