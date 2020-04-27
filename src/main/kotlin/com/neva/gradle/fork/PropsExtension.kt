@@ -23,5 +23,9 @@ open class PropsExtension(private val project: Project) {
     const val NAME = "props"
 
     const val ALIAS = "forkProps"
+
+    fun of(project: Project) = project.extensions.getByType(PropsExtension::class.java)
   }
 }
+
+val Project.props get() = PropsExtension.of(this)

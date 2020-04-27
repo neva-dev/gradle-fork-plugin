@@ -24,7 +24,7 @@ open class ForkPlugin : Plugin<Project> {
       // Predefine configurations
       extension.apply {
         useForking(Config.NAME_FORK)
-        useProperties(Config.NAME_PROPERTIES,"gradle.user.properties")
+        useProperties(Config.NAME_PROPERTIES, "gradle.user.properties")
       }
     }
   }

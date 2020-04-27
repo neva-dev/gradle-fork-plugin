@@ -1,5 +1,6 @@
 package com.neva.gradle.fork.config
 
+import com.neva.gradle.fork.ForkCancelException
 import com.neva.gradle.fork.ForkException
 import com.neva.gradle.fork.ForkExtension
 import com.neva.gradle.fork.config.properties.*
@@ -71,7 +72,7 @@ abstract class Config(val fork: ForkExtension, val name: String) {
 
   var propsFile = project.file(project.properties.getOrElse("fork.properties") { "fork.properties" } as String)
 
-  private val previousPropsFile = File(project.buildDir, "fork/config/$name.properties")
+  private val previousPropsFile = project.projectDir.resolve(".gradle/fork/config/$name.properties")
 
   private val interactive = flag("fork.interactive", true)
 
@@ -170,9 +171,9 @@ abstract class Config(val fork: ForkExtension, val name: String) {
   private fun promptFillGui() {
     if (interactive && prompts.isNotEmpty()) {
       val dialog = PropertyDialog.make(this)
-      dialog.props.forEach { p, v -> prompts[p]?.value = v }
+      dialog.props.forEach { (p, v) -> prompts[p]?.value = v }
       if (dialog.cancelled) {
-        throw ForkException("Fork cancelled by interactive mode.")
+        throw ForkCancelException("Fork cancelled by interactive mode!")
       }
     }
   }
@@ -310,9 +311,11 @@ abstract class Config(val fork: ForkExtension, val name: String) {
     rule(ActionRule(this, validator, executor))
   }
 
-  fun evaluate() {
+  fun evaluate() = try {
     validate()
     execute()
+  } catch (e: ForkCancelException) {
+    logger.lifecycle(e.message)
   }
 
   fun validate() {

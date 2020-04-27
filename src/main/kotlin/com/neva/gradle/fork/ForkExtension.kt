@@ -5,12 +5,10 @@ import com.neva.gradle.fork.config.InPlaceConfig
 import com.neva.gradle.fork.config.SourceTargetConfig
 import com.neva.gradle.fork.config.properties.PropertyDefinitions
 import com.neva.gradle.fork.tasks.RequirePropertiesTask
-import com.neva.gradle.fork.tasks.ConfigTask
 import com.neva.gradle.fork.tasks.ForkTask
 import com.neva.gradle.fork.tasks.PropertiesTask
 import org.gradle.api.Action
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.tasks.Internal
 import org.gradle.internal.Actions
 import java.io.File
@@ -22,12 +20,17 @@ open class ForkExtension(val project: Project, val props: PropsExtension) {
 
   private val configs = mutableMapOf<String, Config>()
 
-
   fun config(name: String = Config.NAME_FORK, configurer: Action<in SourceTargetConfig> = Actions.doNothing()): Config {
-    return configs.getOrPut(name) { SourceTargetConfig(this, name) }.apply { configurer.execute(this as SourceTargetConfig) }
+    return configs.getOrPut(name) { SourceTargetConfig(this, name) }.apply {
+      configurer.execute(this as SourceTargetConfig)
+    }
   }
 
-  fun inPlaceConfig(name: String, configurer: Action<in InPlaceConfig> = Actions.doNothing()) = configs.getOrPut(name) { InPlaceConfig(this, name) }.apply { configurer.execute(this as InPlaceConfig) }
+  fun inPlaceConfig(name: String, configurer: Action<in InPlaceConfig> = Actions.doNothing()): Config {
+    return configs.getOrPut(name) { InPlaceConfig(this, name) }.apply {
+      configurer.execute(this as InPlaceConfig)
+    }
+  }
 
   @Internal
   val propertyDefinitions = PropertyDefinitions(this)
@@ -43,13 +46,19 @@ open class ForkExtension(val project: Project, val props: PropsExtension) {
 
     logger.info("Loading properties from file '$file'")
 
+    val override = project.findProperty("fork.properties.override")?.toString()?.toBoolean() ?: false
     Properties().apply { file.inputStream().use { load(it.bufferedReader()) } }.forEach { n, v ->
       val name = n.toString()
       val value = props.encryptor.decrypt(v as String)!!
 
       when {
         name.startsWith(SYSTEM_PROP_PREFIX) -> System.setProperty(name.substringAfter(SYSTEM_PROP_PREFIX), value)
-        else -> project.extensions.extraProperties.set(name, value)
+        else -> {
+          val extraProperties = project.extensions.extraProperties
+          if (override || !extraProperties.has(name)) {
+            extraProperties.set(name, value)
+          }
+        }
       }
     }
   }
@@ -79,8 +88,8 @@ open class ForkExtension(val project: Project, val props: PropsExtension) {
 
     const val SYSTEM_PROP_PREFIX = "systemProp."
 
-    fun of(project: Project): ForkExtension {
-      return project.extensions.getByType(ForkExtension::class.java)
-    }
+    fun of(project: Project) = project.extensions.getByType(ForkExtension::class.java)
   }
 }
+
+val Project.fork get() = ForkExtension.of(this)
