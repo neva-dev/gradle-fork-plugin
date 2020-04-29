@@ -100,13 +100,15 @@ abstract class Config(val fork: ForkExtension, val name: String) {
     return { renderTemplate(template) }
   }
 
+  private fun promptDynamicProperties() {
+    fork.propertyDefinitions.all.filter { it.dynamic }.forEach { promptProp(it.name) }
+  }
+
   fun renderTemplate(template: String) = templateEngine.render(template, promptedProperties)
 
   private fun propsDefine(): List<Property> {
     val others = mutableMapOf<String, Property>()
     val context = PropertyContext(others)
-
-    fork.propertyDefinitions.all.filter { it.dynamic }.forEach { promptProp(it.name) }
 
     prompts.forEach { (name, prompt) ->
       val definition = fork.propertyDefinitions.get(prompt.name) ?: PropertyDefinition(prompt.name)
@@ -119,6 +121,7 @@ abstract class Config(val fork: ForkExtension, val name: String) {
   }
 
   private fun promptFill(): Map<String, String?> {
+    promptDynamicProperties()
     promptFillPropertiesFile(previousPropsFile)
 
     try {
