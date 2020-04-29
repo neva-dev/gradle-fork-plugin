@@ -76,6 +76,8 @@ abstract class Config(val fork: ForkExtension, val name: String) {
 
   private val interactive = flag("fork.interactive", true)
 
+  private val verbose = flag("fork.verbose", false)
+
   private val logger = project.logger
 
   private fun flag(prop: String, defaultValue: Boolean = false): Boolean {
@@ -318,7 +320,11 @@ abstract class Config(val fork: ForkExtension, val name: String) {
     validate()
     execute()
   } catch (e: ForkCancelException) {
-    logger.lifecycle(e.message)
+    if (verbose) {
+      throw e
+    } else {
+      logger.lifecycle(e.message)
+    }
   }
 
   fun validate() {
