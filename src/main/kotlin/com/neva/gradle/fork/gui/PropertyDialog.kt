@@ -15,8 +15,10 @@ class PropertyDialog(private val config: Config) {
 
   private val logger = config.project.logger
 
-  private val fileChooser = JFileChooser().apply {
-    fileSelectionMode = JFileChooser.FILES_AND_DIRECTORIES
+  private val fileChooser by lazy {
+    JFileChooser().apply {
+      fileSelectionMode = JFileChooser.FILES_AND_DIRECTORIES
+    }
   }
 
   private val dialog = JDialog().apply {
