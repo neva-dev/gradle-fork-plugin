@@ -13,6 +13,14 @@ import javax.swing.event.DocumentEvent
 
 class PropertyDialog(private val config: Config) {
 
+  private val logger = config.project.logger
+
+  private val fileChooser by lazy {
+    JFileChooser().apply {
+      fileSelectionMode = JFileChooser.FILES_AND_DIRECTORIES
+    }
+  }
+
   private val dialog = JDialog().apply {
     title = "Configuration '${config.name}'"
     layout = MigLayout(
@@ -38,7 +46,7 @@ class PropertyDialog(private val config: Config) {
     }
   }
 
-  private var tabs = config.definedProperties.fold(mutableMapOf<String, JPanel>(), { result, property ->
+  private val tabs = config.definedProperties.fold(mutableMapOf<String, JPanel>(), { result, property ->
     property.definition.group?.let { group -> result.computeIfAbsent(group) { addTab(group) } }
     result
   })
@@ -54,7 +62,7 @@ class PropertyDialog(private val config: Config) {
     }
 
   @Suppress("unchecked_cast")
-  private var fields: List<PropertyDialogField> = config.definedProperties.map { property ->
+  private val fields: List<PropertyDialogField> = config.definedProperties.map { property ->
     val label = JLabel(property.label)
     val container: Container = tabs[property.definition.group] ?: dialog
 
@@ -105,16 +113,20 @@ class PropertyDialog(private val config: Config) {
     PropertyDialogField(property, dialog, field, validationMessage)
   }
 
-  private var pathButton = JButton().apply {
+  private val pathButton = JButton().apply {
     if (config.definedProperties.any { it.type == PropertyType.PATH || it.type == PropertyType.URI }) {
       text = "Pick a path"
       addActionListener {
-        if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-          fieldFocused!!.document.insertString(
-            fieldFocused!!.caretPosition,
-            fileChooser.selectedFile.absolutePath.replace("\\", "/"),
-            null
-          )
+        try {
+          if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+            fieldFocused!!.document.insertString(
+              fieldFocused!!.caretPosition,
+              fileChooser.selectedFile.absolutePath.replace("\\", "/"),
+              null
+            )
+          }
+        } catch (e : Exception) {
+          logger.debug("Cannot show file chooser dialog!", e)
         }
       }
 
@@ -122,7 +134,7 @@ class PropertyDialog(private val config: Config) {
     }
   }
 
-  private var closeButton = JButton().apply {
+  private val closeButton = JButton().apply {
     text = "Execute"
     addActionListener {
       if (valid) {
@@ -131,10 +143,6 @@ class PropertyDialog(private val config: Config) {
     }
 
     dialog.add(this, "span, wrap")
-  }
-
-  private val fileChooser = JFileChooser().apply {
-    fileSelectionMode = JFileChooser.FILES_AND_DIRECTORIES
   }
 
   private var fieldFocused: JTextField? = null
