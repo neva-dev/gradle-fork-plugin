@@ -113,6 +113,7 @@ class PropertyDialog(private val config: Config) {
     PropertyDialogField(property, dialog, field, validationMessage)
   }
 
+  @Suppress("TooGenericExceptionCaught")
   private val pathButton = JButton().apply {
     if (config.definedProperties.any { it.type == PropertyType.PATH || it.type == PropertyType.URI }) {
       text = "Pick a path"
@@ -125,7 +126,7 @@ class PropertyDialog(private val config: Config) {
               null
             )
           }
-        } catch (e : Exception) {
+        } catch (e: Exception) {
           logger.debug("Cannot show file chooser dialog!", e)
         }
       }
