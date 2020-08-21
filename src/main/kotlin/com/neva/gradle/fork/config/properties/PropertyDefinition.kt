@@ -25,7 +25,7 @@ open class PropertyDefinition @Inject constructor(val name: String) {
 
   var required = true
 
-  var dynamic = false
+  var dynamic = listOf<String>()
 
   var controller: Property.() -> Unit = {}
 
@@ -53,8 +53,8 @@ open class PropertyDefinition @Inject constructor(val name: String) {
     required = false
   }
 
-  fun dynamic() {
-    dynamic = true
+  fun dynamic(config: String) {
+    dynamic = listOf(config)
   }
 
   fun controller(action: Action<in Property>) {

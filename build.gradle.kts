@@ -45,8 +45,7 @@ tasks {
         dependsOn("classes")
         from(sourceSets["main"].allSource)
     }
-    register<DokkaTask>("dokkaJavadoc") {
-        outputFormat = "html"
+    dokkaJavadoc {
         outputDirectory = "$buildDir/javadoc"
     }
     register<Jar>("javadocJar") {
