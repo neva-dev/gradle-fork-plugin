@@ -7,6 +7,7 @@ import com.neva.gradle.fork.config.properties.*
 import com.neva.gradle.fork.config.rule.*
 import com.neva.gradle.fork.gui.PropertyDialog
 import com.neva.gradle.fork.template.TemplateEngine
+import org.apache.commons.io.FilenameUtils
 import org.gradle.api.Action
 import org.gradle.api.file.FileTree
 import java.io.File
@@ -103,7 +104,11 @@ abstract class Config(val fork: ForkExtension, val name: String) {
   }
 
   private fun promptDynamicProperties() {
-    fork.propertyDefinitions.all.filter { it.dynamic }.forEach { promptProp(it.name) }
+    fork.propertyDefinitions.all.filter { definition ->
+      definition.dynamic.any { configPattern -> FilenameUtils.wildcardMatch(this.name, configPattern) }
+    }.forEach {
+      promptProp(it.name)
+    }
   }
 
   fun renderTemplate(template: String) = templateEngine.render(template, promptedProperties)
