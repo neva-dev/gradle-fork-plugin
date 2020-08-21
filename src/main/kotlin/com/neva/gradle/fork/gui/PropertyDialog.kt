@@ -115,24 +115,22 @@ class PropertyDialog(private val config: Config) {
 
   @Suppress("TooGenericExceptionCaught")
   private val pathButton = JButton().apply {
-    if (config.definedProperties.any { it.type == PropertyType.PATH || it.type == PropertyType.URI }) {
-      text = "Pick a path"
-      addActionListener {
-        try {
-          if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            fieldFocused!!.document.insertString(
-              fieldFocused!!.caretPosition,
-              fileChooser.selectedFile.absolutePath.replace("\\", "/"),
-              null
-            )
-          }
-        } catch (e: Exception) {
-          logger.debug("Cannot show file chooser dialog!", e)
+    text = "Pick a path"
+    addActionListener {
+      try {
+        if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+          fieldFocused!!.document.insertString(
+            fieldFocused!!.caretPosition,
+            fileChooser.selectedFile.absolutePath.replace("\\", "/"),
+            null
+          )
         }
+      } catch (e: Exception) {
+        logger.debug("Cannot show file chooser dialog!", e)
       }
-
-      dialog.add(this)
     }
+
+    dialog.add(this)
   }
 
   private val closeButton = JButton().apply {
@@ -169,12 +167,15 @@ class PropertyDialog(private val config: Config) {
     }
 
     closeButton.isEnabled = valid
-    pathButton.isEnabled = fieldFocused != null
+    pathButton.isEnabled = fieldFocused != null && enabledPathProperty
     dialog.isVisible = true
   }
 
-  private val valid: Boolean
-    get() = fields.none(PropertyDialogField::isInvalid)
+  private val enabledPathProperty get() = config.definedProperties.any {
+    it.enabled && (it.type == PropertyType.PATH || it.type == PropertyType.URI)
+  }
+
+  private val valid: Boolean get() = fields.none(PropertyDialogField::isInvalid)
 
   fun centre() {
     val dimension = Toolkit.getDefaultToolkit().screenSize
