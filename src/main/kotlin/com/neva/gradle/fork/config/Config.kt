@@ -179,19 +179,24 @@ abstract class Config(val fork: ForkExtension, val name: String) {
   }
 
   private fun promptFillGui() {
-    if (interactive && prompts.isNotEmpty()) {
+    if (prompts.isEmpty()) {
+      return
+    }
+    if (interactive) {
       val dialog = PropertyDialog.make(this)
       dialog.props.forEach { (p, v) -> prompts[p]?.value = v }
       if (dialog.cancelled) {
-        throw ForkCancelException("Fork cancelled by interactive mode!")
+        throw ForkCancelException("Configuration evaluation cancelled by interactive mode!")
       }
+    } else {
+      definedProperties.forEach { prompts[it.name]?.value = it.value }
     }
   }
 
   private fun promptValidate() {
     val invalidProps = definedProperties.filter(Property::invalid).map { it.name }
     if (invalidProps.isNotEmpty()) {
-      throw ForkException("Fork cannot be performed, because of missing or invalid properties: $invalidProps." +
+      throw ForkException("Configuration '$name' cannot be evaluated because of missing or invalid properties: $invalidProps." +
         " Specify them via properties file $propsFile or interactive mode.")
     }
   }
