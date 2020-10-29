@@ -20,11 +20,25 @@ open class ForkExtension(val project: Project, val props: PropsExtension) {
 
   private val configs = mutableMapOf<String, Config>()
 
-  var cached = flag("fork.cached", true)
+  val ci = project.objects.property(Boolean::class.java).apply {
+    convention(false)
+    project.findProperty("fork.ci")?.toString()?.toBoolean()?.let { set(it) }
+  }
 
-  var interactive = flag("fork.interactive", true)
+  val cached = project.objects.property(Boolean::class.java).apply {
+    convention(ci.map { !it })
+    project.findProperty("fork.cached")?.toString()?.toBoolean()?.let { set(it) }
+  }
 
-  var verbose = flag("fork.verbose", false)
+  val interactive = project.objects.property(Boolean::class.java).apply {
+    convention(ci.map { !it })
+    project.findProperty("fork.interactive")?.toString()?.toBoolean()?.let { set(it) }
+  }
+
+  val verbose = project.objects.property(Boolean::class.java).apply {
+    convention(ci)
+    project.findProperty("fork.verbose")?.toString()?.toBoolean()?.let { set(it) }
+  }
 
   fun config(name: String = Config.NAME_FORK, configurer: Action<in SourceTargetConfig> = Actions.doNothing()): Config {
     return configs.getOrPut(name) { SourceTargetConfig(this, name) }.apply {

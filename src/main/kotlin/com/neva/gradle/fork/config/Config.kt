@@ -119,7 +119,7 @@ abstract class Config(val fork: ForkExtension, val name: String) {
 
   private fun promptFill(): Map<String, String?> {
     promptDynamicProperties()
-    if (fork.cached) {
+    if (fork.cached.get()) {
       promptFillPropertiesFile(previousPropsFile)
     }
     try {
@@ -173,7 +173,7 @@ abstract class Config(val fork: ForkExtension, val name: String) {
     if (prompts.isEmpty()) {
       return
     }
-    if (fork.interactive) {
+    if (fork.interactive.get()) {
       val dialog = PropertyDialog.make(this)
       dialog.props.forEach { (p, v) -> prompts[p]?.value = v }
       if (dialog.cancelled) {
@@ -321,7 +321,7 @@ abstract class Config(val fork: ForkExtension, val name: String) {
     validate()
     execute()
   } catch (e: ForkCancelException) {
-    if (fork.verbose) {
+    if (fork.verbose.get()) {
       throw e
     } else {
       logger.lifecycle(e.message)
