@@ -20,6 +20,12 @@ open class ForkExtension(val project: Project, val props: PropsExtension) {
 
   private val configs = mutableMapOf<String, Config>()
 
+  var cached = flag("fork.cached", true)
+
+  var interactive = flag("fork.interactive", true)
+
+  var verbose = flag("fork.verbose", false)
+
   fun config(name: String = Config.NAME_FORK, configurer: Action<in SourceTargetConfig> = Actions.doNothing()): Config {
     return configs.getOrPut(name) { SourceTargetConfig(this, name) }.apply {
       configurer.execute(this as SourceTargetConfig)
@@ -78,6 +84,12 @@ open class ForkExtension(val project: Project, val props: PropsExtension) {
 
     project.tasks.register(name, PropertiesTask::class.java, this)
     project.tasks.register("require${name.capitalize()}", RequirePropertiesTask::class.java, this, filePath)
+  }
+
+  private fun flag(prop: String, defaultValue: Boolean = false): Boolean {
+    val value = project.properties[prop] as String? ?: return defaultValue
+
+    return if (!value.isBlank()) value.toBoolean() else true
   }
 
   companion object {

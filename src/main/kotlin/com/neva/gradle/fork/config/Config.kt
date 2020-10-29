@@ -75,17 +75,7 @@ abstract class Config(val fork: ForkExtension, val name: String) {
 
   private val previousPropsFile = project.projectDir.resolve(".gradle/fork/config/$name.properties")
 
-  private val interactive = flag("fork.interactive", true)
-
-  private val verbose = flag("fork.verbose", false)
-
   private val logger = project.logger
-
-  private fun flag(prop: String, defaultValue: Boolean = false): Boolean {
-    val value = project.properties[prop] as String? ?: return defaultValue
-
-    return if (!value.isBlank()) value.toBoolean() else true
-  }
 
   fun promptProp(prop: String, defaultProvider: () -> String?): () -> String {
     prompts[prop] = PropertyPrompt(prop, defaultProvider)
@@ -129,8 +119,9 @@ abstract class Config(val fork: ForkExtension, val name: String) {
 
   private fun promptFill(): Map<String, String?> {
     promptDynamicProperties()
-    promptFillPropertiesFile(previousPropsFile)
-
+    if (fork.cached) {
+      promptFillPropertiesFile(previousPropsFile)
+    }
     try {
       promptFillPropertiesFile(propsFile)
       promptPreProcess()
@@ -182,7 +173,7 @@ abstract class Config(val fork: ForkExtension, val name: String) {
     if (prompts.isEmpty()) {
       return
     }
-    if (interactive) {
+    if (fork.interactive) {
       val dialog = PropertyDialog.make(this)
       dialog.props.forEach { (p, v) -> prompts[p]?.value = v }
       if (dialog.cancelled) {
@@ -242,10 +233,10 @@ abstract class Config(val fork: ForkExtension, val name: String) {
   }
 
   fun replaceTexts(replacements: Map<String, String>) {
-    replaceTexts(replacements, Action {
+    replaceTexts(replacements) {
       it.filter.include(textFiles)
       it.filter.exclude(textIgnoredFiles)
-    })
+    }
   }
 
   fun replaceTexts(replacements: Map<String, String>, configurer: Action<in ReplaceContentsRule>) {
@@ -283,7 +274,7 @@ abstract class Config(val fork: ForkExtension, val name: String) {
   }
 
   fun eachFiles(includes: List<String>, excludes: List<String>, action: Action<in FileHandler>) {
-    eachFiles(action, Action {
+    eachFiles(action, {
       it.filter.include(includes)
       it.filter.exclude(excludes)
     })
@@ -292,14 +283,14 @@ abstract class Config(val fork: ForkExtension, val name: String) {
   fun removeFile(path: String) = removeFiles(listOf(path))
 
   fun removeFiles(includes: List<String>, excludes: List<String> = listOf(), cleanEmptyDirs: Boolean = true) {
-    eachFiles(includes, excludes, Action { it.remove() })
+    eachFiles(includes, excludes) { it.remove() }
     if (cleanEmptyDirs) {
       removeEmptyDirs()
     }
   }
 
   fun removeEmptyDirs() {
-    action(Action { it.removeEmptyDirs() })
+    action { it.removeEmptyDirs() }
   }
 
   fun copyTemplateFile(templateName: String) {
@@ -315,11 +306,11 @@ abstract class Config(val fork: ForkExtension, val name: String) {
   }
 
   fun makeFilesExecutable(includes: List<String> = executableFiles, excludes: List<String> = listOf()) {
-    eachFiles(includes, excludes, Action { it.makeExecutable() })
+    eachFiles(includes, excludes) { it.makeExecutable() }
   }
 
   fun action(executor: Action<in ActionRule>) {
-    rule(ActionRule(this, Action {}, executor))
+    rule(ActionRule(this, {}, executor))
   }
 
   fun action(validator: Action<in ActionRule>, executor: Action<in ActionRule>) {
@@ -330,7 +321,7 @@ abstract class Config(val fork: ForkExtension, val name: String) {
     validate()
     execute()
   } catch (e: ForkCancelException) {
-    if (verbose) {
+    if (fork.verbose) {
       throw e
     } else {
       logger.lifecycle(e.message)

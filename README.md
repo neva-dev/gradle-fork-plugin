@@ -44,6 +44,7 @@ You liked or used plugin? Don't forget to **star this project** on GitHub :)
    * [Providing properties](#providing-properties)
    * [Defining project properties](#defining-project-properties)
    * [Password encryption](#password-encryption)
+   * [Advanced options](#advanced-options)
    * [Sample output](#sample-output)
 * [License](#license)
 
@@ -242,6 +243,11 @@ allprojects {
     }
 }
 ```   
+
+#### Advanced options
+
+* `fork.verbose=true` - fail build when GUI dialog is closed (_Execute_ button not clicked),
+* `fork.cached=false` - skip filling dialog with values previously filled.
 
 ### Sample output
 
