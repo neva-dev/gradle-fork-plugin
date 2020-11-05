@@ -83,7 +83,12 @@ open class ForkExtension(val project: Project, val props: PropsExtension) {
     }
   }
 
-  fun loadProperties(path: String) = loadProperties(project.file(path))
+  fun loadProperties(filePath: String) = loadProperties(project.file(filePath))
+
+  fun loadPropertiesFrom(dirPath: String) = project.fileTree(dirPath)
+    .matching { it.include("**/*.properties") }
+    .sorted()
+    .forEach { loadProperties(it) }
 
   // Defining config and task at same time
 
@@ -92,9 +97,10 @@ open class ForkExtension(val project: Project, val props: PropsExtension) {
     options()
   }
 
-  fun useProperties(configName: String, filePath: String) = inPlaceConfig(configName).apply {
+  fun useProperties(configName: String, filePath: String, dirPath: String? = null) = inPlaceConfig(configName).apply {
     copyTemplateFile(filePath)
     loadProperties(filePath)
+    dirPath?.let { loadPropertiesFrom(dirPath) }
 
     project.tasks.register(name, PropertiesTask::class.java, this)
     project.tasks.register("require${name.capitalize()}", RequirePropertiesTask::class.java, this, filePath)
