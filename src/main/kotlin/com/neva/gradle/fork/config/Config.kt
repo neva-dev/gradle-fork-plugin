@@ -7,13 +7,13 @@ import com.neva.gradle.fork.config.properties.*
 import com.neva.gradle.fork.config.rule.*
 import com.neva.gradle.fork.gui.PropertyDialog
 import com.neva.gradle.fork.template.TemplateEngine
+import nu.studer.java.util.OrderedProperties
 import org.apache.commons.io.FilenameUtils
 import org.gradle.api.Action
 import org.gradle.api.file.FileTree
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.util.*
 
 /**
  * Represents set of rules that are using properties to customize files (rename files / dirs, update content etc).
@@ -22,6 +22,8 @@ import java.util.*
 abstract class Config(val fork: ForkExtension, val name: String) {
 
   val project = fork.project
+
+  var description = "Configuration '$name'"
 
   private val rules = mutableListOf<Rule>()
 
@@ -68,6 +70,8 @@ abstract class Config(val fork: ForkExtension, val name: String) {
     val regularFile = templateDir.resolve(templateName)
     return listOf(pebFile, regularFile).firstOrNull { it.exists() }
   }
+
+  fun getSourceFile(sourceName: String) = sourceDir.resolve(sourceName)
 
   fun getTargetFile(targetName: String) = targetDir.resolve(targetName)
 
@@ -153,9 +157,9 @@ abstract class Config(val fork: ForkExtension, val name: String) {
     }
 
     FileInputStream(file).use { input ->
-      val fileProps = Properties()
+      val fileProps = OrderedProperties()
       fileProps.load(input)
-      fileProps.forEach { p, v -> prompts[p.toString()]?.value = v.toString() }
+      fileProps.entrySet().forEach { (p, v) -> prompts[p.toString()]?.value = v.toString() }
     }
   }
 
@@ -163,8 +167,8 @@ abstract class Config(val fork: ForkExtension, val name: String) {
     file.parentFile.mkdirs()
 
     FileOutputStream(file).use { output ->
-      val props = Properties()
-      prompts.values.forEach { prompt -> prompt.valueOrDefault?.also { props[prompt.name] = it } }
+      val props = OrderedProperties()
+      prompts.values.forEach { prompt -> prompt.valueOrDefault?.also { props.setProperty(prompt.name, it) } }
       props.store(output, null)
     }
   }
@@ -293,16 +297,20 @@ abstract class Config(val fork: ForkExtension, val name: String) {
     action { it.removeEmptyDirs() }
   }
 
-  fun copyTemplateFile(templateName: String) {
-    copyTemplateFile(templateName, templateName)
+  fun copyTemplateFile(templateName: String, options: CopyTemplateFilesRule.() -> Unit = {}) {
+    copyTemplateFile(templateName, templateName, options)
   }
 
-  fun copyTemplateFile(templateName: String, targetName: String) {
-    copyTemplateFiles(mapOf(templateName to targetName))
+  fun copyTemplateFile(templateName: String, targetName: String, options: CopyTemplateFilesRule.() -> Unit = {}) {
+    copyTemplateFiles(mapOf(templateName to targetName), options)
   }
 
-  fun copyTemplateFiles(files: Map<String, String>) {
-    rule(CopyTemplateFilesRule(this, files))
+  fun copyTemplateFiles(files: Map<String, String>, options: CopyTemplateFilesRule.() -> Unit = {}) {
+    rule(CopyTemplateFilesRule(this, files).apply(options))
+  }
+
+  fun convertProperties(sourceName: String, options: ConvertPropertiesRule.() -> Unit) {
+    rule(ConvertPropertiesRule(this, sourceName).apply(options))
   }
 
   fun makeFilesExecutable(includes: List<String> = executableFiles, excludes: List<String> = listOf()) {

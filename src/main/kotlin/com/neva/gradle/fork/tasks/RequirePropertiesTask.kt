@@ -6,7 +6,7 @@ import org.gradle.api.DefaultTask
 import javax.inject.Inject
 import com.neva.gradle.fork.config.Config
 
-open class RequirePropertiesTask @Inject constructor(private val config: Config, private val filePath: String) : DefaultTask() {
+open class RequirePropertiesTask @Inject constructor(private val config: Config, private val filePaths: Collection<String>) : DefaultTask() {
 
   init {
     description = "Requires having generated user-specific properties file"
@@ -20,9 +20,11 @@ open class RequirePropertiesTask @Inject constructor(private val config: Config,
   }
 
   private fun requireProperties() {
-    if (!config.getTargetFile(filePath).exists()) {
-      throw ForkException("Required properties file '$filePath' does not exist!\n" +
-        "Run task '${config.name}' to generate it interactively.")
+    for (filePath in filePaths) {
+      if (!config.getTargetFile(filePath).exists()) {
+        throw ForkException("Required properties file '$filePath' does not exist!\n" +
+          "Run task '${config.name}' to generate it interactively.")
+      }
     }
   }
 }

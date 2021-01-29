@@ -33,6 +33,7 @@ dependencies {
     implementation("com.neva.commons:gitignore-file-filter:1.0.0")
     implementation("com.miglayout:miglayout:3.7.4")
     implementation("io.pebbletemplates:pebble:3.1.2")
+    implementation("nu.studer:java-ordered-properties:1.0.4")
 
     testImplementation("junit:junit:4.12")
 

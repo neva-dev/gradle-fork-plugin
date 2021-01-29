@@ -7,18 +7,20 @@ import com.neva.gradle.fork.config.properties.PropertyDefinitions
 import com.neva.gradle.fork.tasks.RequirePropertiesTask
 import com.neva.gradle.fork.tasks.ForkTask
 import com.neva.gradle.fork.tasks.PropertiesTask
+import nu.studer.java.util.OrderedProperties
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.tasks.Internal
 import org.gradle.internal.Actions
 import java.io.File
-import java.util.*
 
 open class ForkExtension(val project: Project, val props: PropsExtension) {
 
   private val logger = project.logger
 
   private val configs = mutableMapOf<String, Config>()
+
+  val defaults = project.findProperty("fork.defaults")?.toString()?.toBoolean() ?: true
 
   val ci = project.objects.property(Boolean::class.java).apply {
     convention(false)
@@ -67,8 +69,8 @@ open class ForkExtension(val project: Project, val props: PropsExtension) {
 
     logger.info("Loading properties from file '$file'")
 
-    val override = project.findProperty("fork.properties.override")?.toString()?.toBoolean() ?: false
-    Properties().apply { file.inputStream().use { load(it.bufferedReader()) } }.forEach { n, v ->
+    val override = project.findProperty("fork.properties.override")?.toString()?.toBoolean() ?: true
+    OrderedProperties().apply { file.inputStream().use { load(it.bufferedReader()) } }.entrySet().forEach { (n, v) ->
       val name = n.toString()
       val value = props.encryptor.decrypt(v as String)!!
 
@@ -107,19 +109,39 @@ open class ForkExtension(val project: Project, val props: PropsExtension) {
     options()
   }
 
-  fun useProperties(configName: String, filePath: String, dirPath: String? = null) = inPlaceConfig(configName).apply {
+  fun useProperties(configName: String, filePath: String, options: Config.() -> Unit = {}) = inPlaceConfig(configName).apply {
     copyTemplateFile(filePath)
     loadProperties(filePath)
-    dirPath?.let { loadPropertiesFrom(dirPath) }
+    options()
 
     project.tasks.register(name, PropertiesTask::class.java, this)
-    project.tasks.register("require${name.capitalize()}", RequirePropertiesTask::class.java, this, filePath)
+    project.tasks.register("require${name.capitalize()}", RequirePropertiesTask::class.java, this, listOf(filePath))
   }
 
-  private fun flag(prop: String, defaultValue: Boolean = false): Boolean {
-    val value = project.properties[prop] as String? ?: return defaultValue
+  fun generateProperties(configName: String, filePath: String, options: Config.() -> Unit = {}): Config {
+    return generateProperties(configName, mapOf(filePath to filePath), options)
+  }
 
-    return if (!value.isBlank()) value.toBoolean() else true
+  fun generateProperties(configName: String, files: Iterable<String>, options: Config.() -> Unit = {}): Config {
+    return generateProperties(configName, files.map { it to it }.toMap(), options)
+  }
+
+  fun generateProperties(configName: String, files: Map<String, String>, options: Config.() -> Unit = {}): Config {
+    return inPlaceConfig(configName).apply {
+      copyTemplateFiles(files)
+      options()
+
+      project.tasks.register(name, PropertiesTask::class.java, this)
+      project.tasks.register("require${name.capitalize()}", RequirePropertiesTask::class.java, this, files.values)
+    }
+  }
+
+  init {
+    if (defaults) {
+      useForking(Config.NAME_FORK)
+      useProperties(Config.NAME_PROPERTIES, "gradle.user.properties")
+      loadPropertiesFrom("gradle/user")
+    }
   }
 
   companion object {
