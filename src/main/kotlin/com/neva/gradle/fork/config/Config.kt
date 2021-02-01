@@ -23,7 +23,17 @@ abstract class Config(val fork: ForkExtension, val name: String) {
 
   val project = fork.project
 
-  var description = "Configuration '$name'"
+  val description = project.objects.property(String::class.java).apply {
+    convention(project.provider { "Configuration '$name'" })
+  }
+
+  val cacheDir = project.objects.directoryProperty().apply {
+    convention(project.layout.projectDirectory.dir(".gradle/fork/config"))
+  }
+
+  val cacheName = project.objects.property(String::class.java).apply {
+    convention(name)
+  }
 
   private val rules = mutableListOf<Rule>()
 
@@ -45,29 +55,37 @@ abstract class Config(val fork: ForkExtension, val name: String) {
 
   val targetTree: FileTree get() = project.fileTree(targetPath)
 
-  var textFiles = mutableListOf(
-    "**/*.gradle", "**/*.xml", "**/*.properties", "**/*.js", "**/*.json", "**/*.css", "**/*.scss",
-    "**/*.java", "**/*.kt", "**/*.kts", "**/*.groovy", "**/*.html", "**/*.jsp"
-  )
+  val textFiles = project.objects.listProperty(String::class.java).apply {
+    set(listOf(
+      "**/*.gradle", "**/*.xml", "**/*.properties", "**/*.js", "**/*.json", "**/*.css", "**/*.scss",
+      "**/*.java", "**/*.kt", "**/*.kts", "**/*.groovy", "**/*.html", "**/*.jsp"
+    ))
+  }
 
-  var executableFiles = mutableListOf(
-    "**/*.sh",
-    "**/*.bat",
-    "**/gradlew",
-    "**/mvnw"
-  )
+  val executableFiles = project.objects.listProperty(String::class.java).apply {
+    set(listOf(
+      "**/*.sh",
+      "**/*.bat",
+      "**/gradlew",
+      "**/mvnw"
+    ))
+  }
 
-  var textIgnoredFiles = mutableListOf(
-    "**/.gradle/*", "**/build/*", "**/node_modules/*", "**/.git/*"
-  )
+  val textIgnoredFiles = project.objects.listProperty(String::class.java).apply {
+      set(listOf(
+        "**/.gradle/*", "**/build/*", "**/node_modules/*", "**/.git/*"
+      ))
+  }
 
-  var templateDir: File = project.file("gradle/fork")
+  val templateDir = project.objects.directoryProperty().apply {
+    convention(project.layout.projectDirectory.dir("gradle/fork"))
+  }
 
   val templateEngine = TemplateEngine(project)
 
   fun findTemplateFile(templateName: String): File? {
-    val pebFile = templateDir.resolve("$templateName.peb")
-    val regularFile = templateDir.resolve(templateName)
+    val pebFile = templateDir.get().asFile.resolve("$templateName.peb")
+    val regularFile = templateDir.get().asFile.resolve(templateName)
     return listOf(pebFile, regularFile).firstOrNull { it.exists() }
   }
 
@@ -77,7 +95,7 @@ abstract class Config(val fork: ForkExtension, val name: String) {
 
   var propsFile = project.file(project.properties.getOrElse("fork.properties") { "fork.properties" } as String)
 
-  private val previousPropsFile = project.projectDir.resolve(".gradle/fork/config/$name.properties")
+  private val previousPropsFile get() = cacheDir.get().asFile.resolve("${cacheName.get()}.properties")
 
   private val logger = project.logger
 
@@ -238,8 +256,8 @@ abstract class Config(val fork: ForkExtension, val name: String) {
 
   fun replaceTexts(replacements: Map<String, String>) {
     replaceTexts(replacements) {
-      it.filter.include(textFiles)
-      it.filter.exclude(textIgnoredFiles)
+      it.filter.include(textFiles.get())
+      it.filter.exclude(textIgnoredFiles.get())
     }
   }
 
@@ -268,13 +286,13 @@ abstract class Config(val fork: ForkExtension, val name: String) {
   fun replaceContent(search: String, replace: String) = replaceText(search, replace)
 
   fun eachTextFiles(action: Action<in FileHandler>) {
-    eachFiles(textFiles, textIgnoredFiles, action)
+    eachFiles(textFiles.get(), textIgnoredFiles.get(), action)
   }
 
   fun eachTextFiles(pattern: String, action: Action<in FileHandler>) = eachTextFiles(listOf(pattern), action)
 
   fun eachTextFiles(patterns: List<String>, action: Action<in FileHandler>) {
-    eachFiles(patterns, textIgnoredFiles, action)
+    eachFiles(patterns, textIgnoredFiles.get(), action)
   }
 
   fun eachFiles(includes: List<String>, excludes: List<String>, action: Action<in FileHandler>) {
@@ -313,7 +331,7 @@ abstract class Config(val fork: ForkExtension, val name: String) {
     rule(ConvertPropertiesRule(this, sourceName).apply(options))
   }
 
-  fun makeFilesExecutable(includes: List<String> = executableFiles, excludes: List<String> = listOf()) {
+  fun makeFilesExecutable(includes: List<String> = executableFiles.get(), excludes: List<String> = listOf()) {
     eachFiles(includes, excludes) { it.makeExecutable() }
   }
 

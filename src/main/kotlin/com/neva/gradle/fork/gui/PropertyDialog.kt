@@ -22,7 +22,7 @@ class PropertyDialog(private val config: Config) {
   }
 
   private val dialog = JDialog().apply {
-    title = config.description
+    title = config.description.get()
     layout = MigLayout(
       "insets 10 10 10 10",
       "[fill,grow][fill,grow]",
