@@ -1,22 +1,43 @@
 package com.neva.gradle.fork
 
+import com.neva.gradle.fork.config.properties.PropertyType
 import com.neva.gradle.fork.encryption.Encryption
+import nu.studer.java.util.OrderedProperties
+import org.apache.commons.io.FilenameUtils
 import org.gradle.api.Project
+import java.io.File
 
 open class PropsExtension(private val project: Project) {
 
-  internal val encryptor = Encryption.of(project)
+  internal val encryptor by lazy { Encryption.of(project) }
 
-  fun named(name: String): String? {
+  private val encrypted get() = project.extensions.findByType(ForkExtension::class.java)
+      ?.propertyDefinitions?.all.orEmpty().asSequence()
+      .filter { it.type == PropertyType.PASSWORD }.map { it.name }.toList()
+
+  fun read(file: File): Map<String, String?> {
+    val properties = OrderedProperties().apply { file.inputStream().use { load(it.bufferedReader()) } }
+    return properties.entrySet().map { (k, v) -> k to decrypt(k, v) }.toMap()
+  }
+
+  operator fun get(name: String): String? {
     val value = project.findProperty(name)?.toString()
     if (value.isNullOrBlank()) {
       return value
     }
 
-    return encryptor.decrypt(value)
+    return decrypt(name, value)
   }
 
-  operator fun get(name: String) = named(name)
+  private fun decrypt(name: String, value: String?) = when {
+    value.isNullOrBlank() -> value
+    encrypted.contains(name) || isEncrypted(value) -> encryptor.decrypt(value)
+    else -> value
+  }
+
+  private fun isEncrypted(text: String): Boolean {
+    return FilenameUtils.wildcardMatch(text, "{*=}")
+  }
 
   companion object {
 

@@ -7,7 +7,6 @@ import com.neva.gradle.fork.config.properties.PropertyDefinitions
 import com.neva.gradle.fork.tasks.RequirePropertiesTask
 import com.neva.gradle.fork.tasks.ForkTask
 import com.neva.gradle.fork.tasks.PropertiesTask
-import nu.studer.java.util.OrderedProperties
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.tasks.Internal
@@ -68,12 +67,8 @@ open class ForkExtension(val project: Project, val props: PropsExtension) {
     }
 
     logger.info("Loading properties from file '$file'")
-
     val override = project.findProperty("fork.properties.override")?.toString()?.toBoolean() ?: true
-    OrderedProperties().apply { file.inputStream().use { load(it.bufferedReader()) } }.entrySet().forEach { (n, v) ->
-      val name = n.toString()
-      val value = props.encryptor.decrypt(v as String)!!
-
+    props.read(file).forEach { (name, value) ->
       when {
         name.startsWith(SYSTEM_PROP_PREFIX) -> System.setProperty(name.substringAfter(SYSTEM_PROP_PREFIX), value)
         else -> {

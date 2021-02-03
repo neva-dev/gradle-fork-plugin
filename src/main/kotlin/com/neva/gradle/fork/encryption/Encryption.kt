@@ -1,7 +1,6 @@
 package com.neva.gradle.fork.encryption
 
 import com.neva.gradle.fork.ForkException
-import org.apache.commons.io.FilenameUtils
 import org.gradle.api.Project
 import javax.crypto.Cipher
 import javax.crypto.SecretKeyFactory
@@ -22,7 +21,7 @@ internal class Encryption private constructor(private val ecipher: Cipher, priva
 
   @Suppress("TooGenericExceptionCaught")
   fun encrypt(text: String?): String? {
-    if (text.isNullOrBlank() || isEncrypted(text)) {
+    if (text.isNullOrBlank()) {
       return text
     }
 
@@ -35,13 +34,9 @@ internal class Encryption private constructor(private val ecipher: Cipher, priva
     }
   }
 
-  private fun isEncrypted(text: String): Boolean {
-    return FilenameUtils.wildcardMatch(text, "{*=}")
-  }
-
   @Suppress("TooGenericExceptionCaught")
   fun decrypt(text: String?): String? {
-    if (text.isNullOrBlank() || !isEncrypted(text)) {
+    if (text.isNullOrBlank()) {
       return text
     }
 
