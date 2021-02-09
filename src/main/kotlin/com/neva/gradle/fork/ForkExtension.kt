@@ -104,13 +104,15 @@ open class ForkExtension(val project: Project, val props: PropsExtension) {
     options()
   }
 
-  fun useProperties(configName: String, filePath: String, options: Config.() -> Unit = {}) = inPlaceConfig(configName).apply {
-    copyTemplateFile(filePath)
-    loadProperties(filePath)
+  fun useProperties(configName: String, filePath: String, options: Config.() -> Unit = {}) = useProperties(configName, filePath, filePath, options)
+
+  fun useProperties(configName: String, fileSourcePath: String, fileTargetPath: String, options: Config.() -> Unit = {}) = inPlaceConfig(configName).apply {
+    copyTemplateFile(fileSourcePath, fileTargetPath)
+    loadProperties(fileTargetPath)
     options()
 
     project.tasks.register(name, PropertiesTask::class.java, this)
-    project.tasks.register("require${name.capitalize()}", RequirePropertiesTask::class.java, this, listOf(filePath))
+    project.tasks.register("require${name.capitalize()}", RequirePropertiesTask::class.java, this, listOf(fileTargetPath))
   }
 
   fun generateProperties(configName: String, filePath: String, options: Config.() -> Unit = {}): Config {
