@@ -35,6 +35,10 @@ abstract class Config(val fork: ForkExtension, val name: String) {
     convention(name)
   }
 
+  val propsFile = project.objects.fileProperty().apply {
+    set(project.file(project.findProperty("fork.properties")?.toString() ?: "fork.properties"))
+  }
+
   private val rules = mutableListOf<Rule>()
 
   private val prompts = mutableMapOf<String, PropertyPrompt>()
@@ -93,8 +97,6 @@ abstract class Config(val fork: ForkExtension, val name: String) {
 
   fun getTargetFile(targetName: String) = targetDir.resolve(targetName)
 
-  var propsFile = project.file(project.properties.getOrElse("fork.properties") { "fork.properties" } as String)
-
   private val previousPropsFile get() = cacheDir.get().asFile.resolve("${cacheName.get()}.properties")
 
   private val logger = project.logger
@@ -145,7 +147,7 @@ abstract class Config(val fork: ForkExtension, val name: String) {
       promptFillPropertiesFile(previousPropsFile)
     }
     try {
-      promptFillPropertiesFile(propsFile)
+      promptFillPropertiesFile(propsFile.get().asFile)
       promptPreProcess()
 
       promptFillCommandLine()
@@ -210,7 +212,7 @@ abstract class Config(val fork: ForkExtension, val name: String) {
     val invalidProps = definedProperties.filter(Property::invalid).map { it.name }
     if (invalidProps.isNotEmpty()) {
       throw ForkException("Configuration '$name' cannot be evaluated because of missing or invalid properties: $invalidProps." +
-        " Specify them via properties file $propsFile or interactive mode.")
+        " Specify them via properties file ${propsFile.get()} or interactive mode.")
     }
   }
 

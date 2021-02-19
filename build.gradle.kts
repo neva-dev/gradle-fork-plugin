@@ -24,7 +24,7 @@ repositories {
 
 dependencies {
     implementation(gradleApi())
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.4.0")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.4.20")
     implementation("org.apache.commons:commons-lang3:3.10")
     implementation("commons-io:commons-io:2.6")
     implementation("commons-validator:commons-validator:1.6")

@@ -26,19 +26,36 @@ open class ForkExtension(val project: Project, val props: PropsExtension) {
     project.findProperty("fork.ci")?.toString()?.toBoolean()?.let { set(it) }
   }
 
+  /**
+   * Do not use previously filled values on dialog (regardless configuration executed or not).
+   */
   val cached = project.objects.property(Boolean::class.java).apply {
     convention(ci.map { !it })
     project.findProperty("fork.cached")?.toString()?.toBoolean()?.let { set(it) }
   }
 
+  /**
+   * Do not try to show GUI dialog. Expect to provide properties using '-PforkProp.name=value' or via
+   */
   val interactive = project.objects.property(Boolean::class.java).apply {
     convention(ci.map { !it })
     project.findProperty("fork.interactive")?.toString()?.toBoolean()?.let { set(it) }
   }
 
+  /**
+   * Fail build when configuration is not executed after showing GUI dialog.
+   */
   val verbose = project.objects.property(Boolean::class.java).apply {
     convention(ci)
     project.findProperty("fork.verbose")?.toString()?.toBoolean()?.let { set(it) }
+  }
+
+  /**
+   * Override already defined properties (both gradle.properties and provided via CLI)
+   */
+  val override = project.objects.property(Boolean::class.java).apply {
+    convention(false)
+    project.findProperty("fork.override")?.toString()?.toBoolean()?.let { set(it) }
   }
 
   fun config(name: String = Config.NAME_FORK, configurer: Action<in SourceTargetConfig> = Actions.doNothing()): Config {
@@ -60,14 +77,13 @@ open class ForkExtension(val project: Project, val props: PropsExtension) {
     action.execute(propertyDefinitions)
   }
 
-  fun loadProperties(file: File) {
+  fun loadProperties(file: File, override: Boolean = this.override.get()) {
     if (!file.exists()) {
       logger.debug("Properties not loaded as properties file does not exist '$file'!")
       return
     }
 
     logger.info("Loading properties from file '$file'")
-    val override = project.findProperty("fork.properties.override")?.toString()?.toBoolean() ?: true
     props.read(file).forEach { (name, value) ->
       when {
         name.startsWith(SYSTEM_PROP_PREFIX) -> System.setProperty(name.substringAfter(SYSTEM_PROP_PREFIX), value)
