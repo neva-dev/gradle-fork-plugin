@@ -30,9 +30,7 @@ class CopyTemplateFilesRule(config: Config, private val files: Map<String, Strin
       val templateFile = config.findTemplateFile(templateName)
       if (templateFile != null) {
         val targetFile = config.getTargetFile(targetName)
-
-        FileHandler(config, templateFile).copy(targetFile).perform()
-        FileHandler(config, targetFile).expand()
+        FileHandler(config, templateFile).copyAndExpand(targetFile)
       } else {
         logger.warn("Fork template file does not exist: $templateName")
       }

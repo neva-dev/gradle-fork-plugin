@@ -137,6 +137,19 @@ class FileHandler(val config: Config, val file: File) {
     return this
   }
 
+  fun copyAndExpand(targetFile: File): FileHandler {
+    val targetFileTmp = targetFile.parentFile.resolve("${targetFile.name}.tmp")
+    try {
+      copy(targetFileTmp).perform()
+      FileHandler(config, targetFileTmp).expand()
+      targetFileTmp.renameTo(targetFile)
+    } finally {
+      targetFileTmp.delete()
+    }
+
+    return this
+  }
+
   fun render(template: String): String = config.renderTemplate(template)
 
   override fun toString(): String {

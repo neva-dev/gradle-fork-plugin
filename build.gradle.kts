@@ -28,7 +28,7 @@ dependencies {
     implementation("org.apache.commons:commons-lang3:3.10")
     implementation("commons-io:commons-io:2.6")
     implementation("commons-validator:commons-validator:1.6")
-    implementation("commons-codec:commons-codec:1.14")
+    implementation("commons-codec:commons-codec:1.15")
 
     implementation("com.neva.commons:gitignore-file-filter:1.0.0")
     implementation("com.miglayout:miglayout:3.7.4")
