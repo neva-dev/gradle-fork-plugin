@@ -197,6 +197,9 @@ abstract class Config(val fork: ForkExtension, val name: String) {
     if (prompts.isEmpty()) {
       return
     }
+
+    definedProperties.forEach { it.control() }
+
     if (fork.interactive.get()) {
       val dialog = PropertyDialog.make(this)
       dialog.props.forEach { (p, v) -> prompts[p]?.value = v }
