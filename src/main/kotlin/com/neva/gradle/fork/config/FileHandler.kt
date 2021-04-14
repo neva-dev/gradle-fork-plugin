@@ -142,7 +142,7 @@ class FileHandler(val config: Config, val file: File) {
     try {
       copy(targetFileTmp).perform()
       FileHandler(config, targetFileTmp).expand()
-      targetFileTmp.renameTo(targetFile)
+      targetFileTmp.copyTo(targetFile, true)
     } finally {
       targetFileTmp.delete()
     }
