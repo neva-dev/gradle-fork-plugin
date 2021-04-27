@@ -1,6 +1,5 @@
 package com.neva.gradle.fork
 
-import com.neva.gradle.fork.config.properties.PropertyType
 import com.neva.gradle.fork.encryption.Encryption
 import nu.studer.java.util.OrderedProperties
 import org.apache.commons.io.FilenameUtils
@@ -11,13 +10,9 @@ open class PropsExtension(private val project: Project) {
 
   internal val encryptor by lazy { Encryption.of(project) }
 
-  private val encrypted get() = project.extensions.findByType(ForkExtension::class.java)
-      ?.propertyDefinitions?.all.orEmpty().asSequence()
-      .filter { it.type == PropertyType.PASSWORD }.map { it.name }.toList()
-
   fun read(file: File): Map<String, String?> {
     val properties = OrderedProperties().apply { file.inputStream().use { load(it.bufferedReader()) } }
-    return properties.entrySet().map { (k, v) -> k to decrypt(k, v) }.toMap()
+    return properties.entrySet().map { (k, v) -> k to encryptor.decrypt(v) }.toMap()
   }
 
   operator fun get(name: String): String? {
@@ -26,13 +21,7 @@ open class PropsExtension(private val project: Project) {
       return value
     }
 
-    return decrypt(name, value)
-  }
-
-  private fun decrypt(name: String, value: String?) = when {
-    value.isNullOrBlank() -> value
-    encrypted.contains(name) || isEncrypted(value) -> encryptor.decrypt(value)
-    else -> value
+    return encryptor.decrypt(value)
   }
 
   private fun isEncrypted(text: String): Boolean {

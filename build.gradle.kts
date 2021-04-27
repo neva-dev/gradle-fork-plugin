@@ -1,4 +1,3 @@
-import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -7,7 +6,6 @@ plugins {
     id("io.gitlab.arturbosch.detekt")
     id("org.jetbrains.dokka")
     id("net.researchgate.release")
-    id("com.jfrog.bintray")
     id("com.gradle.plugin-publish")
     id("maven-publish")
     id("com.github.breadmoirai.github-release")
@@ -70,7 +68,7 @@ tasks {
     }
 
     named("afterReleaseBuild") {
-        dependsOn("bintrayUpload", "publishPlugins")
+        dependsOn("publishPlugins")
     }
     register("fullRelease") {
         dependsOn("release", "githubRelease")
@@ -119,27 +117,6 @@ publishing {
             artifact(tasks["javadocJar"])
         }
     }
-}
-
-bintray {
-    user = (project.findProperty("bintray.user") ?: System.getenv("BINTRAY_USER"))?.toString()
-    key = (project.findProperty("bintray.key") ?: System.getenv("BINTRAY_KEY"))?.toString()
-    setPublications("mavenJava")
-    with(pkg) {
-        repo = "maven-public"
-        name = "gradle-fork-plugin"
-        userOrg = "neva-dev"
-        setLicenses("Apache-2.0")
-        vcsUrl = "https://github.com/neva-dev/gradle-fork-plugin.git"
-        setLabels("gradle", "archetype", "template")
-        with(version) {
-            name = project.version.toString()
-            desc = "${project.description} ${project.version}"
-            vcsTag = project.version.toString()
-        }
-    }
-    publish = (project.findProperty("bintray.publish") ?: "true").toString().toBoolean()
-    override = (project.findProperty("bintray.override") ?: "false").toString().toBoolean()
 }
 
 githubRelease {

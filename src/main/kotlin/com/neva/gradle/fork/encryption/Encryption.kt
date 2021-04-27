@@ -28,7 +28,7 @@ internal class Encryption private constructor(private val ecipher: Cipher, priva
     try {
       val utf8 = text.toByteArray(charset(CHARSET))
       val enc = ecipher.doFinal(utf8)
-      return "{${encode(enc)}}"
+      return "${TOKEN_START}${encode(enc)}${TOKEN_END}"
     } catch (e: Exception) {
       throw ForkException("Encryption failed", e)
     }
@@ -36,12 +36,12 @@ internal class Encryption private constructor(private val ecipher: Cipher, priva
 
   @Suppress("TooGenericExceptionCaught")
   fun decrypt(text: String?): String? {
-    if (text.isNullOrBlank()) {
+    if (text.isNullOrBlank() || !isEncrypted(text)) {
       return text
     }
 
     try {
-      val raw = text.removeSurrounding("{", "}")
+      val raw = text.removeSurrounding(TOKEN_START, TOKEN_END)
       val dec = decode(raw)
       val utf8 = dcipher.doFinal(dec)
       return String(utf8, charset(CHARSET))
@@ -50,11 +50,23 @@ internal class Encryption private constructor(private val ecipher: Cipher, priva
     }
   }
 
+  fun isEncrypted(text: String?): Boolean {
+    if (text.isNullOrBlank()) {
+      return false
+    }
+
+    return text.startsWith(TOKEN_START) && text.endsWith(TOKEN_END)
+  }
+
   companion object {
 
     private val BASE64 = org.apache.commons.codec.binary.Base64(0, byteArrayOf('\r'.toByte(), '\n'.toByte()), false)
 
     private const val CHARSET = "UTF8"
+
+    private const val TOKEN_START = "{fp/}"
+
+    private const val TOKEN_END = "{/fp}"
 
     @Suppress("MagicNumber")
     internal fun of(passphrase: CharArray): Encryption {
