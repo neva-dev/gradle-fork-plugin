@@ -28,7 +28,7 @@ internal class Encryption private constructor(private val ecipher: Cipher, priva
     try {
       val utf8 = text.toByteArray(charset(CHARSET))
       val enc = ecipher.doFinal(utf8)
-      return "${TOKEN_START}${encode(enc)}${TOKEN_END}"
+      return "${TOKEN_START}${encode(enc)}$TOKEN_END"
     } catch (e: Exception) {
       throw ForkException("Encryption failed", e)
     }
