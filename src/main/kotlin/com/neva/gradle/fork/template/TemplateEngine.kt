@@ -3,11 +3,13 @@ package com.neva.gradle.fork.template
 import com.mitchellbosecke.pebble.PebbleEngine
 import com.mitchellbosecke.pebble.lexer.Syntax
 import com.mitchellbosecke.pebble.loader.StringLoader
-import org.gradle.api.Project
+import com.neva.gradle.fork.ForkExtension
 import java.io.StringWriter
 import java.util.regex.Pattern
 
-class TemplateEngine(val project: Project) {
+class TemplateEngine(val fork: ForkExtension) {
+
+  private val project = fork.project
 
   private val projectProperties by lazy {
     mapOf("prop" to project.properties)
@@ -25,10 +27,28 @@ class TemplateEngine(val project: Project) {
     mapOf("system" to result)
   }
 
+  private val engine by lazy {
+    PebbleEngine.Builder()
+      .extension(TemplateExtension(fork.props))
+      .autoEscaping(false)
+      .cacheActive(false)
+      .strictVariables(true)
+      .newLineTrimming(false)
+      .loader(StringLoader())
+      .syntax(
+        Syntax.Builder()
+          .setEnableNewLineTrimming(false)
+          .setPrintOpenDelimiter(VAR_PREFIX)
+          .setPrintCloseDelimiter(VAR_SUFFIX)
+          .build()
+      )
+      .build()
+  }
+
   fun render(template: String, props: Map<String, Any?>): String {
     val effectiveProps = envProperties + systemProperties + projectProperties + props
     val renderer = StringWriter()
-    ENGINE.getTemplate(template).evaluate(renderer, effectiveProps)
+    engine.getTemplate(template).evaluate(renderer, effectiveProps)
 
     return renderer.toString()
   }
@@ -60,20 +80,5 @@ class TemplateEngine(val project: Project) {
     private const val VAR_PREFIX = "{{"
 
     private const val VAR_SUFFIX = "}}"
-
-    private val ENGINE = PebbleEngine.Builder()
-      .extension(TemplateExtension())
-      .autoEscaping(false)
-      .cacheActive(false)
-      .strictVariables(true)
-      .newLineTrimming(false)
-      .loader(StringLoader())
-      .syntax(Syntax.Builder()
-        .setEnableNewLineTrimming(false)
-        .setPrintOpenDelimiter(VAR_PREFIX)
-        .setPrintCloseDelimiter(VAR_SUFFIX)
-        .build()
-      )
-      .build()
   }
 }

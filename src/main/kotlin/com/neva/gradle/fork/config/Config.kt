@@ -85,7 +85,7 @@ abstract class Config(val fork: ForkExtension, val name: String) {
     convention(project.layout.projectDirectory.dir("gradle/fork"))
   }
 
-  val templateEngine = TemplateEngine(project)
+  val templateEngine = TemplateEngine(fork)
 
   fun findTemplateFile(templateName: String): File? {
     val pebFile = templateDir.get().asFile.resolve("$templateName.peb")
