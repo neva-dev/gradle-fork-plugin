@@ -18,6 +18,7 @@ class PropertyDialog(private val config: Config) {
   private val fileChooser by lazy {
     JFileChooser().apply {
       fileSelectionMode = JFileChooser.FILES_AND_DIRECTORIES
+      isFileHidingEnabled = false
     }
   }
 
