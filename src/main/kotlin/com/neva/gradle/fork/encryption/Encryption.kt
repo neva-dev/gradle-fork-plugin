@@ -20,7 +20,7 @@ internal class Encryption private constructor(private val ecipher: Cipher, priva
   private fun decode(string: String): ByteArray = BASE64.decode(string)
 
   @Suppress("TooGenericExceptionCaught")
-  fun encrypt(text: String?): String? {
+  fun encrypt(text: String?, context: String? = null): String? {
     if (text.isNullOrBlank()) {
       return text
     }
@@ -30,23 +30,27 @@ internal class Encryption private constructor(private val ecipher: Cipher, priva
       val enc = ecipher.doFinal(utf8)
       return "${TOKEN_START}${encode(enc)}$TOKEN_END"
     } catch (e: Exception) {
-      throw ForkException("Encryption failed", e)
+      throw ForkException("Fork property encryption failed! Context: '${context.orEmpty()}'", e)
     }
   }
 
   @Suppress("TooGenericExceptionCaught")
-  fun decrypt(text: String?): String? {
+  fun decrypt(text: String?, context: String? = null): String? {
     if (text.isNullOrBlank() || !isEncrypted(text)) {
       return text
     }
 
+    val raw = text.removeSurrounding(TOKEN_START, TOKEN_END)
     try {
-      val raw = text.removeSurrounding(TOKEN_START, TOKEN_END)
       val dec = decode(raw)
       val utf8 = dcipher.doFinal(dec)
       return String(utf8, charset(CHARSET))
     } catch (e: Exception) {
-      throw ForkException("Decryption failed", e)
+      throw ForkException(listOf(
+        "Fork property decryption failed! Context: '${context.orEmpty()}'",
+        "Most probably encrypted value got corrupted or salt/key changed in the meantime.",
+        "Consider regenerating encrypted values to fix the problem."
+      ).joinToString("\n"), e)
     }
   }
 
@@ -109,8 +113,7 @@ internal class Encryption private constructor(private val ecipher: Cipher, priva
     }
 
     internal fun of(project: Project): Encryption {
-      return of((project.findProperty("fork.encryption.passphrase")?.toString()
-        ?: "<<Default passphrase to encrypt passwords!>>").toCharArray())
+      return of((project.findProperty("fork.encryption.passphrase")?.toString() ?: "aPJdETzzmmA7liO8aHNW").toCharArray())
     }
   }
 }

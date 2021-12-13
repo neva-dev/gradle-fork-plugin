@@ -12,7 +12,7 @@ open class PropsExtension(private val project: Project) {
 
   fun read(file: File): Map<String, String?> {
     val properties = OrderedProperties().apply { file.inputStream().use { load(it.bufferedReader()) } }
-    return properties.entrySet().map { (k, v) -> k to encryptor.decrypt(v) }.toMap()
+    return properties.entrySet().associate { (k, v) -> k to encryptor.decrypt(v, k) }
   }
 
   operator fun get(name: String): String? {
@@ -21,7 +21,7 @@ open class PropsExtension(private val project: Project) {
       return value
     }
 
-    return encryptor.decrypt(value)
+    return encryptor.decrypt(value, name)
   }
 
   private fun isEncrypted(text: String): Boolean {

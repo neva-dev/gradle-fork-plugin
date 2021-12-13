@@ -222,7 +222,7 @@ abstract class Config(val fork: ForkExtension, val name: String) {
   private fun promptPreProcess() {
     definedProperties.forEach { property ->
       if (property.type == PropertyType.PASSWORD) {
-        prompts[property.name]?.apply { value = fork.props.encryptor.decrypt(value) }
+        prompts[property.name]?.apply { value = fork.props.encryptor.decrypt(value, property.name) }
       }
     }
   }
@@ -230,7 +230,7 @@ abstract class Config(val fork: ForkExtension, val name: String) {
   private fun promptPostProcess() {
     definedProperties.forEach { property ->
       if (property.type == PropertyType.PASSWORD) {
-        prompts[property.name]?.apply { value = fork.props.encryptor.encrypt(value) }
+        prompts[property.name]?.apply { value = fork.props.encryptor.encrypt(value, property.name) }
       }
     }
   }
