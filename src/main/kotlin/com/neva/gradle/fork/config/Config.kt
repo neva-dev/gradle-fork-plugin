@@ -229,6 +229,9 @@ abstract class Config(val fork: ForkExtension, val name: String) {
 
   private fun promptPostProcess() {
     definedProperties.forEach { property ->
+      if (property.type == PropertyType.URI || property.type == PropertyType.PATH) {
+        prompts[property.name]?.apply { value = value?.replace("\\", "/") }
+      }
       if (property.type == PropertyType.PASSWORD) {
         prompts[property.name]?.apply { value = fork.props.encryptor.encrypt(value, property.name) }
       }

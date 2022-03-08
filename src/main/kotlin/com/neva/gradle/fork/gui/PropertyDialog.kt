@@ -122,7 +122,7 @@ class PropertyDialog(private val config: Config) {
         if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
           fieldFocused!!.document.insertString(
             fieldFocused!!.caretPosition,
-            fileChooser.selectedFile.absolutePath.replace("\\", "/"),
+            fileChooser.selectedFile.absolutePath,
             null
           )
         }
