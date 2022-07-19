@@ -15,6 +15,16 @@ group = "com.neva.gradle"
 description = "Gradle Fork Plugin"
 defaultTasks("clean", "publishToMavenLocal")
 
+val functionalTestSourceSet = sourceSets.create("functionalTest")
+gradlePlugin.testSourceSets(functionalTestSourceSet)
+configurations.getByName("functionalTestImplementation").extendsFrom(configurations.getByName("testImplementation"))
+
+val functionalTest by tasks.creating(Test::class) {
+    testClassesDirs = functionalTestSourceSet.output.classesDirs
+    classpath = functionalTestSourceSet.runtimeClasspath
+    dependsOn("detektFunctionalTest")
+}
+
 repositories {
     mavenLocal()
     jcenter()
@@ -33,26 +43,30 @@ dependencies {
     implementation("io.pebbletemplates:pebble:3.1.2")
     implementation("nu.studer:java-ordered-properties:1.0.4")
 
-    testImplementation("junit:junit:4.12")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.8.2")
 
     "detektPlugins"("io.gitlab.arturbosch.detekt:detekt-formatting:${properties["detekt.version"]}")
 }
 
-tasks {
-    register<Jar>("sourcesJar") {
-        archiveClassifier.set("sources")
-        dependsOn("classes")
-        from(sourceSets["main"].allSource)
-    }
-    dokkaJavadoc {
-        outputDirectory = "$buildDir/javadoc"
-    }
-    register<Jar>("javadocJar") {
-        archiveClassifier.set("javadoc")
-        dependsOn("dokkaJavadoc")
-        from("$buildDir/javadoc")
-    }
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
 
+tasks {
+    withType<JavaCompile>().configureEach{
+        sourceCompatibility = JavaVersion.VERSION_1_8.toString()
+        targetCompatibility = JavaVersion.VERSION_1_8.toString()
+    }
+    withType<Test>().configureEach {
+        testLogging.showStandardStreams = true
+        useJUnitPlatform()
+    }
+    withType<KotlinCompile>().configureEach {
+        kotlinOptions {
+            jvmTarget = JavaVersion.VERSION_1_8.toString()
+        }
+    }
     named("build") { 
         dependsOn("sourcesJar")
     }
@@ -60,13 +74,6 @@ tasks {
     named("publishToMavenLocal") { 
         dependsOn("sourcesJar")
     }
-    
-    withType<KotlinCompile>().configureEach {
-        kotlinOptions {
-            jvmTarget = "1.8"
-        }
-    }
-
     named("afterReleaseBuild") {
         dependsOn("publishPlugins")
     }
@@ -75,6 +82,9 @@ tasks {
     }
     named("githubRelease") {
         mustRunAfter("release")
+    }
+    check {
+        dependsOn(functionalTest)
     }
 }
 
@@ -113,8 +123,6 @@ publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
-            artifact(tasks["sourcesJar"])
-            artifact(tasks["javadocJar"])
         }
     }
 }
