@@ -73,6 +73,19 @@ class Property(
     }
   }
 
+  fun clear(flag: Boolean, vararg names: String) = clear(flag, names.toList())
+
+  fun clear(flag: Boolean, patterns: List<String>) {
+    for (pattern in patterns) {
+      val others = others(pattern)
+      if (flag) {
+        for (property in others) {
+          property.value = ""
+        }
+      }
+    }
+  }
+
   fun other(name: String) = context.get(name)
 
   fun others(pattern: String) = context.find(pattern)
