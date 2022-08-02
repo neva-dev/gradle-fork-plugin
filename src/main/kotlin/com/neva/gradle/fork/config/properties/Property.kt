@@ -86,20 +86,6 @@ class Property(
     }
   }
 
-  fun force(flag: Boolean, value: String, vararg names: String) = force(flag, value, names.toList())
-
-  fun force(flag: Boolean, value: String, patterns: List<String>) {
-    for (pattern in patterns) {
-      val others = others(pattern)
-      for (property in others) {
-        if (flag) {
-          property.value = value
-        }
-        property.enabled = !flag
-      }
-    }
-  }
-
   fun other(name: String) = context.get(name)
 
   fun others(pattern: String) = context.find(pattern)
